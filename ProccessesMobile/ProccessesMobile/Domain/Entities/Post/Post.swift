@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Post: Equatable, Sendable, Codable {
+struct Post: Equatable, Sendable {
     let id: UUID
     let title: String
     let content: String?

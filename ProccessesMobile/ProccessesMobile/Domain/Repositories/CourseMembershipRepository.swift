@@ -5,8 +5,10 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
 protocol CourseMembershipRepository: Sendable {
-    func joinCourse(code: String) async throws -> Course
-    func leaveCourse(courseId: String) async throws
+    func joinCourse(_ command: JoinCourseCodeCommand) async throws -> Course
+    func leaveCourse(_ command: LeaveCourseCommand) async throws
 }
+

@@ -9,8 +9,8 @@
 import Foundation
 
 enum AuthEndpoint: Endpoint {
-    case login(LoginRequest, baseURL: URL)
-    case register(RegisterRequest, baseURL: URL)
+    case login(LoginRequestDTO, baseURL: URL)
+    case register(RegisterRequestDTO, baseURL: URL)
     case me(baseURL: URL)
     
     var baseURL: URL {

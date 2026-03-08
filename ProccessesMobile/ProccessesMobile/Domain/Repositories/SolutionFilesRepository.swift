@@ -8,8 +8,8 @@
 import Foundation
 
 protocol SolutionFilesRepository: Sendable {
-    func listSolutionFiles(courseId: String, postId: String, solutionId: String) async throws -> [AttachedFile]
-    func uploadSolutionFile(courseId: String, postId: String, solutionId: String, request: UploadFileRequest) async throws -> AttachedFile
-    func deleteSolutionFile(courseId: String, postId: String, solutionId: String, fileId: String) async throws
-    func downloadSolutionFile(courseId: String, postId: String, solutionId: String, fileId: String) async throws -> Data
+    func listSolutionFiles(_ query: ListSolutionFilesQuery) async throws -> [AttachedFile]
+    func uploadSolutionFile(_ command: UploadSolutionFileCommand) async throws -> AttachedFile
+    func deleteSolutionFile(_ command: DeleteSolutionFileCommand) async throws
+    func downloadSolutionFile(_ query: DownloadSolutionFileQuery) async throws -> Data
 }

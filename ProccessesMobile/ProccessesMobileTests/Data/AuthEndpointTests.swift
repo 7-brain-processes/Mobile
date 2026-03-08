@@ -16,7 +16,7 @@ struct AuthEndpointTests {
     
     @Test("Login endpoint maps correctly to URLRequest")
     func loginEndpointMapping() throws {
-        let requestDto = LoginRequest(username: "johndoe", password: "password123")
+        let requestDto = LoginCommand(username: "johndoe", password: "password123")
         let endpoint = AuthEndpoint.login(requestDto, baseURL: baseURL)
         
         let urlRequest = try endpoint.makeURLRequest()
@@ -25,7 +25,7 @@ struct AuthEndpointTests {
         #expect(urlRequest.httpMethod == "POST")
         #expect(urlRequest.value(forHTTPHeaderField: "Content-Type") == "application/json")
         
-        let decodedBody = try JSONDecoder().decode(LoginRequest.self, from: urlRequest.httpBody!)
+        let decodedBody = try JSONDecoder().decode(LoginCommand.self, from: urlRequest.httpBody!)
         #expect(decodedBody.username == "johndoe")
     }
     

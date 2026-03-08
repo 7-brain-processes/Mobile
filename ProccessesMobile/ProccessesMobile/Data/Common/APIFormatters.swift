@@ -7,6 +7,13 @@
 
 import Foundation
 
+//enum DateParser {
+//    static func parse(_ string: String) -> Date? {
+//        APIFormatters.iso8601WithFractionalSeconds.date(from: string)
+//        ?? APIFormatters.iso8601.date(from: string)
+//    }
+//}
+
 enum APIFormatters {
     static let iso8601WithFractionalSeconds: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()

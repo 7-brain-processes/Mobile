@@ -9,8 +9,8 @@ import Foundation
 
 enum SolutionCommentsEndpoint {
     case list(courseId: String, postId: String, solutionId: String, page: Int, size: Int, baseURL: URL)
-    case create(courseId: String, postId: String, solutionId: String, request: CreateCommentRequest, baseURL: URL)
-    case update(courseId: String, postId: String, solutionId: String, commentId: String, request: CreateCommentRequest, baseURL: URL)
+    case create(courseId: String, postId: String, solutionId: String, request: CreateCommentRequestDTO, baseURL: URL)
+    case update(courseId: String, postId: String, solutionId: String, commentId: String, request: CreateCommentRequestDTO, baseURL: URL)
     case delete(courseId: String, postId: String, solutionId: String, commentId: String, baseURL: URL)
     
     func makeURLRequest() throws -> URLRequest {

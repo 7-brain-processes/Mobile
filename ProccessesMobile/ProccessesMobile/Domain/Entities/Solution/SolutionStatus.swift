@@ -11,3 +11,12 @@ enum SolutionStatus: String, Codable, Equatable, Sendable {
     case submitted = "SUBMITTED"
     case graded = "GRADED"
 }
+
+extension SolutionStatus {
+    func toDTO() -> SolutionStatusDTO {
+        switch self {
+        case .submitted: return .submitted
+        case .graded: return .graded
+        }
+    }
+}

@@ -1,0 +1,21 @@
+//
+//  UpdateSolutionCommand.swift
+//  ProccessesMobile
+//
+//  Created by Tark Wight on 08.03.2026.
+//
+
+import Foundation
+
+struct UpdateSolutionCommand: Equatable, Sendable {
+    let courseId: UUID
+    let postId: UUID
+    let solutionId: UUID
+    let text: String?
+}
+
+extension UpdateSolutionCommand {
+    func toDTO() -> CreateSolutionRequestDTO {
+        CreateSolutionRequestDTO(text: text)
+    }
+}

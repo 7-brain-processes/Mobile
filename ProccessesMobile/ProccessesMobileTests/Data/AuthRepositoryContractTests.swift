@@ -48,7 +48,7 @@ struct AuthRepositoryExecutableTests {
          clientSpy.addStub(.success((jsonResponse, response)))
         
         let sut = makeSUT(client: clientSpy, baseURL: anyURL)
-        let request = LoginRequest(username: "testuser", password: "pwd")
+        let request = LoginCommand(username: "testuser", password: "pwd")
         
         let result = try await sut.login(request: request)
         
@@ -76,7 +76,7 @@ struct AuthRepositoryExecutableTests {
         let sut = makeSUT(client: clientSpy, baseURL: anyURL)
         
         await #expect(throws: APIError.unauthorized) {
-            try await sut.login(request: LoginRequest(username: "test", password: "pwd"))
+            try await sut.login(request: LoginCommand(username: "test", password: "pwd"))
         }
     }
     

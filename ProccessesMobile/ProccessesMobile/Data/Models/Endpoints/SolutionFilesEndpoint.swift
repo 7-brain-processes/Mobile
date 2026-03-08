@@ -8,7 +8,7 @@
 import Foundation
 
 enum SolutionFilesEndpoint {
-    case upload(courseId: String, postId: String, solutionId: String, request: UploadFileRequest, baseURL: URL)
+    case upload(courseId: String, postId: String, solutionId: String, request: UploadFileRequestDTO, baseURL: URL)
     case list(courseId: String, postId: String, solutionId: String, baseURL: URL)
     case delete(courseId: String, postId: String, solutionId: String, fileId: String, baseURL: URL)
     case download(courseId: String, postId: String, solutionId: String, fileId: String, baseURL: URL)

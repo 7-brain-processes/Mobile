@@ -39,7 +39,7 @@ struct AuthUseCasesExecutableTests {
         let storageSpy = TokenStorageSpy()
         
         let sut = makeLoginSUT(repo: repoSpy, storage: storageSpy)
-        let request = LoginRequest(username: "valid_user", password: "pwd")
+        let request = LoginCommand(username: "valid_user", password: "pwd")
         
         let response = try await sut.execute(request: request)
         
@@ -63,7 +63,7 @@ struct AuthUseCasesExecutableTests {
         let sut = makeLoginSUT(repo: repoSpy, storage: storageSpy)
         
         await #expect(throws: AuthValidationError.emptyCredentials) {
-            try await sut.execute(request: LoginRequest(username: username, password: password))
+            try await sut.execute(request: LoginCommand(username: username, password: password))
         }
         
         let repoCalls = await repoSpy.getLoginCallCount()

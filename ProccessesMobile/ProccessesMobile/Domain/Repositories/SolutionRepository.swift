@@ -5,12 +5,13 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
 protocol SolutionRepository: Sendable {
-    func listSolutions(courseId: String, postId: String, page: Int, size: Int, status: SolutionStatus?) async throws -> PageSolution
-    func submitSolution(courseId: String, postId: String, request: CreateSolutionRequest) async throws -> Solution
-    func getMySolution(courseId: String, postId: String) async throws -> Solution
-    func getSolution(courseId: String, postId: String, solutionId: String) async throws -> Solution
-    func updateSolution(courseId: String, postId: String, solutionId: String, request: CreateSolutionRequest) async throws -> Solution
-    func deleteSolution(courseId: String, postId: String, solutionId: String) async throws
+    func listSolutions(_ query: ListSolutionsQuery) async throws -> Page<Solution>
+    func submitSolution(_ command: SubmitSolutionCommand) async throws -> Solution
+    func getMySolution(_ command: GetMySolutionQuery) async throws -> Solution
+    func getSolution(_ command: SolutionOfPost) async throws -> Solution
+    func updateSolution(_ command: UpdateSolutionCommand) async throws -> Solution
+    func deleteSolution(_ command: SolutionOfPost) async throws
 }

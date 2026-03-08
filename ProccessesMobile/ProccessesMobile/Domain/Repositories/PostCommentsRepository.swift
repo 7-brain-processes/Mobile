@@ -5,10 +5,24 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
 protocol PostCommentsRepository: Sendable {
-    func listComments(courseId: String, postId: String, page: Int, size: Int) async throws -> PageComment
-    func createComment(courseId: String, postId: String, request: CreateCommentRequest) async throws -> Comment
-    func updateComment(courseId: String, postId: String, commentId: String, request: CreateCommentRequest) async throws -> Comment
-    func deleteComment(courseId: String, postId: String, commentId: String) async throws
+    func listComments(_ query: ListPostCommentsQuery) async throws -> Page<Comment>
+    func createComment(_ command: CreatePostCommentCommand) async throws -> Comment
+    func updateComment(_ command: UpdatePostCommentCommand) async throws -> Comment
+    func deleteComment(_ command: DeletePostCommentCommand) async throws
+}
+
+struct ListPostCommentsQuery: Sendable {
+    let courseId: UUID
+    let postId: UUID
+    let page: Int
+    let size: Int
+}
+
+struct DeletePostCommentCommand: Sendable {
+    let courseId: UUID
+    let postId: UUID
+    let commentId: UUID
 }

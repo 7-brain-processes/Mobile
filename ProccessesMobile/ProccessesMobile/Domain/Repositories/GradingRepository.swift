@@ -7,5 +7,5 @@
 
 
 protocol GradingRepository: Sendable {
-    func gradeSolution(courseId: String, postId: String, solutionId: String, request: GradeRequest) async throws -> Solution
+    func gradeSolution(_ command: GradeSolutionCommand) async throws -> Solution
 }

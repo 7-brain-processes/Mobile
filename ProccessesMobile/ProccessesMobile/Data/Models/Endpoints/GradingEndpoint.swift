@@ -8,7 +8,7 @@
 import Foundation
 
 enum GradingEndpoint {
-    case grade(courseId: String, postId: String, solutionId: String, request: GradeRequest, baseURL: URL)
+    case grade(courseId: String, postId: String, solutionId: String, request: GradeRequestDTO, baseURL: URL)
     
     func makeURLRequest() throws -> URLRequest {
         switch self {

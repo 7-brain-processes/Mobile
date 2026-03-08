@@ -5,10 +5,11 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
 protocol SolutionCommentsRepository: Sendable {
-    func listComments(courseId: String, postId: String, solutionId: String, page: Int, size: Int) async throws -> PageComment
-    func createComment(courseId: String, postId: String, solutionId: String, request: CreateCommentRequest) async throws -> Comment
-    func updateComment(courseId: String, postId: String, solutionId: String, commentId: String, request: CreateCommentRequest) async throws -> Comment
-    func deleteComment(courseId: String, postId: String, solutionId: String, commentId: String) async throws
+    func createComment(_ command: CreateSolutionCommentCommand) async throws -> Comment
+    func updateComment(_ command: UpdateSolutionCommentCommand) async throws -> Comment
+    func deleteComment(_ command: DeleteSolutionCommentCommand) async throws
+    func listComments(_ query: ListSolutionCommentsQuery) async throws -> Page<Comment>
 }

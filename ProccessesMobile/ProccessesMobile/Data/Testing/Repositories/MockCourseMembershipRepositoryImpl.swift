@@ -8,39 +8,41 @@
 import Foundation
 
 struct MockCourseMembershipRepositoryImpl: CourseMembershipRepository {
+
     private let client: HTTPClient
     private let baseURL: URL
-    
+
     init(client: HTTPClient, baseURL: URL) {
         self.client = client
         self.baseURL = baseURL
     }
-    
-    func joinCourse(code: String) async throws -> Course {
-        let request = try CourseMembershipEndpoint.join(code: code, baseURL: baseURL).makeURLRequest()
+
+    func joinCourse(_ command: JoinCourseCodeCommand) async throws -> Course {
+
+        let request = try CourseMembershipEndpoint
+            .join(code: command.code, baseURL: baseURL)
+            .makeURLRequest()
+
         let (data, response) = try await client.send(request)
-        
-        if response.statusCode == 401 { throw APIError.unauthorized }
-        if response.statusCode == 404 { throw APIError.serverError(code: 404) }
-        if response.statusCode == 409 { throw APIError.serverError(code: 409) } 
-        
-        guard response.statusCode == 200 else {
-            throw APIError.serverError(code: response.statusCode)
-        }
-        
-        return try JSONDecoder().decode(Course.self, from: data)
+
+        try validate(response, success: 200)
+
+        let dto = try JSONDecoder().decode(CourseDTO.self, from: data)
+        return try dto.toDomain()
     }
-    
-    func leaveCourse(courseId: String) async throws {
-        let request = try CourseMembershipEndpoint.leave(courseId: courseId, baseURL: baseURL).makeURLRequest()
+
+    func leaveCourse(_ command: LeaveCourseCommand) async throws {
+
+        let request = try CourseMembershipEndpoint
+            .leave(courseId: command.courseId.uuidString, baseURL: baseURL)
+            .makeURLRequest()
+
         let (_, response) = try await client.send(request)
-        
-        if response.statusCode == 401 { throw APIError.unauthorized }
-        if response.statusCode == 403 { throw APIError.serverError(code: 403) }
-        if response.statusCode == 404 { throw APIError.serverError(code: 404) }
-        
-        guard response.statusCode == 200 || response.statusCode == 204 else {
-            throw APIError.serverError(code: response.statusCode)
+
+        if response.statusCode == 200 || response.statusCode == 204 {
+            return
         }
+
+        try validate(response, success: 200)
     }
 }

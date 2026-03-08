@@ -8,35 +8,70 @@
 import Foundation
 
 actor CourseDetailsRepositorySpy: CourseDetailsRepository {
-    private var getResult: Result<Course, Error> = .failure(APIError.invalidResponse)
-    private var updateResult: Result<Course, Error> = .failure(APIError.invalidResponse)
-    private var deleteResult: Result<Void, Error> = .success(())
-    
-    private var recordedGetArgs: [String] = []
-    struct UpdateArgs: Equatable { let id: String; let req: UpdateCourseRequest }
-    private var recordedUpdateArgs: [UpdateArgs] = []
-    private var recordedDeleteArgs: [String] = []
-    
-    func setGetResult(_ res: Result<Course, Error>) { getResult = res }
-    func setUpdateResult(_ res: Result<Course, Error>) { updateResult = res }
-    func setDeleteResult(_ res: Result<Void, Error>) { deleteResult = res }
-    
-    func getRecordedGetArgs() -> [String] { return recordedGetArgs }
-    func getRecordedUpdateArgs() -> [UpdateArgs] { return recordedUpdateArgs }
-    func getRecordedDeleteArgs() -> [String] { return recordedDeleteArgs }
-    
-    func getCourse(courseId: String) async throws -> Course {
-        recordedGetArgs.append(courseId)
+
+    // MARK: Results
+
+    private var getResult: Result<Course, Error> =
+        .failure(APIError.invalidResponse)
+
+    private var updateResult: Result<Course, Error> =
+        .failure(APIError.invalidResponse)
+
+    private var deleteResult: Result<Void, Error> =
+        .success(())
+
+
+    // MARK: Recorded calls
+
+    private var recordedGetQueries: [GetCourseQuery] = []
+    private var recordedUpdateCommands: [UpdateCourseCommand] = []
+    private var recordedDeleteQueries: [DeleteCourseQuery] = []
+
+
+    // MARK: Configure results
+
+    func setGetResult(_ result: Result<Course, Error>) {
+        getResult = result
+    }
+
+    func setUpdateResult(_ result: Result<Course, Error>) {
+        updateResult = result
+    }
+
+    func setDeleteResult(_ result: Result<Void, Error>) {
+        deleteResult = result
+    }
+
+
+    // MARK: Inspect calls
+
+    func getRecordedGetQueries() -> [GetCourseQuery] {
+        recordedGetQueries
+    }
+
+    func getRecordedUpdateCommands() -> [UpdateCourseCommand] {
+        recordedUpdateCommands
+    }
+
+    func getRecordedDeleteQueries() -> [DeleteCourseQuery] {
+        recordedDeleteQueries
+    }
+
+
+    // MARK: Repository methods
+
+    func getCourse(_ query: GetCourseQuery) async throws -> Course {
+        recordedGetQueries.append(query)
         return try getResult.get()
     }
-    
-    func updateCourse(courseId: String, request: UpdateCourseRequest) async throws -> Course {
-        recordedUpdateArgs.append(UpdateArgs(id: courseId, req: request))
+
+    func updateCourse(_ command: UpdateCourseCommand) async throws -> Course {
+        recordedUpdateCommands.append(command)
         return try updateResult.get()
     }
-    
-    func deleteCourse(courseId: String) async throws {
-        recordedDeleteArgs.append(courseId)
-        return try deleteResult.get()
+
+    func deleteCourse(_ query: DeleteCourseQuery) async throws {
+        recordedDeleteQueries.append(query)
+        try deleteResult.get()
     }
 }

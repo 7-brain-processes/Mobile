@@ -7,7 +7,16 @@
 
 import Foundation
 
-enum CourseRole: String, Codable, Equatable, Sendable {
+enum CourseRole: String, Equatable, Sendable {
     case teacher = "TEACHER"
     case student = "STUDENT"
+}
+
+extension CourseRole {
+    func toDTO() -> CourseRoleDTO {
+        switch self {
+        case .teacher: return .teacher
+        case .student: return .student
+        }
+    }
 }

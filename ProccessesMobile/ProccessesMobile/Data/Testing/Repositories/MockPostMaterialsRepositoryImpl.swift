@@ -8,58 +8,91 @@
 import Foundation
 
 struct MockPostMaterialsRepositoryImpl: PostMaterialsRepository {
+
     private let client: HTTPClient
     private let baseURL: URL
-    
+
     init(client: HTTPClient, baseURL: URL) {
         self.client = client
         self.baseURL = baseURL
     }
-    
-    func listMaterials(courseId: String, postId: String) async throws -> [AttachedFile] {
-        let req = try PostMaterialsEndpoint.list(courseId: courseId, postId: postId, baseURL: baseURL).makeURLRequest()
-        let (data, res) = try await client.send(req)
-        
-        if res.statusCode == 401 { throw APIError.unauthorized }
-        if res.statusCode == 403 { throw APIError.serverError(code: 403) }
-        if res.statusCode == 404 { throw APIError.serverError(code: 404) }
-        guard res.statusCode == 200 else { throw APIError.serverError(code: res.statusCode) }
-        
-        return try JSONDecoder().decode([AttachedFile].self, from: data)
+
+    private var decoder: JSONDecoder {
+        let d = JSONDecoder()
+        d.dateDecodingStrategy = .iso8601
+        return d
     }
-    
-    func deleteMaterial(courseId: String, postId: String, fileId: String) async throws {
-        let req = try PostMaterialsEndpoint.delete(courseId: courseId, postId: postId, fileId: fileId, baseURL: baseURL).makeURLRequest()
+
+    func listMaterials(_ query: ListPostMaterialsQuery) async throws -> [AttachedFile] {
+
+        let req = try PostMaterialsEndpoint.list(
+            courseId: query.courseId.uuidString,
+            postId: query.postId.uuidString,
+            baseURL: baseURL
+        ).makeURLRequest()
+
+        let (data, res) = try await client.send(req)
+
+        try validate(res, success: 200)
+
+        let dto = try decoder.decode([AttachedFileDTO].self, from: data)
+
+        return try dto.map { try $0.toDomain() }
+    }
+
+    func uploadMaterial(_ command: UploadPostMaterialCommand) async throws -> AttachedFile {
+
+        let req = try PostMaterialsEndpoint.upload(
+            courseId: command.courseId.uuidString,
+            postId: command.postId.uuidString,
+            request: command.toDTO(),
+            baseURL: baseURL
+        ).makeURLRequest()
+
+        let (data, res) = try await client.send(req)
+
+        if res.statusCode == 413 {
+            throw APIError.serverError(code: 413)
+        }
+
+        try validate(res, success: 201)
+
+        let dto = try decoder.decode(AttachedFileDTO.self, from: data)
+
+        return try dto.toDomain()
+    }
+
+    func deleteMaterial(_ command: DeletePostMaterialCommand) async throws {
+
+        let req = try PostMaterialsEndpoint.delete(
+            courseId: command.courseId.uuidString,
+            postId: command.postId.uuidString,
+            fileId: command.fileId.uuidString,
+            baseURL: baseURL
+        ).makeURLRequest()
+
         let (_, res) = try await client.send(req)
-        
-        if res.statusCode == 401 { throw APIError.unauthorized }
-        if res.statusCode == 403 { throw APIError.serverError(code: 403) }
-        if res.statusCode == 404 { throw APIError.serverError(code: 404) }
-        guard res.statusCode == 204 || res.statusCode == 200 else { throw APIError.serverError(code: res.statusCode) }
+
+        if res.statusCode == 200 || res.statusCode == 204 {
+            return
+        }
+
+        try validate(res, success: 200)
     }
-    
-    func downloadMaterial(courseId: String, postId: String, fileId: String) async throws -> Data {
-        let req = try PostMaterialsEndpoint.download(courseId: courseId, postId: postId, fileId: fileId, baseURL: baseURL).makeURLRequest()
+
+    func downloadMaterial(_ query: DownloadPostMaterialQuery) async throws -> Data {
+
+        let req = try PostMaterialsEndpoint.download(
+            courseId: query.courseId.uuidString,
+            postId: query.postId.uuidString,
+            fileId: query.fileId.uuidString,
+            baseURL: baseURL
+        ).makeURLRequest()
+
         let (data, res) = try await client.send(req)
-        
-        if res.statusCode == 401 { throw APIError.unauthorized }
-        if res.statusCode == 403 { throw APIError.serverError(code: 403) }
-        if res.statusCode == 404 { throw APIError.serverError(code: 404) }
-        guard res.statusCode == 200 else { throw APIError.serverError(code: res.statusCode) }
-        
+
+        try validate(res, success: 200)
+
         return data
-    }
-    
-    func uploadMaterial(courseId: String, postId: String, request: UploadFileRequest) async throws -> AttachedFile {
-        let req = try PostMaterialsEndpoint.upload(courseId: courseId, postId: postId, request: request, baseURL: baseURL).makeURLRequest()
-        let (data, res) = try await client.send(req)
-        
-        if res.statusCode == 401 { throw APIError.unauthorized }
-        if res.statusCode == 403 { throw APIError.serverError(code: 403) }
-        if res.statusCode == 404 { throw APIError.serverError(code: 404) }
-        if res.statusCode == 413 { throw APIError.serverError(code: 413) } // File too large!
-        guard res.statusCode == 201 else { throw APIError.serverError(code: res.statusCode) }
-        
-        return try JSONDecoder().decode(AttachedFile.self, from: data)
     }
 }

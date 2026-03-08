@@ -7,7 +7,7 @@
 
 
 protocol AuthRepository: Sendable {
-    func login(request: LoginRequest) async throws -> AuthResponse
-    func register(request: RegisterRequest) async throws -> AuthResponse
+    func login(request: LoginCommand) async throws -> AuthResponse
+    func register(request: RegisterCommand) async throws -> AuthResponse
     func getMe() async throws -> User
 }

@@ -9,12 +9,14 @@ struct UserDTO: Equatable, Codable, Sendable {
     let id: String
     let username: String
     let displayName: String?
-    
-    init(id: String, username: String, displayName: String?) {
-        self.id = id
-        self.username = username
-        self.displayName = displayName
-    }
 }
 
-
+extension UserDTO {
+    func toDomain() throws -> User {
+        User(
+            id: try parseUUID(id),
+            username: username,
+            displayName: displayName
+        )
+    }
+}

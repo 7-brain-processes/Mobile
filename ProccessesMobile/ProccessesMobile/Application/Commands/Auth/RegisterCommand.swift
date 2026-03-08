@@ -1,0 +1,24 @@
+//
+//  RegisterCommand.swift
+//  ProccessesMobile
+//
+//  Created by dark type on 06.03.2026.
+//
+
+import Foundation
+
+struct RegisterCommand: Equatable, Sendable {
+    let username: String
+    let password: String
+    let displayName: String?
+}
+
+extension RegisterCommand {
+    func toDTO() -> RegisterRequestDTO {
+        RegisterRequestDTO(
+            username: username,
+            password: password,
+            displayName: displayName
+        )
+    }
+}

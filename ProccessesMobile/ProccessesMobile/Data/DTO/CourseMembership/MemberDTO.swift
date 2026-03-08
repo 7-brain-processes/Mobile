@@ -9,10 +9,14 @@ struct MemberDTO: Equatable, Sendable, Codable {
     let user: UserDTO?
     let role: CourseRoleDTO
     let joinedAt: String
-    
-    init(user: UserDTO?, role: CourseRoleDTO, joinedAt: String) {
-        self.user = user
-        self.role = role
-        self.joinedAt = joinedAt
+}
+
+extension MemberDTO {
+    func toDomain() throws -> Member {
+        Member(
+            user: try user?.toDomain(),
+            role: role.toDomain(),
+            joinedAt: try parseDate(joinedAt)
+        )
     }
 }

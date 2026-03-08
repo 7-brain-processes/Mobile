@@ -8,7 +8,7 @@
 import Foundation
 
 enum PostMaterialsEndpoint {
-    case upload(courseId: String, postId: String, request: UploadFileRequest, baseURL: URL)
+    case upload(courseId: String, postId: String, request: UploadFileRequestDTO, baseURL: URL)
     case list(courseId: String, postId: String, baseURL: URL)
     case delete(courseId: String, postId: String, fileId: String, baseURL: URL)
     case download(courseId: String, postId: String, fileId: String, baseURL: URL)

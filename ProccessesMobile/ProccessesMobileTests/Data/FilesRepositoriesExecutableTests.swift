@@ -36,7 +36,7 @@ struct FilesRepositoriesExecutableTests {
         let sut = MockPostMaterialsRepositoryImpl(client: clientSpy, baseURL: anyURL)
         
         let fileData = "fake_pdf_binary".data(using: .utf8)!
-        let requestDto = UploadFileRequest(fileName: "lecture_03.pdf", mimeType: "application/pdf", data: fileData)
+        let requestDto = UploadFileCommand(fileName: "lecture_03.pdf", mimeType: "application/pdf", data: fileData)
         
         let result = try await sut.uploadMaterial(courseId: "c1", postId: "p1", request: requestDto)
         
@@ -65,7 +65,7 @@ struct FilesRepositoriesExecutableTests {
         clientSpy.addStub(.success((Data(), HTTPURLResponse(url: anyURL, statusCode: 413, httpVersion: nil, headerFields: nil)!)))
         let sut = MockPostMaterialsRepositoryImpl(client: clientSpy, baseURL: anyURL)
         
-        let requestDto = UploadFileRequest(fileName: "huge.mp4", mimeType: "video/mp4", data: Data(repeating: 1, count: 10))
+        let requestDto = UploadFileCommand(fileName: "huge.mp4", mimeType: "video/mp4", data: Data(repeating: 1, count: 10))
         
         await #expect(throws: APIError.serverError(code: 413)) {
             _ = try await sut.uploadMaterial(courseId: "c1", postId: "p1", request: requestDto)
@@ -80,7 +80,7 @@ struct FilesRepositoriesExecutableTests {
         clientSpy.addStub(.success((makeFileJSON(), HTTPURLResponse(url: anyURL, statusCode: 201, httpVersion: nil, headerFields: nil)!)))
         let sut = MockSolutionFilesRepositoryImpl(client: clientSpy, baseURL: anyURL)
         
-        let requestDto = UploadFileRequest(fileName: "homework.zip", mimeType: "application/zip", data: Data())
+        let requestDto = UploadFileCommand(fileName: "homework.zip", mimeType: "application/zip", data: Data())
         _ = try await sut.uploadSolutionFile(courseId: "c1", postId: "p1", solutionId: "sol_1", request: requestDto)
         
         let requests = clientSpy.getRecordedRequests()

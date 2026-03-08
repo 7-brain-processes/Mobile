@@ -11,12 +11,15 @@ struct User: Equatable, Codable, Sendable {
     let id: UUID
     let username: String
     let displayName: String?
-    
-    init(id: UUID, username: String, displayName: String?) {
-        self.id = id
-        self.username = username
-        self.displayName = displayName
-    }
 }
 
+extension User {
+    func toDTO() -> UserDTO {
+        UserDTO(
+            id: id.uuidString,
+            username: username,
+            displayName: displayName
+        )
+    }
+}
 

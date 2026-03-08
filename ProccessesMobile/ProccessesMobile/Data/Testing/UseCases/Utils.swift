@@ -15,9 +15,9 @@ internal func validateIds(courseId: String, postId: String, solutionId: String? 
     }
 }
 
-internal func validateAndSanitize(request: CreateSolutionRequest) throws -> CreateSolutionRequest {
+internal func validateAndSanitize(request: CreateSolutionRequestDTO) throws -> CreateSolutionRequestDTO {
     if let text = request.text, text.count > 10000 {
         throw SolutionValidationError.invalidTextLength(max: 10000)
     }
-    return CreateSolutionRequest(text: request.text?.trimmingCharacters(in: .whitespacesAndNewlines))
+    return CreateSolutionRequestDTO(text: request.text?.trimmingCharacters(in: .whitespacesAndNewlines))
 }

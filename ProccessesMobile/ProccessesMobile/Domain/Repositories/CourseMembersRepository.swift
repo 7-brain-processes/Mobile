@@ -5,8 +5,9 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
 protocol CourseMembersRepository: Sendable {
-    func listMembers(courseId: String, page: Int, size: Int, role: CourseRole?) async throws -> PageMember
-    func removeMember(courseId: String, userId: String) async throws
+    func listMembers(_ query: ListMembersQuery) async throws -> Page<Member>
+    func removeMember(_ command: RemoveMemberCommand) async throws
 }

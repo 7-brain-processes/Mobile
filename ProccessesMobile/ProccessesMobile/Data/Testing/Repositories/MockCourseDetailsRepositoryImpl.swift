@@ -7,48 +7,67 @@
 
 import Foundation
 
-struct MockCourseDetailsRepositoryImpl: CourseDetailsRepository {
+struct DefaultCourseDetailsRepository: CourseDetailsRepository {
+
     private let client: HTTPClient
     private let baseURL: URL
-    
+
     init(client: HTTPClient, baseURL: URL) {
         self.client = client
         self.baseURL = baseURL
     }
-    
-    func getCourse(courseId: String) async throws -> Course {
-        let request = try CourseDetailsEndpoint.get(courseId: courseId, baseURL: baseURL).makeURLRequest()
+
+    private var decoder: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
+    }
+
+    func getCourse(_ query: GetCourseQuery) async throws -> Course {
+
+        let request = try CourseDetailsEndpoint
+            .get(courseId: query.courseId.uuidString, baseURL: baseURL)
+            .makeURLRequest()
+
         let (data, response) = try await client.send(request)
-        
+
         if response.statusCode == 401 { throw APIError.unauthorized }
-        if response.statusCode == 403 { throw APIError.serverError(code: 403) }
-        if response.statusCode == 404 { throw APIError.serverError(code: 404) }
-        guard response.statusCode == 200 else { throw APIError.serverError(code: response.statusCode) }
-        
-        return try JSONDecoder().decode(Course.self, from: data)
+        try validate(response, success: 200)
+
+        let dto = try decoder.decode(CourseDTO.self, from: data)
+        return try dto.toDomain()
     }
-    
-    func updateCourse(courseId: String, request: UpdateCourseRequest) async throws -> Course {
-        let urlRequest = try CourseDetailsEndpoint.update(courseId: courseId, request: request, baseURL: baseURL).makeURLRequest()
-        let (data, response) = try await client.send(urlRequest)
-        
+
+    func updateCourse(_ command: UpdateCourseCommand) async throws -> Course {
+
+        let request = try CourseDetailsEndpoint.update(
+            courseId: command.courseId.uuidString,
+            request: command.toDTO(),
+            baseURL: baseURL
+        ).makeURLRequest()
+
+        let (data, response) = try await client.send(request)
+
         if response.statusCode == 401 { throw APIError.unauthorized }
-        if response.statusCode == 403 { throw APIError.serverError(code: 403) }
-        if response.statusCode == 404 { throw APIError.serverError(code: 404) }
-        guard response.statusCode == 200 else { throw APIError.serverError(code: response.statusCode) }
-        
-        return try JSONDecoder().decode(Course.self, from: data)
+        try validate(response, success: 200)
+
+        let dto = try decoder.decode(CourseDTO.self, from: data)
+
+        return try dto.toDomain()
     }
-    
-    func deleteCourse(courseId: String) async throws {
-        let request = try CourseDetailsEndpoint.delete(courseId: courseId, baseURL: baseURL).makeURLRequest()
+
+    func deleteCourse(_ query: DeleteCourseQuery) async throws {
+
+        let request = try CourseDetailsEndpoint
+            .delete(courseId: query.courseId.uuidString, baseURL: baseURL)
+            .makeURLRequest()
+
         let (_, response) = try await client.send(request)
-        
+
         if response.statusCode == 401 { throw APIError.unauthorized }
-        if response.statusCode == 403 { throw APIError.serverError(code: 403) }
-        if response.statusCode == 404 { throw APIError.serverError(code: 404) }
-        guard response.statusCode == 204 || response.statusCode == 200 else { 
-            throw APIError.serverError(code: response.statusCode) 
+
+        guard response.statusCode == 204 || response.statusCode == 200 else {
+            throw APIError.serverError(code: response.statusCode)
         }
     }
 }

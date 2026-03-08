@@ -8,31 +8,60 @@
 import Foundation
 
 struct MockCourseRepositoryImpl: CourseRepository {
+
     private let client: HTTPClient
     private let baseURL: URL
-    
+
     init(client: HTTPClient, baseURL: URL) {
         self.client = client
         self.baseURL = baseURL
     }
-    
-    func getMyCourses(page: Int, size: Int, role: CourseRole?) async throws -> PageCourse {
-        let request = try CourseEndpoint.getCourses(page: page, size: size, role: role, baseURL: baseURL).makeURLRequest()
-        let (data, response) = try await client.send(request)
-        
-        if response.statusCode == 401 { throw APIError.unauthorized }
-        guard response.statusCode == 200 else { throw APIError.serverError(code: response.statusCode) }
-        
-        return try JSONDecoder().decode(PageCourse.self, from: data)
+
+    private var decoder: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
     }
-    
-    func createCourse(request: CreateCourseRequest) async throws -> Course {
-        let urlRequest = try CourseEndpoint.create(request: request, baseURL: baseURL).makeURLRequest()
+
+    func getMyCourses(_ query: GetMyCoursesQuery) async throws -> Page<Course> {
+
+        let request = try CourseEndpoint
+            .getCourses(
+                page: query.page,
+                size: query.size,
+                role: query.role?.toDTO(),
+                baseURL: baseURL
+            )
+            .makeURLRequest()
+
+        let (data, response) = try await client.send(request)
+
+        try validate(response, success: 200)
+
+        let dto = try decoder.decode(PageCourseDTO.self, from: data)
+
+        return try dto.toDomain { try $0.toDomain() }
+    }
+
+    func createCourse(_ command: CreateCourseCommand) async throws -> Course {
+
+        let urlRequest = try CourseEndpoint
+            .create(
+                request: command.toDTO(),
+                baseURL: baseURL
+            )
+            .makeURLRequest()
+
         let (data, response) = try await client.send(urlRequest)
-        
+
         if response.statusCode == 401 { throw APIError.unauthorized }
-        guard response.statusCode == 201 else { throw APIError.serverError(code: response.statusCode) }
-        
-        return try JSONDecoder().decode(Course.self, from: data)
+
+        guard response.statusCode == 201 else {
+            throw APIError.serverError(code: response.statusCode)
+        }
+
+        let dto = try decoder.decode(CourseDTO.self, from: data)
+
+        return try dto.toDomain()
     }
 }

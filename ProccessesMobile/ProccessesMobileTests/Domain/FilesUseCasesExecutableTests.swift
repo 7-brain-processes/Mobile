@@ -34,7 +34,7 @@ struct FilesUseCasesExecutableTests {
         await repoSpy.setUploadResult(.success(dummyFile))
         let sut = makePostMaterialSUT(repo: repoSpy)
         
-        let request = UploadFileRequest(fileName: "test.pdf", mimeType: "application/pdf", data: validData)
+        let request = UploadFileCommand(fileName: "test.pdf", mimeType: "application/pdf", data: validData)
         let result = try await sut.execute(courseId: "c1", postId: "p1", request: request)
         
         #expect(result == dummyFile)
@@ -47,7 +47,7 @@ struct FilesUseCasesExecutableTests {
         let repoSpy = PostMaterialsRepositorySpy()
         let sut = makePostMaterialSUT(repo: repoSpy)
         
-        let request = UploadFileRequest(fileName: "  ", mimeType: "pdf", data: validData)
+        let request = UploadFileCommand(fileName: "  ", mimeType: "pdf", data: validData)
         
         await #expect(throws: FileValidationError.emptyId("courseId")) {
             _ = try await sut.execute(courseId: "   ", postId: "p1", request: request)
@@ -67,7 +67,7 @@ struct FilesUseCasesExecutableTests {
         let repoSpy = PostMaterialsRepositorySpy()
         let sut = makePostMaterialSUT(repo: repoSpy)
         
-        let request = UploadFileRequest(fileName: "valid.pdf", mimeType: "pdf", data: Data())
+        let request = UploadFileCommand(fileName: "valid.pdf", mimeType: "pdf", data: Data())
         
         await #expect(throws: FileValidationError.emptyFileData) {
             _ = try await sut.execute(courseId: "c1", postId: "p1", request: request)
@@ -82,7 +82,7 @@ struct FilesUseCasesExecutableTests {
         await repoSpy.setUploadResult(.success(dummyFile))
         let sut = makeSolutionFileSUT(repo: repoSpy)
         
-        let request = UploadFileRequest(fileName: "homework.zip", mimeType: "application/zip", data: validData)
+        let request = UploadFileCommand(fileName: "homework.zip", mimeType: "application/zip", data: validData)
         let result = try await sut.execute(courseId: "c1", postId: "p1", solutionId: "s1", request: request)
         
         #expect(result == dummyFile)
@@ -97,12 +97,12 @@ struct FilesUseCasesExecutableTests {
         let sut = makeSolutionFileSUT(repo: repoSpy)
         
         await #expect(throws: FileValidationError.emptyId("solutionId")) {
-            let request = UploadFileRequest(fileName: "valid.pdf", mimeType: "pdf", data: validData)
+            let request = UploadFileCommand(fileName: "valid.pdf", mimeType: "pdf", data: validData)
             _ = try await sut.execute(courseId: "c1", postId: "p1", solutionId: "   ", request: request)
         }
         
         await #expect(throws: FileValidationError.emptyFileData) {
-            let request = UploadFileRequest(fileName: "valid.pdf", mimeType: "pdf", data: Data())
+            let request = UploadFileCommand(fileName: "valid.pdf", mimeType: "pdf", data: Data())
             _ = try await sut.execute(courseId: "c1", postId: "p1", solutionId: "s1", request: request)
         }
     }

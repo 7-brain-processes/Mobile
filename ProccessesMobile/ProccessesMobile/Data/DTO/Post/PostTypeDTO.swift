@@ -9,3 +9,12 @@ enum PostTypeDTO: String, Codable, Equatable, Sendable {
     case material = "MATERIAL"
     case task = "TASK"
 }
+
+extension PostTypeDTO {
+    func toDomain() -> PostType {
+        switch self {
+        case .material: return .material
+        case .task: return .task
+        }
+    }
+}

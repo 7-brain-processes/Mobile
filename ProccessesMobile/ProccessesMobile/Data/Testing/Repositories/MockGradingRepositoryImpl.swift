@@ -8,20 +8,37 @@
 import Foundation
 
 struct MockGradingRepositoryImpl: GradingRepository {
+
     private let client: HTTPClient
     private let baseURL: URL
-    
-    init(client: HTTPClient, baseURL: URL) { self.client = client; self.baseURL = baseURL }
-    
-    func gradeSolution(courseId: String, postId: String, solutionId: String, request: GradeRequest) async throws -> Solution {
-        let req = try GradingEndpoint.grade(courseId: courseId, postId: postId, solutionId: solutionId, request: request, baseURL: baseURL).makeURLRequest()
+
+    init(client: HTTPClient, baseURL: URL) {
+        self.client = client
+        self.baseURL = baseURL
+    }
+
+    private var decoder: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
+    }
+
+    func gradeSolution(_ command: GradeSolutionCommand) async throws -> Solution {
+
+        let req = try GradingEndpoint.grade(
+            courseId: command.courseId.uuidString,
+            postId: command.postId.uuidString,
+            solutionId: command.solutionId.uuidString,
+            request: command.toDTO(),
+            baseURL: baseURL
+        ).makeURLRequest()
+
         let (data, res) = try await client.send(req)
-        
-        if res.statusCode == 401 { throw APIError.unauthorized }
-        if res.statusCode == 403 { throw APIError.serverError(code: 403) }
-        if res.statusCode == 404 { throw APIError.serverError(code: 404) }
-        guard res.statusCode == 200 else { throw APIError.serverError(code: res.statusCode) }
-        
-        return try JSONDecoder().decode(Solution.self, from: data)
+
+        try validate(res, success: 200)
+
+        let dto = try decoder.decode(SolutionDTO.self, from: data)
+
+        return try dto.toDomain()
     }
 }

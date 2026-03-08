@@ -5,11 +5,12 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
 protocol PostRepository: Sendable {
-    func listPosts(courseId: String, page: Int, size: Int, type: PostType?) async throws -> PagePost
-    func createPost(courseId: String, request: CreatePostRequest) async throws -> Post
-    func getPost(courseId: String, postId: String) async throws -> Post
-    func updatePost(courseId: String, postId: String, request: UpdatePostRequest) async throws -> Post
-    func deletePost(courseId: String, postId: String) async throws
+    func listPosts(_ query: ListPostsQuery) async throws -> Page<Post>
+    func createPost(_ command: CreatePostCommand) async throws -> Post
+    func getPost(courseId: UUID, postId: UUID) async throws -> Post
+    func updatePost(_ command: UpdatePostCommand) async throws -> Post
+    func deletePost(courseId: UUID, postId: UUID) async throws
 }

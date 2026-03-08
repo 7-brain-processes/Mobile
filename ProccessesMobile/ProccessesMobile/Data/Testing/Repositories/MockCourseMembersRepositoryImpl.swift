@@ -8,28 +8,52 @@
 import Foundation
 
 struct MockCourseMembersRepositoryImpl: CourseMembersRepository {
+
     private let client: HTTPClient
     private let baseURL: URL
-    
-    init(client: HTTPClient, baseURL: URL) { self.client = client; self.baseURL = baseURL }
-    
-    func listMembers(courseId: String, page: Int, size: Int, role: CourseRole?) async throws -> PageMember {
-        let req = try CourseMembersEndpoint.list(courseId: courseId, page: page, size: size, role: role, baseURL: baseURL).makeURLRequest()
-        let (data, res) = try await client.send(req)
-        
-        if res.statusCode == 401 { throw APIError.unauthorized }
-        if res.statusCode == 403 { throw APIError.serverError(code: 403) }
-        guard res.statusCode == 200 else { throw APIError.serverError(code: res.statusCode) }
-        return try JSONDecoder().decode(PageMember.self, from: data)
+
+    init(client: HTTPClient, baseURL: URL) {
+        self.client = client
+        self.baseURL = baseURL
     }
-    
-    func removeMember(courseId: String, userId: String) async throws {
-        let req = try CourseMembersEndpoint.remove(courseId: courseId, userId: userId, baseURL: baseURL).makeURLRequest()
+
+    func listMembers(_ query: ListMembersQuery) async throws -> Page<Member> {
+
+        let req = try CourseMembersEndpoint
+            .list(
+                courseId: query.courseId.uuidString,
+                page: query.page,
+                size: query.size,
+                role: query.role?.toDTO(),
+                baseURL: baseURL
+            )
+            .makeURLRequest()
+
+        let (data, res) = try await client.send(req)
+
+        try validate(res, success: 200)
+
+        let dto = try JSONDecoder().decode(PageMemberDTO.self, from: data)
+
+        return try dto.toDomain { try $0.toDomain() }
+    }
+
+    func removeMember(_ command: RemoveMemberCommand) async throws {
+
+        let req = try CourseMembersEndpoint
+            .remove(
+                courseId: command.courseId.uuidString,
+                userId: command.userId.uuidString,
+                baseURL: baseURL
+            )
+            .makeURLRequest()
+
         let (_, res) = try await client.send(req)
-        
-        if res.statusCode == 401 { throw APIError.unauthorized }
-        if res.statusCode == 403 { throw APIError.serverError(code: 403) }
-        if res.statusCode == 404 { throw APIError.serverError(code: 404) }
-        guard res.statusCode == 204 || res.statusCode == 200 else { throw APIError.serverError(code: res.statusCode) }
+
+        if res.statusCode == 200 || res.statusCode == 204 {
+            return
+        }
+
+        try validate(res, success: 200)
     }
 }
