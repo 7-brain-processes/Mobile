@@ -6,7 +6,7 @@
 //
 
 
-public enum MembershipValidationError: Error, Equatable, Sendable {
+enum MembershipValidationError: Error, Equatable, Sendable {
     case emptyCourseId
     case emptyInviteCode
 }

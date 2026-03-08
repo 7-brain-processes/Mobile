@@ -6,6 +6,6 @@
 //
 
 
-public protocol ListPostsUseCase: Sendable {
+protocol ListPostsUseCase: Sendable {
     func execute(courseId: String, page: Int, size: Int, type: PostType?) async throws -> PagePost
 }

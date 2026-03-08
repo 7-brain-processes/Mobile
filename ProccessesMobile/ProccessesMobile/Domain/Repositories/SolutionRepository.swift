@@ -6,7 +6,7 @@
 //
 
 
-public protocol SolutionRepository: Sendable {
+protocol SolutionRepository: Sendable {
     func listSolutions(courseId: String, postId: String, page: Int, size: Int, status: SolutionStatus?) async throws -> PageSolution
     func submitSolution(courseId: String, postId: String, request: CreateSolutionRequest) async throws -> Solution
     func getMySolution(courseId: String, postId: String) async throws -> Solution

@@ -7,11 +7,11 @@
 
 import Foundation
 
-public struct MockPostRepositoryImpl: PostRepository {
+struct MockPostRepositoryImpl: PostRepository {
     private let client: HTTPClient
     private let baseURL: URL
     
-    public init(client: HTTPClient, baseURL: URL) {
+    init(client: HTTPClient, baseURL: URL) {
         self.client = client
         self.baseURL = baseURL
     }
@@ -24,31 +24,31 @@ public struct MockPostRepositoryImpl: PostRepository {
         return try JSONDecoder().decode(T.self, from: data)
     }
     
-    public func listPosts(courseId: String, page: Int, size: Int, type: PostType?) async throws -> PagePost {
+    func listPosts(courseId: String, page: Int, size: Int, type: PostType?) async throws -> PagePost {
         let req = try PostEndpoint.list(courseId: courseId, page: page, size: size, type: type, baseURL: baseURL).makeURLRequest()
         let (data, res) = try await client.send(req)
         return try handleResponse(data: data, response: res, successCodes: [200])
     }
     
-    public func createPost(courseId: String, request: CreatePostRequest) async throws -> Post {
+    func createPost(courseId: String, request: CreatePostRequest) async throws -> Post {
         let req = try PostEndpoint.create(courseId: courseId, request: request, baseURL: baseURL).makeURLRequest()
         let (data, res) = try await client.send(req)
         return try handleResponse(data: data, response: res, successCodes: [201])
     }
     
-    public func getPost(courseId: String, postId: String) async throws -> Post {
+    func getPost(courseId: String, postId: String) async throws -> Post {
         let req = try PostEndpoint.get(courseId: courseId, postId: postId, baseURL: baseURL).makeURLRequest()
         let (data, res) = try await client.send(req)
         return try handleResponse(data: data, response: res, successCodes: [200])
     }
     
-    public func updatePost(courseId: String, postId: String, request: UpdatePostRequest) async throws -> Post {
+    func updatePost(courseId: String, postId: String, request: UpdatePostRequest) async throws -> Post {
         let req = try PostEndpoint.update(courseId: courseId, postId: postId, request: request, baseURL: baseURL).makeURLRequest()
         let (data, res) = try await client.send(req)
         return try handleResponse(data: data, response: res, successCodes: [200])
     }
     
-    public func deletePost(courseId: String, postId: String) async throws {
+    func deletePost(courseId: String, postId: String) async throws {
         let req = try PostEndpoint.delete(courseId: courseId, postId: postId, baseURL: baseURL).makeURLRequest()
         let (_, res) = try await client.send(req)
         if res.statusCode == 401 { throw APIError.unauthorized }

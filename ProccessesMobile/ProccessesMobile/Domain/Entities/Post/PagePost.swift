@@ -6,10 +6,10 @@
 //
 
 
-public struct PagePost: Equatable, Sendable, Codable {
-    public let content: [Post]
-    public let page: Int
-    public let size: Int
-    public let totalElements: Int
-    public let totalPages: Int
+struct PagePost: Equatable, Sendable, Codable {
+    let content: [Post]
+    let page: Int
+    let size: Int
+    let totalElements: Int
+    let totalPages: Int
 }

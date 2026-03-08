@@ -7,10 +7,10 @@
 
 import Foundation
 
-public struct MockUpdatePostUseCase: UpdatePostUseCase {
+struct MockUpdatePostUseCase: UpdatePostUseCase {
     let repo: PostRepository
     
-    public func execute(courseId: String, postId: String, request: UpdatePostRequest) async throws -> Post {
+    func execute(courseId: String, postId: String, request: UpdatePostRequest) async throws -> Post {
         guard !courseId.trimmingCharacters(in: .whitespaces).isEmpty else { throw PostValidationError.emptyCourseId }
         guard !postId.trimmingCharacters(in: .whitespaces).isEmpty else { throw PostValidationError.emptyPostId }
         

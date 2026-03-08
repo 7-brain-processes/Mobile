@@ -6,7 +6,7 @@
 //
 
 
-public protocol PostRepository: Sendable {
+protocol PostRepository: Sendable {
     func listPosts(courseId: String, page: Int, size: Int, type: PostType?) async throws -> PagePost
     func createPost(courseId: String, request: CreatePostRequest) async throws -> Post
     func getPost(courseId: String, postId: String) async throws -> Post

@@ -6,7 +6,7 @@
 //
 
 
-public protocol CourseMembersRepository: Sendable {
+protocol CourseMembersRepository: Sendable {
     func listMembers(courseId: String, page: Int, size: Int, role: CourseRole?) async throws -> PageMember
     func removeMember(courseId: String, userId: String) async throws
 }

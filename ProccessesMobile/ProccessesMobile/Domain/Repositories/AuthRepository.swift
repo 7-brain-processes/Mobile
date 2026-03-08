@@ -6,7 +6,7 @@
 //
 
 
-public protocol AuthRepository: Sendable {
+protocol AuthRepository: Sendable {
     func login(request: LoginRequest) async throws -> AuthResponse
     func register(request: RegisterRequest) async throws -> AuthResponse
     func getMe() async throws -> User

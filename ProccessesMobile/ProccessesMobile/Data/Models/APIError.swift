@@ -6,7 +6,7 @@
 //
 
 
-public enum APIError: Error, Equatable, Sendable {
+enum APIError: Error, Equatable, Sendable {
     case invalidResponse
     case unauthorized
     case serverError(code: Int)

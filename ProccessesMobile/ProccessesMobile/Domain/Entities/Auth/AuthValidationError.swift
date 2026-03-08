@@ -6,7 +6,7 @@
 //
 
 
-public enum AuthValidationError: Error, Equatable, Sendable {
+enum AuthValidationError: Error, Equatable, Sendable {
     case emptyCredentials
     case usernameInvalidLength(min: Int, max: Int)
     case passwordInvalidLength(min: Int, max: Int)

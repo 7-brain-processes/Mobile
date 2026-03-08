@@ -7,16 +7,16 @@
 
 import Foundation
 
-public struct MockCourseRepositoryImpl: CourseRepository {
+struct MockCourseRepositoryImpl: CourseRepository {
     private let client: HTTPClient
     private let baseURL: URL
     
-    public init(client: HTTPClient, baseURL: URL) {
+    init(client: HTTPClient, baseURL: URL) {
         self.client = client
         self.baseURL = baseURL
     }
     
-    public func getMyCourses(page: Int, size: Int, role: CourseRole?) async throws -> PageCourse {
+    func getMyCourses(page: Int, size: Int, role: CourseRole?) async throws -> PageCourse {
         let request = try CourseEndpoint.getCourses(page: page, size: size, role: role, baseURL: baseURL).makeURLRequest()
         let (data, response) = try await client.send(request)
         
@@ -26,7 +26,7 @@ public struct MockCourseRepositoryImpl: CourseRepository {
         return try JSONDecoder().decode(PageCourse.self, from: data)
     }
     
-    public func createCourse(request: CreateCourseRequest) async throws -> Course {
+    func createCourse(request: CreateCourseRequest) async throws -> Course {
         let urlRequest = try CourseEndpoint.create(request: request, baseURL: baseURL).makeURLRequest()
         let (data, response) = try await client.send(urlRequest)
         

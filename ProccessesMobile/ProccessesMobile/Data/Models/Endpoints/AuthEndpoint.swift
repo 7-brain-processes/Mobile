@@ -8,19 +8,19 @@
 
 import Foundation
 
-public nonisolated enum AuthEndpoint: Endpoint {
+enum AuthEndpoint: Endpoint {
     case login(LoginRequest, baseURL: URL)
     case register(RegisterRequest, baseURL: URL)
     case me(baseURL: URL)
     
-    public var baseURL: URL {
+    var baseURL: URL {
         switch self {
         case .login(_, let url), .register(_, let url), .me(let url):
             return url
         }
     }
     
-    public var path: String {
+    var path: String {
         switch self {
         case .login: return "/auth/login"
         case .register: return "/auth/register"
@@ -28,18 +28,18 @@ public nonisolated enum AuthEndpoint: Endpoint {
         }
     }
     
-    public var method: HTTPMethod {
+    var method: HTTPMethod {
         switch self {
         case .login, .register: return .post
         case .me: return .get
         }
     }
     
-    public var headers: [String: String]? {
+    var headers: [String: String]? {
         return ["Accept": "application/json"]
     }
     
-    public var body: Data? {
+    var body: Data? {
         let encoder = JSONEncoder()
         switch self {
         case .login(let request, _):

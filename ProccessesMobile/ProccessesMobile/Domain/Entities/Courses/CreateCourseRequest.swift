@@ -6,11 +6,11 @@
 //
 
 
-public nonisolated struct CreateCourseRequest: Equatable, Sendable, Codable {
-    public let name: String
-    public let description: String?
+struct CreateCourseRequest: Equatable, Sendable, Codable {
+    let name: String
+    let description: String?
     
-    public init(name: String, description: String? = nil) {
+    init(name: String, description: String? = nil) {
         self.name = name
         self.description = description
     }

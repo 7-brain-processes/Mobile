@@ -7,16 +7,16 @@
 
 import Foundation
 
-public final class AuthorizedHTTPClient: HTTPClient {
+final class AuthorizedHTTPClient: HTTPClient {
     private let decoratee: HTTPClient
     private let tokenStorage: TokenStorage
     
-    public init(decoratee: HTTPClient, tokenStorage: TokenStorage) {
+    init(decoratee: HTTPClient, tokenStorage: TokenStorage) {
         self.decoratee = decoratee
         self.tokenStorage = tokenStorage
     }
     
-    public func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+    func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
         var signedRequest = request
         
         if let token = try? tokenStorage.getToken() {

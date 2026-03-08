@@ -6,6 +6,6 @@
 //
 
 
-public protocol RevokeInviteUseCase: Sendable {
+protocol RevokeInviteUseCase: Sendable {
     func execute(courseId: String, inviteId: String) async throws
 }

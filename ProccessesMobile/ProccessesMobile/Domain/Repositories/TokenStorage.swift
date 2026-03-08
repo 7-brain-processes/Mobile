@@ -6,7 +6,7 @@
 //
 
 
-public protocol TokenStorage: Sendable {
+protocol TokenStorage: Sendable {
     func saveToken(_ token: String) throws
     func getToken() throws -> String?
     func deleteToken() throws

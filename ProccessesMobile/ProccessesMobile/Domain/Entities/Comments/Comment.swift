@@ -6,14 +6,14 @@
 //
 
 
-public struct Comment: Equatable, Sendable, Codable {
-    public let id: String
-    public let text: String
-    public let author: User?
-    public let createdAt: String
-    public let updatedAt: String
+struct Comment: Equatable, Sendable, Codable {
+    let id: String
+    let text: String
+    let author: User?
+    let createdAt: String
+    let updatedAt: String
     
-    public init(id: String, text: String, author: User?, createdAt: String, updatedAt: String) {
+    init(id: String, text: String, author: User?, createdAt: String, updatedAt: String) {
         self.id = id
         self.text = text
         self.author = author

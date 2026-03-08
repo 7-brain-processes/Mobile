@@ -7,13 +7,13 @@
 
 import Foundation
 
-public enum SolutionFilesEndpoint {
+enum SolutionFilesEndpoint {
     case upload(courseId: String, postId: String, solutionId: String, request: UploadFileRequest, baseURL: URL)
     case list(courseId: String, postId: String, solutionId: String, baseURL: URL)
     case delete(courseId: String, postId: String, solutionId: String, fileId: String, baseURL: URL)
     case download(courseId: String, postId: String, solutionId: String, fileId: String, baseURL: URL)
     
-    public func makeURLRequest() throws -> URLRequest {
+    func makeURLRequest() throws -> URLRequest {
         switch self {
         case let .upload(courseId, postId, solutionId, dto, baseURL):
             let basePath = "/courses/\(courseId)/posts/\(postId)/solutions/\(solutionId)/files"

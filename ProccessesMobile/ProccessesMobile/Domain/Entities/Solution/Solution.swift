@@ -6,18 +6,18 @@
 //
 
 
-public struct Solution: Equatable, Sendable, Codable {
-    public let id: String
-    public let text: String?
-    public let status: SolutionStatus
-    public let grade: Int?
-    public let filesCount: Int
-    public let student: User?
-    public let submittedAt: String
-    public let updatedAt: String
-    public let gradedAt: String?
+struct Solution: Equatable, Sendable, Codable {
+    let id: String
+    let text: String?
+    let status: SolutionStatus
+    let grade: Int?
+    let filesCount: Int
+    let student: User?
+    let submittedAt: String
+    let updatedAt: String
+    let gradedAt: String?
     
-    public init(id: String, text: String?, status: SolutionStatus, grade: Int?, filesCount: Int, student: User?, submittedAt: String, updatedAt: String, gradedAt: String?) {
+    init(id: String, text: String?, status: SolutionStatus, grade: Int?, filesCount: Int, student: User?, submittedAt: String, updatedAt: String, gradedAt: String?) {
         self.id = id
         self.text = text
         self.status = status

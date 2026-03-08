@@ -7,10 +7,10 @@
 
 import Foundation
 
-public enum GradingEndpoint {
+enum GradingEndpoint {
     case grade(courseId: String, postId: String, solutionId: String, request: GradeRequest, baseURL: URL)
     
-    public func makeURLRequest() throws -> URLRequest {
+    func makeURLRequest() throws -> URLRequest {
         switch self {
         case let .grade(courseId, postId, solutionId, dto, baseURL):
             let path = "/courses/\(courseId)/posts/\(postId)/solutions/\(solutionId)/grade"

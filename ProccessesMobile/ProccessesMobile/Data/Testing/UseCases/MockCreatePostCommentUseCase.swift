@@ -7,11 +7,11 @@
 
 import Foundation
 
-public struct MockCreatePostCommentUseCase: CreatePostCommentUseCase {
+struct MockCreatePostCommentUseCase: CreatePostCommentUseCase {
     private let repository: PostCommentsRepository
-    public init(repository: PostCommentsRepository) { self.repository = repository }
+    init(repository: PostCommentsRepository) { self.repository = repository }
     
-    public func execute(courseId: String, postId: String, request: CreateCommentRequest) async throws -> Comment {
+    func execute(courseId: String, postId: String, request: CreateCommentRequest) async throws -> Comment {
         guard !courseId.trimmingCharacters(in: .whitespaces).isEmpty else { throw InteractionValidationError.emptyId("courseId") }
         guard !postId.trimmingCharacters(in: .whitespaces).isEmpty else { throw InteractionValidationError.emptyId("postId") }
         

@@ -7,12 +7,12 @@
 
 import Foundation
 
-public struct MockRevokeInviteUseCase: RevokeInviteUseCase {
+struct MockRevokeInviteUseCase: RevokeInviteUseCase {
     private let repository: CourseInvitesRepository
     
-    public init(repository: CourseInvitesRepository) { self.repository = repository }
+    init(repository: CourseInvitesRepository) { self.repository = repository }
     
-    public func execute(courseId: String, inviteId: String) async throws {
+    func execute(courseId: String, inviteId: String) async throws {
         guard !courseId.trimmingCharacters(in: .whitespaces).isEmpty else { throw CourseUsersValidationError.emptyCourseId }
         guard !inviteId.trimmingCharacters(in: .whitespaces).isEmpty else { throw CourseUsersValidationError.emptyInviteId }
         

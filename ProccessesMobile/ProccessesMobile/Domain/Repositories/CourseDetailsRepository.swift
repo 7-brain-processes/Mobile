@@ -6,7 +6,7 @@
 //
 
 
-public protocol CourseDetailsRepository: Sendable {
+protocol CourseDetailsRepository: Sendable {
     func getCourse(courseId: String) async throws -> Course
     func updateCourse(courseId: String, request: UpdateCourseRequest) async throws -> Course
     func deleteCourse(courseId: String) async throws

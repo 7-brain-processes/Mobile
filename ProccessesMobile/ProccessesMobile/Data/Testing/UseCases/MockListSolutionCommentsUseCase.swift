@@ -7,9 +7,9 @@
 
 import Foundation
 
-public struct MockListSolutionCommentsUseCase: ListSolutionCommentsUseCase {
+struct MockListSolutionCommentsUseCase: ListSolutionCommentsUseCase {
     let repo: SolutionCommentsRepository
-    public func execute(courseId: String, postId: String, solutionId: String, page: Int, size: Int) async throws -> PageComment {
+    func execute(courseId: String, postId: String, solutionId: String, page: Int, size: Int) async throws -> PageComment {
         guard !solutionId.trimmingCharacters(in: .whitespaces).isEmpty else { throw InteractionValidationError.emptyId("solutionId") }
         return try await repo.listComments(courseId: courseId, postId: postId, solutionId: solutionId, page: max(0, page), size: min(max(1, size), 100))
     }

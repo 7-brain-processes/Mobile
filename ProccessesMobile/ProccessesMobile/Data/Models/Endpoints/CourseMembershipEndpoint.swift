@@ -7,11 +7,11 @@
 
 import Foundation
 
-public enum CourseMembershipEndpoint {
+enum CourseMembershipEndpoint {
     case join(code: String, baseURL: URL)
     case leave(courseId: String, baseURL: URL)
     
-    public func makeURLRequest() throws -> URLRequest {
+    func makeURLRequest() throws -> URLRequest {
         switch self {
         case let .join(code, baseURL):
             let url = baseURL.appendingPathComponent("/invites/\(code)/join")

@@ -7,14 +7,14 @@
 
 import Foundation
 
-public enum PostEndpoint {
+enum PostEndpoint {
     case list(courseId: String, page: Int, size: Int, type: PostType?, baseURL: URL)
     case create(courseId: String, request: CreatePostRequest, baseURL: URL)
     case get(courseId: String, postId: String, baseURL: URL)
     case update(courseId: String, postId: String, request: UpdatePostRequest, baseURL: URL)
     case delete(courseId: String, postId: String, baseURL: URL)
     
-    public func makeURLRequest() throws -> URLRequest {
+    func makeURLRequest() throws -> URLRequest {
         switch self {
         case let .list(courseId, page, size, type, baseURL):
             var components = URLComponents(url: baseURL.appendingPathComponent("/courses/\(courseId)/posts"), resolvingAgainstBaseURL: false)!

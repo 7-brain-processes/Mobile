@@ -6,7 +6,7 @@
 //
 
 
-public protocol CourseInvitesRepository: Sendable {
+protocol CourseInvitesRepository: Sendable {
     func listInvites(courseId: String) async throws -> [Invite]
     func createInvite(courseId: String, request: CreateInviteRequest) async throws -> Invite
     func revokeInvite(courseId: String, inviteId: String) async throws

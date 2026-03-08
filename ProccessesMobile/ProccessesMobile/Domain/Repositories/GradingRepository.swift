@@ -6,6 +6,6 @@
 //
 
 
-public protocol GradingRepository: Sendable {
+protocol GradingRepository: Sendable {
     func gradeSolution(courseId: String, postId: String, solutionId: String, request: GradeRequest) async throws -> Solution
 }

@@ -7,13 +7,13 @@
 
 import Foundation
 
-public enum PostMaterialsEndpoint {
+enum PostMaterialsEndpoint {
     case upload(courseId: String, postId: String, request: UploadFileRequest, baseURL: URL)
     case list(courseId: String, postId: String, baseURL: URL)
     case delete(courseId: String, postId: String, fileId: String, baseURL: URL)
     case download(courseId: String, postId: String, fileId: String, baseURL: URL)
     
-    public func makeURLRequest() throws -> URLRequest {
+    func makeURLRequest() throws -> URLRequest {
         switch self {
         case let .upload(courseId, postId, dto, baseURL):
             let basePath = "/courses/\(courseId)/posts/\(postId)/materials"

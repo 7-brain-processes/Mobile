@@ -6,6 +6,6 @@
 //
 
 
-public protocol DeleteCourseUseCase: Sendable {
+protocol DeleteCourseUseCase: Sendable {
     func execute(courseId: String) async throws
 }

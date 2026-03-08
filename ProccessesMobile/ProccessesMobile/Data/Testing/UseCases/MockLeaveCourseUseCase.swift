@@ -7,14 +7,14 @@
 
 import Foundation
 
-public struct MockLeaveCourseUseCase: LeaveCourseUseCase {
+struct MockLeaveCourseUseCase: LeaveCourseUseCase {
     private let repository: CourseMembershipRepository
     
-    public init(repository: CourseMembershipRepository) {
+    init(repository: CourseMembershipRepository) {
         self.repository = repository
     }
     
-    public func execute(request: LeaveCourseRequest) async throws {
+    func execute(request: LeaveCourseRequest) async throws {
         guard !request.courseId.trimmingCharacters(in: .whitespaces).isEmpty else {
             throw MembershipValidationError.emptyCourseId
         }

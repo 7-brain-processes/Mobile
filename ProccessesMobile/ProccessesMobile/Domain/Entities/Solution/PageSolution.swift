@@ -6,10 +6,10 @@
 //
 
 
-public struct PageSolution: Equatable, Sendable, Codable {
-    public let content: [Solution]
-    public let page: Int
-    public let size: Int
-    public let totalElements: Int
-    public let totalPages: Int
+struct PageSolution: Equatable, Sendable, Codable {
+    let content: [Solution]
+    let page: Int
+    let size: Int
+    let totalElements: Int
+    let totalPages: Int
 }

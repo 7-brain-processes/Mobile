@@ -6,9 +6,9 @@
 //
 
 
-public struct MockUpdateSolutionUseCase: UpdateSolutionUseCase {
+struct MockUpdateSolutionUseCase: UpdateSolutionUseCase {
     let repo: SolutionRepository
-    public func execute(courseId: String, postId: String, solutionId: String, request: CreateSolutionRequest) async throws -> Solution {
+    func execute(courseId: String, postId: String, solutionId: String, request: CreateSolutionRequest) async throws -> Solution {
         try validateIds(courseId: courseId, postId: postId, solutionId: solutionId)
         let sanitized = try validateAndSanitize(request: request)
         return try await repo.updateSolution(courseId: courseId, postId: postId, solutionId: solutionId, request: sanitized)

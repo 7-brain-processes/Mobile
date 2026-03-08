@@ -6,7 +6,7 @@
 //
 
 
-public enum PostValidationError: Error, Equatable, Sendable {
+enum PostValidationError: Error, Equatable, Sendable {
     case invalidTitleLength(min: Int, max: Int)
     case invalidContentLength(max: Int)
     case emptyCourseId

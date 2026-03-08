@@ -7,12 +7,12 @@
 
 import Foundation
 
-public enum CourseInvitesEndpoint {
+enum CourseInvitesEndpoint {
     case list(courseId: String, baseURL: URL)
     case create(courseId: String, request: CreateInviteRequest, baseURL: URL)
     case revoke(courseId: String, inviteId: String, baseURL: URL)
     
-    public func makeURLRequest() throws -> URLRequest {
+    func makeURLRequest() throws -> URLRequest {
         let basePath = "/courses"
         switch self {
         case let .list(courseId, baseURL):

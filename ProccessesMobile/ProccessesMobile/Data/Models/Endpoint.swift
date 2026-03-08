@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol Endpoint: Codable, Sendable {
+protocol Endpoint: Codable, Sendable {
     var baseURL: URL { get }
     var path: String { get }
     var method: HTTPMethod { get }
@@ -15,7 +15,7 @@ public protocol Endpoint: Codable, Sendable {
     var body: Data? { get }
 }
 extension Endpoint {
-    public func makeURLRequest() throws -> URLRequest {
+    func makeURLRequest() throws -> URLRequest {
         let url = baseURL.appendingPathComponent(path)
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue

@@ -7,9 +7,9 @@
 
 import Foundation
 
-public struct MockDeletePostMaterialUseCase: DeletePostMaterialUseCase {
+struct MockDeletePostMaterialUseCase: DeletePostMaterialUseCase {
     let repo: PostMaterialsRepository
-    public func execute(courseId: String, postId: String, fileId: String) async throws {
+    func execute(courseId: String, postId: String, fileId: String) async throws {
         guard !fileId.trimmingCharacters(in: .whitespaces).isEmpty else { throw FileValidationError.emptyId("fileId") }
         try await repo.deleteMaterial(courseId: courseId, postId: postId, fileId: fileId)
     }

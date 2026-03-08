@@ -6,12 +6,12 @@
 //
 
 
-public struct CreateInviteRequest: Equatable, Sendable, Codable {
-    public let role: CourseRole
-    public let expiresAt: String?
-    public let maxUses: Int?
+struct CreateInviteRequest: Equatable, Sendable, Codable {
+    let role: CourseRole
+    let expiresAt: String?
+    let maxUses: Int?
     
-    public init(role: CourseRole, expiresAt: String? = nil, maxUses: Int? = nil) {
+    init(role: CourseRole, expiresAt: String? = nil, maxUses: Int? = nil) {
         self.role = role
         self.expiresAt = expiresAt
         self.maxUses = maxUses

@@ -7,13 +7,13 @@
 
 import Foundation
 
-public enum SolutionCommentsEndpoint {
+enum SolutionCommentsEndpoint {
     case list(courseId: String, postId: String, solutionId: String, page: Int, size: Int, baseURL: URL)
     case create(courseId: String, postId: String, solutionId: String, request: CreateCommentRequest, baseURL: URL)
     case update(courseId: String, postId: String, solutionId: String, commentId: String, request: CreateCommentRequest, baseURL: URL)
     case delete(courseId: String, postId: String, solutionId: String, commentId: String, baseURL: URL)
     
-    public func makeURLRequest() throws -> URLRequest {
+    func makeURLRequest() throws -> URLRequest {
         switch self {
         case let .list(courseId, postId, solutionId, page, size, baseURL):
             let basePath = "/courses/\(courseId)/posts/\(postId)/solutions/\(solutionId)/comments"

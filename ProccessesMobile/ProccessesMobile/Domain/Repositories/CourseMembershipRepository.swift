@@ -6,7 +6,7 @@
 //
 
 
-public protocol CourseMembershipRepository: Sendable {
+protocol CourseMembershipRepository: Sendable {
     func joinCourse(code: String) async throws -> Course
     func leaveCourse(courseId: String) async throws
 }

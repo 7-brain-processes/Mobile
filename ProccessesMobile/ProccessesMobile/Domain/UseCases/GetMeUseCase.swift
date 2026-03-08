@@ -6,6 +6,6 @@
 //
 
 
-public protocol GetMeUseCase: Sendable {
+protocol GetMeUseCase: Sendable {
     func execute() async throws -> User
 }

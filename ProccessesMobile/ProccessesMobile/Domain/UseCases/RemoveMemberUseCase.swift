@@ -6,6 +6,6 @@
 //
 
 
-public protocol RemoveMemberUseCase: Sendable {
+protocol RemoveMemberUseCase: Sendable {
     func execute(courseId: String, userId: String) async throws
 }

@@ -7,14 +7,14 @@
 
 import Foundation
 
-public struct MockGetCourseUseCase: GetCourseUseCase {
+struct MockGetCourseUseCase: GetCourseUseCase {
     private let repository: CourseDetailsRepository
     
-    public init(repository: CourseDetailsRepository) {
+    init(repository: CourseDetailsRepository) {
         self.repository = repository
     }
     
-    public func execute(courseId: String) async throws -> Course {
+    func execute(courseId: String) async throws -> Course {
         let trimmedId = courseId.trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard !trimmedId.isEmpty else {

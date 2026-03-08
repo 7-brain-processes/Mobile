@@ -6,16 +6,16 @@
 //
 
 
-public nonisolated struct Course: Equatable, Sendable, Codable {
-    public let id: String
-    public let name: String
-    public let description: String?
-    public let createdAt: String
-    public let currentUserRole: CourseRole?
-    public let teacherCount: Int
-    public let studentCount: Int
+struct Course: Equatable, Sendable, Codable {
+    let id: String
+    let name: String
+    let description: String?
+    let createdAt: String
+    let currentUserRole: CourseRole?
+    let teacherCount: Int
+    let studentCount: Int
     
-    public init(id: String, name: String, description: String?, createdAt: String, currentUserRole: CourseRole?, teacherCount: Int, studentCount: Int) {
+    init(id: String, name: String, description: String?, createdAt: String, currentUserRole: CourseRole?, teacherCount: Int, studentCount: Int) {
         self.id = id
         self.name = name
         self.description = description

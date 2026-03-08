@@ -6,4 +6,4 @@
 //
 
 
-public protocol ListSolutionFilesUseCase: Sendable { func execute(courseId: String, postId: String, solutionId: String) async throws -> [AttachedFile] }
+protocol ListSolutionFilesUseCase: Sendable { func execute(courseId: String, postId: String, solutionId: String) async throws -> [AttachedFile] }

@@ -6,9 +6,9 @@
 //
 
 
-public struct MockListSolutionsUseCase: ListSolutionsUseCase {
+struct MockListSolutionsUseCase: ListSolutionsUseCase {
     let repo: SolutionRepository
-    public func execute(courseId: String, postId: String, page: Int, size: Int, status: SolutionStatus?) async throws -> PageSolution {
+    func execute(courseId: String, postId: String, page: Int, size: Int, status: SolutionStatus?) async throws -> PageSolution {
         try validateIds(courseId: courseId, postId: postId)
         return try await repo.listSolutions(courseId: courseId, postId: postId, page: max(0, page), size: min(max(1, size), 100), status: status)
     }

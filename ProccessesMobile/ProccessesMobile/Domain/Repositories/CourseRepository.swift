@@ -6,7 +6,7 @@
 //
 
 
-public protocol CourseRepository: Sendable {
+protocol CourseRepository: Sendable {
     func getMyCourses(page: Int, size: Int, role: CourseRole?) async throws -> PageCourse
     func createCourse(request: CreateCourseRequest) async throws -> Course
 }

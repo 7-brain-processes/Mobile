@@ -6,21 +6,21 @@
 //
 
 
-public struct Post: Equatable, Sendable, Codable {
-    public let id: String
-    public let title: String
-    public let content: String?
-    public let type: PostType
-    public let deadline: String?
-    public let author: User?
-    public let materialsCount: Int
-    public let commentsCount: Int
-    public let solutionsCount: Int?
-    public let mySolutionId: String?
-    public let createdAt: String
-    public let updatedAt: String
+struct Post: Equatable, Sendable, Codable {
+    let id: String
+    let title: String
+    let content: String?
+    let type: PostType
+    let deadline: String?
+    let author: User?
+    let materialsCount: Int
+    let commentsCount: Int
+    let solutionsCount: Int?
+    let mySolutionId: String?
+    let createdAt: String
+    let updatedAt: String
     
-    public init(id: String, title: String, content: String?, type: PostType, deadline: String?, author: User?, materialsCount: Int, commentsCount: Int, solutionsCount: Int?, mySolutionId: String?, createdAt: String, updatedAt: String) {
+    init(id: String, title: String, content: String?, type: PostType, deadline: String?, author: User?, materialsCount: Int, commentsCount: Int, solutionsCount: Int?, mySolutionId: String?, createdAt: String, updatedAt: String) {
         self.id = id
         self.title = title
         self.content = content

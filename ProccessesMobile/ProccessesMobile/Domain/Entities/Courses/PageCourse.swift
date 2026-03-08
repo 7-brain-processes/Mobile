@@ -6,10 +6,10 @@
 //
 
 
-public nonisolated struct PageCourse: Equatable, Sendable, Codable {
-    public let content: [Course]
-    public let page: Int
-    public let size: Int
-    public let totalElements: Int
-    public let totalPages: Int
+struct PageCourse: Equatable, Sendable, Codable {
+    let content: [Course]
+    let page: Int
+    let size: Int
+    let totalElements: Int
+    let totalPages: Int
 }

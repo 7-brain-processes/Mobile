@@ -6,4 +6,4 @@
 //
 
 
-public protocol DeleteSolutionFileUseCase: Sendable { func execute(courseId: String, postId: String, solutionId: String, fileId: String) async throws }
+protocol DeleteSolutionFileUseCase: Sendable { func execute(courseId: String, postId: String, solutionId: String, fileId: String) async throws }

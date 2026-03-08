@@ -7,16 +7,16 @@
 
 import Foundation
 
-public struct MockCourseDetailsRepositoryImpl: CourseDetailsRepository {
+struct MockCourseDetailsRepositoryImpl: CourseDetailsRepository {
     private let client: HTTPClient
     private let baseURL: URL
     
-    public init(client: HTTPClient, baseURL: URL) {
+    init(client: HTTPClient, baseURL: URL) {
         self.client = client
         self.baseURL = baseURL
     }
     
-    public func getCourse(courseId: String) async throws -> Course {
+    func getCourse(courseId: String) async throws -> Course {
         let request = try CourseDetailsEndpoint.get(courseId: courseId, baseURL: baseURL).makeURLRequest()
         let (data, response) = try await client.send(request)
         
@@ -28,7 +28,7 @@ public struct MockCourseDetailsRepositoryImpl: CourseDetailsRepository {
         return try JSONDecoder().decode(Course.self, from: data)
     }
     
-    public func updateCourse(courseId: String, request: UpdateCourseRequest) async throws -> Course {
+    func updateCourse(courseId: String, request: UpdateCourseRequest) async throws -> Course {
         let urlRequest = try CourseDetailsEndpoint.update(courseId: courseId, request: request, baseURL: baseURL).makeURLRequest()
         let (data, response) = try await client.send(urlRequest)
         
@@ -40,7 +40,7 @@ public struct MockCourseDetailsRepositoryImpl: CourseDetailsRepository {
         return try JSONDecoder().decode(Course.self, from: data)
     }
     
-    public func deleteCourse(courseId: String) async throws {
+    func deleteCourse(courseId: String) async throws {
         let request = try CourseDetailsEndpoint.delete(courseId: courseId, baseURL: baseURL).makeURLRequest()
         let (_, response) = try await client.send(request)
         
