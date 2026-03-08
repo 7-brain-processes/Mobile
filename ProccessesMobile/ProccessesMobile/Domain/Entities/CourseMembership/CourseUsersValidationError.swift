@@ -6,7 +6,7 @@
 //
 
 
-public enum CourseUsersValidationError: Error, Equatable, Sendable {
+enum CourseUsersValidationError: Error, Equatable, Sendable {
     case emptyCourseId
     case emptyUserId
     case emptyInviteId

@@ -7,11 +7,11 @@
 
 import Foundation
 
-public enum CourseEndpoint {
+enum CourseEndpoint {
     case getCourses(page: Int, size: Int, role: CourseRole?, baseURL: URL)
     case create(request: CreateCourseRequest, baseURL: URL)
     
-    public func makeURLRequest() throws -> URLRequest {
+    func makeURLRequest() throws -> URLRequest {
         switch self {
         case let .getCourses(page, size, role, baseURL):
             var components = URLComponents(url: baseURL.appendingPathComponent("/courses"), resolvingAgainstBaseURL: false)!

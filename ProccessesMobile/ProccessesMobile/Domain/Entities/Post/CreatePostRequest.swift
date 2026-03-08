@@ -6,13 +6,13 @@
 //
 
 
-public struct CreatePostRequest: Equatable, Sendable, Codable {
-    public let title: String
-    public let content: String?
-    public let type: PostType
-    public let deadline: String?
+struct CreatePostRequest: Equatable, Sendable, Codable {
+    let title: String
+    let content: String?
+    let type: PostType
+    let deadline: String?
     
-    public init(title: String, content: String? = nil, type: PostType, deadline: String? = nil) {
+    init(title: String, content: String? = nil, type: PostType, deadline: String? = nil) {
         self.title = title
         self.content = content
         self.type = type

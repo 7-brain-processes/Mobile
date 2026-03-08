@@ -7,16 +7,16 @@
 
 import Foundation
 
-public struct MockAuthRepositoryImpl: AuthRepository, Sendable {
+struct MockAuthRepositoryImpl: AuthRepository, Sendable {
     private let client: HTTPClient
     private let baseURL: URL
     
-    public init(client: HTTPClient, baseURL: URL) {
+    init(client: HTTPClient, baseURL: URL) {
         self.client = client
         self.baseURL = baseURL
     }
     
-    public func login(request: LoginRequest) async throws -> AuthResponse {
+    func login(request: LoginRequest) async throws -> AuthResponse {
         let endpoint = AuthEndpoint.login(request, baseURL: baseURL)
         let urlRequest = try endpoint.makeURLRequest()
         
@@ -30,7 +30,7 @@ public struct MockAuthRepositoryImpl: AuthRepository, Sendable {
         return try decoder.decode(AuthResponse.self, from: data)
     }
     
-    public func register(request: RegisterRequest) async throws -> AuthResponse {
+    func register(request: RegisterRequest) async throws -> AuthResponse {
         let endpoint = AuthEndpoint.register(request, baseURL: baseURL)
         let urlRequest = try endpoint.makeURLRequest()
         
@@ -45,7 +45,7 @@ public struct MockAuthRepositoryImpl: AuthRepository, Sendable {
         decoder.dateDecodingStrategy = .iso8601
         return try decoder.decode(AuthResponse.self, from: data)
     }
-    public func getMe() async throws -> User {
+    func getMe() async throws -> User {
            let request = try AuthEndpoint.me(baseURL: baseURL).makeURLRequest()
            let (data, response) = try await client.send(request)
            

@@ -7,12 +7,12 @@
 
 import Foundation
 
-public enum CourseDetailsEndpoint {
+enum CourseDetailsEndpoint {
     case get(courseId: String, baseURL: URL)
     case update(courseId: String, request: UpdateCourseRequest, baseURL: URL)
     case delete(courseId: String, baseURL: URL)
     
-    public func makeURLRequest() throws -> URLRequest {
+    func makeURLRequest() throws -> URLRequest {
         switch self {
         case let .get(courseId, baseURL):
             let url = baseURL.appendingPathComponent("/courses/\(courseId)")

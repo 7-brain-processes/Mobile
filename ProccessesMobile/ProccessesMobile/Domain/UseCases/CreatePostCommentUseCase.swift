@@ -6,6 +6,6 @@
 //
 
 
-public protocol CreatePostCommentUseCase: Sendable {
+protocol CreatePostCommentUseCase: Sendable {
     func execute(courseId: String, postId: String, request: CreateCommentRequest) async throws -> Comment
 }

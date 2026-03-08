@@ -6,10 +6,10 @@
 //
 
 
-public struct PageMember: Equatable, Sendable, Codable {
-    public let content: [Member]
-    public let page: Int
-    public let size: Int
-    public let totalElements: Int
-    public let totalPages: Int
+struct PageMember: Equatable, Sendable, Codable {
+    let content: [Member]
+    let page: Int
+    let size: Int
+    let totalElements: Int
+    let totalPages: Int
 }

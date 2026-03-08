@@ -7,4 +7,4 @@
 
 import Foundation
 
-public protocol DownloadPostMaterialUseCase: Sendable { func execute(courseId: String, postId: String, fileId: String) async throws -> Data }
+protocol DownloadPostMaterialUseCase: Sendable { func execute(courseId: String, postId: String, fileId: String) async throws -> Data }

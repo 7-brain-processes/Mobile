@@ -6,7 +6,7 @@
 //
 
 
-public struct CreateCommentRequest: Equatable, Sendable, Codable {
-    public let text: String
-    public init(text: String) { self.text = text }
+struct CreateCommentRequest: Equatable, Sendable, Codable {
+    let text: String
+    init(text: String) { self.text = text }
 }

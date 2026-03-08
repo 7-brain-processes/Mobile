@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol PostMaterialsRepository: Sendable {
+protocol PostMaterialsRepository: Sendable {
     func listMaterials(courseId: String, postId: String) async throws -> [AttachedFile]
     func uploadMaterial(courseId: String, postId: String, request: UploadFileRequest) async throws -> AttachedFile
     func deleteMaterial(courseId: String, postId: String, fileId: String) async throws

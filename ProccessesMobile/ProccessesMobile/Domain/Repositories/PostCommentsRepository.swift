@@ -6,7 +6,7 @@
 //
 
 
-public protocol PostCommentsRepository: Sendable {
+protocol PostCommentsRepository: Sendable {
     func listComments(courseId: String, postId: String, page: Int, size: Int) async throws -> PageComment
     func createComment(courseId: String, postId: String, request: CreateCommentRequest) async throws -> Comment
     func updateComment(courseId: String, postId: String, commentId: String, request: CreateCommentRequest) async throws -> Comment

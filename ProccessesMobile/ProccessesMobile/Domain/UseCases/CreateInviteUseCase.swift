@@ -6,6 +6,6 @@
 //
 
 
-public protocol CreateInviteUseCase: Sendable {
+protocol CreateInviteUseCase: Sendable {
     func execute(courseId: String, request: CreateInviteRequest) async throws -> Invite
 }

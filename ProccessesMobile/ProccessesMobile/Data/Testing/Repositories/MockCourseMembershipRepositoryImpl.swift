@@ -7,16 +7,16 @@
 
 import Foundation
 
-public struct MockCourseMembershipRepositoryImpl: CourseMembershipRepository {
+struct MockCourseMembershipRepositoryImpl: CourseMembershipRepository {
     private let client: HTTPClient
     private let baseURL: URL
     
-    public init(client: HTTPClient, baseURL: URL) {
+    init(client: HTTPClient, baseURL: URL) {
         self.client = client
         self.baseURL = baseURL
     }
     
-    public func joinCourse(code: String) async throws -> Course {
+    func joinCourse(code: String) async throws -> Course {
         let request = try CourseMembershipEndpoint.join(code: code, baseURL: baseURL).makeURLRequest()
         let (data, response) = try await client.send(request)
         
@@ -31,7 +31,7 @@ public struct MockCourseMembershipRepositoryImpl: CourseMembershipRepository {
         return try JSONDecoder().decode(Course.self, from: data)
     }
     
-    public func leaveCourse(courseId: String) async throws {
+    func leaveCourse(courseId: String) async throws {
         let request = try CourseMembershipEndpoint.leave(courseId: courseId, baseURL: baseURL).makeURLRequest()
         let (_, response) = try await client.send(request)
         

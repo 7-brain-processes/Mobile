@@ -6,6 +6,6 @@
 //
 
 
-public protocol LeaveCourseUseCase: Sendable {
+protocol LeaveCourseUseCase: Sendable {
     func execute(request: LeaveCourseRequest) async throws
 }

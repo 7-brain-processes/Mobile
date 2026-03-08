@@ -6,6 +6,6 @@
 //
 
 
-public protocol GetMyCoursesUseCase: Sendable {
+protocol GetMyCoursesUseCase: Sendable {
     func execute(page: Int, size: Int, role: CourseRole?) async throws -> PageCourse
 }

@@ -6,10 +6,10 @@
 //
 
 
-public struct LeaveCourseRequest: Equatable, Sendable, Codable {
-    public let courseId: String
+struct LeaveCourseRequest: Equatable, Sendable, Codable {
+    let courseId: String
     
-    public init(courseId: String) {
+    init(courseId: String) {
         self.courseId = courseId
     }
 }

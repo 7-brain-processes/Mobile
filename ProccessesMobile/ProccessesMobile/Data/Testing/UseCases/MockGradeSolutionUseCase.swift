@@ -7,11 +7,11 @@
 
 import Foundation
 
-public struct MockGradeSolutionUseCase: GradeSolutionUseCase {
+struct MockGradeSolutionUseCase: GradeSolutionUseCase {
     private let repository: GradingRepository
-    public init(repository: GradingRepository) { self.repository = repository }
+    init(repository: GradingRepository) { self.repository = repository }
     
-    public func execute(courseId: String, postId: String, solutionId: String, request: GradeRequest) async throws -> Solution {
+    func execute(courseId: String, postId: String, solutionId: String, request: GradeRequest) async throws -> Solution {
         guard !courseId.trimmingCharacters(in: .whitespaces).isEmpty else { throw InteractionValidationError.emptyId("courseId") }
         guard !postId.trimmingCharacters(in: .whitespaces).isEmpty else { throw InteractionValidationError.emptyId("postId") }
         guard !solutionId.trimmingCharacters(in: .whitespaces).isEmpty else { throw InteractionValidationError.emptyId("solutionId") }

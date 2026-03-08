@@ -6,10 +6,10 @@
 //
 
 
-public struct PageComment: Equatable, Sendable, Codable {
-    public let content: [Comment]
-    public let page: Int
-    public let size: Int
-    public let totalElements: Int
-    public let totalPages: Int
+struct PageComment: Equatable, Sendable, Codable {
+    let content: [Comment]
+    let page: Int
+    let size: Int
+    let totalElements: Int
+    let totalPages: Int
 }

@@ -6,6 +6,6 @@
 //
 
 
-public protocol RegisterUseCase: Sendable {
+protocol RegisterUseCase: Sendable {
     func execute(request: RegisterRequest) async throws -> AuthResponse
 }

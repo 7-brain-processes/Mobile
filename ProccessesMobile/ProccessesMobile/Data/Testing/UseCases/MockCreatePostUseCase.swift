@@ -7,10 +7,10 @@
 
 import Foundation
 
-public struct MockCreatePostUseCase: CreatePostUseCase {
+struct MockCreatePostUseCase: CreatePostUseCase {
     let repo: PostRepository
     
-    public func execute(courseId: String, request: CreatePostRequest) async throws -> Post {
+    func execute(courseId: String, request: CreatePostRequest) async throws -> Post {
         guard !courseId.trimmingCharacters(in: .whitespaces).isEmpty else { throw PostValidationError.emptyCourseId }
         
         let title = request.title.trimmingCharacters(in: .whitespacesAndNewlines)

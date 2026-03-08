@@ -7,16 +7,16 @@
 
 import Foundation
 
-public final class DefaultLoginUseCase: LoginUseCase {
+final class DefaultLoginUseCase: LoginUseCase {
     private let repository: AuthRepository
     private let tokenStorage: TokenStorage
     
-    public init(repository: AuthRepository, tokenStorage: TokenStorage) {
+    init(repository: AuthRepository, tokenStorage: TokenStorage) {
         self.repository = repository
         self.tokenStorage = tokenStorage
     }
     
-    public func execute(request: LoginRequest) async throws -> AuthResponse {
+    func execute(request: LoginRequest) async throws -> AuthResponse {
         guard !request.username.isEmpty, !request.password.isEmpty else {
             throw AuthValidationError.emptyCredentials
         }

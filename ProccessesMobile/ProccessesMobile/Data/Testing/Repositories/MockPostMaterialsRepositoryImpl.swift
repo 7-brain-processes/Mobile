@@ -7,16 +7,16 @@
 
 import Foundation
 
-public struct MockPostMaterialsRepositoryImpl: PostMaterialsRepository {
+struct MockPostMaterialsRepositoryImpl: PostMaterialsRepository {
     private let client: HTTPClient
     private let baseURL: URL
     
-    public init(client: HTTPClient, baseURL: URL) {
+    init(client: HTTPClient, baseURL: URL) {
         self.client = client
         self.baseURL = baseURL
     }
     
-    public func listMaterials(courseId: String, postId: String) async throws -> [AttachedFile] {
+    func listMaterials(courseId: String, postId: String) async throws -> [AttachedFile] {
         let req = try PostMaterialsEndpoint.list(courseId: courseId, postId: postId, baseURL: baseURL).makeURLRequest()
         let (data, res) = try await client.send(req)
         
@@ -28,7 +28,7 @@ public struct MockPostMaterialsRepositoryImpl: PostMaterialsRepository {
         return try JSONDecoder().decode([AttachedFile].self, from: data)
     }
     
-    public func deleteMaterial(courseId: String, postId: String, fileId: String) async throws {
+    func deleteMaterial(courseId: String, postId: String, fileId: String) async throws {
         let req = try PostMaterialsEndpoint.delete(courseId: courseId, postId: postId, fileId: fileId, baseURL: baseURL).makeURLRequest()
         let (_, res) = try await client.send(req)
         
@@ -38,7 +38,7 @@ public struct MockPostMaterialsRepositoryImpl: PostMaterialsRepository {
         guard res.statusCode == 204 || res.statusCode == 200 else { throw APIError.serverError(code: res.statusCode) }
     }
     
-    public func downloadMaterial(courseId: String, postId: String, fileId: String) async throws -> Data {
+    func downloadMaterial(courseId: String, postId: String, fileId: String) async throws -> Data {
         let req = try PostMaterialsEndpoint.download(courseId: courseId, postId: postId, fileId: fileId, baseURL: baseURL).makeURLRequest()
         let (data, res) = try await client.send(req)
         
@@ -50,7 +50,7 @@ public struct MockPostMaterialsRepositoryImpl: PostMaterialsRepository {
         return data
     }
     
-    public func uploadMaterial(courseId: String, postId: String, request: UploadFileRequest) async throws -> AttachedFile {
+    func uploadMaterial(courseId: String, postId: String, request: UploadFileRequest) async throws -> AttachedFile {
         let req = try PostMaterialsEndpoint.upload(courseId: courseId, postId: postId, request: request, baseURL: baseURL).makeURLRequest()
         let (data, res) = try await client.send(req)
         

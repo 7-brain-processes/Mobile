@@ -7,9 +7,9 @@
 
 import Foundation
 
-public struct MockUpdateSolutionCommentUseCase: UpdateSolutionCommentUseCase {
+struct MockUpdateSolutionCommentUseCase: UpdateSolutionCommentUseCase {
     let repo: SolutionCommentsRepository
-    public func execute(courseId: String, postId: String, solutionId: String, commentId: String, request: CreateCommentRequest) async throws -> Comment {
+    func execute(courseId: String, postId: String, solutionId: String, commentId: String, request: CreateCommentRequest) async throws -> Comment {
         guard !commentId.trimmingCharacters(in: .whitespaces).isEmpty else { throw InteractionValidationError.emptyId("commentId") }
         
         let trimmedText = request.text.trimmingCharacters(in: .whitespacesAndNewlines)

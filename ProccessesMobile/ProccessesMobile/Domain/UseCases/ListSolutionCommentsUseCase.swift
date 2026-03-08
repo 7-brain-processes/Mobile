@@ -6,6 +6,6 @@
 //
 
 
-public protocol ListSolutionCommentsUseCase: Sendable {
+protocol ListSolutionCommentsUseCase: Sendable {
     func execute(courseId: String, postId: String, solutionId: String, page: Int, size: Int) async throws -> PageComment
 }

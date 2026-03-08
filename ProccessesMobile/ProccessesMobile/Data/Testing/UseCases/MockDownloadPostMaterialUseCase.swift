@@ -7,9 +7,9 @@
 
 import Foundation
 
-public struct MockDownloadPostMaterialUseCase: DownloadPostMaterialUseCase {
+struct MockDownloadPostMaterialUseCase: DownloadPostMaterialUseCase {
     let repo: PostMaterialsRepository
-    public func execute(courseId: String, postId: String, fileId: String) async throws -> Data {
+    func execute(courseId: String, postId: String, fileId: String) async throws -> Data {
         guard !fileId.trimmingCharacters(in: .whitespaces).isEmpty else { throw FileValidationError.emptyId("fileId") }
         return try await repo.downloadMaterial(courseId: courseId, postId: postId, fileId: fileId)
     }

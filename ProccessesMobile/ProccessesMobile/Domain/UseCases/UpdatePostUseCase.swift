@@ -6,6 +6,6 @@
 //
 
 
-public protocol UpdatePostUseCase: Sendable {
+protocol UpdatePostUseCase: Sendable {
     func execute(courseId: String, postId: String, request: UpdatePostRequest) async throws -> Post
 }

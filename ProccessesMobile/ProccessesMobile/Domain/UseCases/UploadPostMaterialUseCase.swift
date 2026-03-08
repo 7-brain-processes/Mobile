@@ -6,6 +6,6 @@
 //
 
 
-public protocol UploadPostMaterialUseCase: Sendable {
+protocol UploadPostMaterialUseCase: Sendable {
     func execute(courseId: String, postId: String, request: UploadFileRequest) async throws -> AttachedFile
 }

@@ -6,6 +6,6 @@
 //
 
 
-public protocol GetMySolutionUseCase: Sendable {
+protocol GetMySolutionUseCase: Sendable {
     func execute(courseId: String, postId: String) async throws -> Solution
 }

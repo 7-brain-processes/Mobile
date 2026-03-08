@@ -6,12 +6,12 @@
 //
 
 
-public struct RegisterRequest: Equatable, Codable, Sendable {
-    public let username: String
-    public let password: String
-    public let displayName: String?
+struct RegisterRequest: Equatable, Codable, Sendable {
+    let username: String
+    let password: String
+    let displayName: String?
     
-    public init(username: String, password: String, displayName: String? = nil) {
+    init(username: String, password: String, displayName: String? = nil) {
         self.username = username
         self.password = password
         self.displayName = displayName

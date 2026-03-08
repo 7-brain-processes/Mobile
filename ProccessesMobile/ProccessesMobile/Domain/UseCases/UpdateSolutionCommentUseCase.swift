@@ -6,6 +6,6 @@
 //
 
 
-public protocol UpdateSolutionCommentUseCase: Sendable {
+protocol UpdateSolutionCommentUseCase: Sendable {
     func execute(courseId: String, postId: String, solutionId: String, commentId: String, request: CreateCommentRequest) async throws -> Comment
 }

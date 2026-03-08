@@ -7,16 +7,16 @@
 
 import Foundation
 
-public final class DefaultRegisterUseCase: RegisterUseCase {
+final class DefaultRegisterUseCase: RegisterUseCase {
     private let repository: AuthRepository
     private let tokenStorage: TokenStorage
     
-    public init(repository: AuthRepository, tokenStorage: TokenStorage) {
+    init(repository: AuthRepository, tokenStorage: TokenStorage) {
         self.repository = repository
         self.tokenStorage = tokenStorage
     }
     
-    public func execute(request: RegisterRequest) async throws -> AuthResponse {
+    func execute(request: RegisterRequest) async throws -> AuthResponse {
         guard request.username.count >= 3 && request.username.count <= 50 else {
             throw AuthValidationError.usernameInvalidLength(min: 3, max: 50)
         }

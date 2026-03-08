@@ -6,11 +6,11 @@
 //
 
 
-public struct GradeRequest: Equatable, Sendable, Codable {
-    public let grade: Int
-    public let comment: String?
+struct GradeRequest: Equatable, Sendable, Codable {
+    let grade: Int
+    let comment: String?
     
-    public init(grade: Int, comment: String? = nil) {
+    init(grade: Int, comment: String? = nil) {
         self.grade = grade
         self.comment = comment
     }

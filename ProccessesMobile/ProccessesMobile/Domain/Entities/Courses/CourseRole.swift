@@ -6,7 +6,7 @@
 //
 
 
-public enum CourseRole: String, Codable, Equatable, Sendable {
+enum CourseRole: String, Codable, Equatable, Sendable {
     case teacher = "TEACHER"
     case student = "STUDENT"
 }

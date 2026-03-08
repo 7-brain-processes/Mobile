@@ -7,12 +7,12 @@
 
 import Foundation
 
-public struct MockCreateInviteUseCase: CreateInviteUseCase {
+struct MockCreateInviteUseCase: CreateInviteUseCase {
     private let repository: CourseInvitesRepository
     
-    public init(repository: CourseInvitesRepository) { self.repository = repository }
+    init(repository: CourseInvitesRepository) { self.repository = repository }
     
-    public func execute(courseId: String, request: CreateInviteRequest) async throws -> Invite {
+    func execute(courseId: String, request: CreateInviteRequest) async throws -> Invite {
         guard !courseId.trimmingCharacters(in: .whitespaces).isEmpty else { throw CourseUsersValidationError.emptyCourseId }
         
         if let maxUses = request.maxUses, maxUses < 1 {

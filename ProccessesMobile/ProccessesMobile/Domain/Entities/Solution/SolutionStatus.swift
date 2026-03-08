@@ -6,7 +6,7 @@
 //
 
 
-public enum SolutionStatus: String, Codable, Equatable, Sendable {
+enum SolutionStatus: String, Codable, Equatable, Sendable {
     case submitted = "SUBMITTED"
     case graded = "GRADED"
 }

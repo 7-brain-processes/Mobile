@@ -6,10 +6,10 @@
 //
 
 
-public struct CreateSolutionRequest: Equatable, Sendable, Codable {
-    public let text: String?
+struct CreateSolutionRequest: Equatable, Sendable, Codable {
+    let text: String?
     
-    public init(text: String? = nil) {
+    init(text: String? = nil) {
         self.text = text
     }
 }

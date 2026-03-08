@@ -6,11 +6,11 @@
 //
 
 
-public struct MockDeleteCourseUseCase: DeleteCourseUseCase {
+struct MockDeleteCourseUseCase: DeleteCourseUseCase {
     private let repository: CourseDetailsRepository
-    public init(repository: CourseDetailsRepository) { self.repository = repository }
+    init(repository: CourseDetailsRepository) { self.repository = repository }
     
-    public func execute(courseId: String) async throws {
+    func execute(courseId: String) async throws {
         try await repository.deleteCourse(courseId: courseId)
     }
 }

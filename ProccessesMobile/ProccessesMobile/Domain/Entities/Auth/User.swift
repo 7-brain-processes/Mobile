@@ -6,12 +6,12 @@
 //
 
 
-public nonisolated struct User: Equatable, Codable, Sendable {
-    public let id: String
-    public let username: String
-    public let displayName: String?
+struct User: Equatable, Codable, Sendable {
+    let id: String
+    let username: String
+    let displayName: String?
     
-    public init(id: String, username: String, displayName: String?) {
+    init(id: String, username: String, displayName: String?) {
         self.id = id
         self.username = username
         self.displayName = displayName

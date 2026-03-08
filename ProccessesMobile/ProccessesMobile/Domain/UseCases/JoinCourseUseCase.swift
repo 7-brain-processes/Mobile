@@ -6,6 +6,6 @@
 //
 
 
-public protocol JoinCourseUseCase: Sendable {
+protocol JoinCourseUseCase: Sendable {
     func execute(code: String) async throws -> Course
 }

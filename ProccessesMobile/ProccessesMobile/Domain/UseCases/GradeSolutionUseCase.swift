@@ -6,6 +6,6 @@
 //
 
 
-public protocol GradeSolutionUseCase: Sendable {
+protocol GradeSolutionUseCase: Sendable {
     func execute(courseId: String, postId: String, solutionId: String, request: GradeRequest) async throws -> Solution
 }

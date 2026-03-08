@@ -7,27 +7,27 @@
 
 import Foundation
 
-public final class HTTPClientSpy: HTTPClient, @unchecked Sendable {
+final class HTTPClientSpy: HTTPClient, @unchecked Sendable {
     private let lock = NSLock()
     
     private var _stubs: [Result<(Data, HTTPURLResponse), Error>] = []
     private var _recordedRequests: [URLRequest] = []
     
-    public init() {}
+    init() {}
     
-    public func addStub(_ stub: Result<(Data, HTTPURLResponse), Error>) {
+    func addStub(_ stub: Result<(Data, HTTPURLResponse), Error>) {
         lock.withLock {
             _stubs.append(stub)
         }
     }
     
-    public func getRecordedRequests() -> [URLRequest] {
+    func getRecordedRequests() -> [URLRequest] {
         lock.withLock {
             return _recordedRequests
         }
     }
     
-    public func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+    func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
         let stubToReturn = lock.withLock { () -> Result<(Data, HTTPURLResponse), Error> in
             _recordedRequests.append(request)
             

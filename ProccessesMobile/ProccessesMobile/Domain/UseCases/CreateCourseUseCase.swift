@@ -6,6 +6,6 @@
 //
 
 
-public protocol CreateCourseUseCase: Sendable {
+protocol CreateCourseUseCase: Sendable {
     func execute(request: CreateCourseRequest) async throws -> Course
 }

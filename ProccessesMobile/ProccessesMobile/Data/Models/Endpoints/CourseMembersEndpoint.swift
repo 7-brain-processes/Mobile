@@ -7,11 +7,11 @@
 
 import Foundation
 
-public enum CourseMembersEndpoint {
+enum CourseMembersEndpoint {
     case list(courseId: String, page: Int, size: Int, role: CourseRole?, baseURL: URL)
     case remove(courseId: String, userId: String, baseURL: URL)
     
-    public func makeURLRequest() throws -> URLRequest {
+    func makeURLRequest() throws -> URLRequest {
         switch self {
         case let .list(courseId, page, size, role, baseURL):
             var components = URLComponents(url: baseURL.appendingPathComponent("/courses/\(courseId)/members"), resolvingAgainstBaseURL: false)!

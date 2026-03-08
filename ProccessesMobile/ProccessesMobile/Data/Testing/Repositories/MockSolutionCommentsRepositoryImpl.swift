@@ -7,16 +7,16 @@
 
 import Foundation
 
-public struct MockSolutionCommentsRepositoryImpl: SolutionCommentsRepository {
+struct MockSolutionCommentsRepositoryImpl: SolutionCommentsRepository {
     private let client: HTTPClient
     private let baseURL: URL
     
-    public init(client: HTTPClient, baseURL: URL) { 
+    init(client: HTTPClient, baseURL: URL) { 
         self.client = client
         self.baseURL = baseURL 
     }
     
-    public func listComments(courseId: String, postId: String, solutionId: String, page: Int, size: Int) async throws -> PageComment {
+    func listComments(courseId: String, postId: String, solutionId: String, page: Int, size: Int) async throws -> PageComment {
         let req = try SolutionCommentsEndpoint.list(courseId: courseId, postId: postId, solutionId: solutionId, page: page, size: size, baseURL: baseURL).makeURLRequest()
         let (data, res) = try await client.send(req)
         
@@ -27,7 +27,7 @@ public struct MockSolutionCommentsRepositoryImpl: SolutionCommentsRepository {
         return try JSONDecoder().decode(PageComment.self, from: data)
     }
     
-    public func createComment(courseId: String, postId: String, solutionId: String, request: CreateCommentRequest) async throws -> Comment {
+    func createComment(courseId: String, postId: String, solutionId: String, request: CreateCommentRequest) async throws -> Comment {
         let req = try SolutionCommentsEndpoint.create(courseId: courseId, postId: postId, solutionId: solutionId, request: request, baseURL: baseURL).makeURLRequest()
         let (data, res) = try await client.send(req)
         
@@ -37,7 +37,7 @@ public struct MockSolutionCommentsRepositoryImpl: SolutionCommentsRepository {
         return try JSONDecoder().decode(Comment.self, from: data)
     }
     
-    public func updateComment(courseId: String, postId: String, solutionId: String, commentId: String, request: CreateCommentRequest) async throws -> Comment {
+    func updateComment(courseId: String, postId: String, solutionId: String, commentId: String, request: CreateCommentRequest) async throws -> Comment {
         let req = try SolutionCommentsEndpoint.update(courseId: courseId, postId: postId, solutionId: solutionId, commentId: commentId, request: request, baseURL: baseURL).makeURLRequest()
         let (data, res) = try await client.send(req)
         
@@ -47,7 +47,7 @@ public struct MockSolutionCommentsRepositoryImpl: SolutionCommentsRepository {
         return try JSONDecoder().decode(Comment.self, from: data)
     }
     
-    public func deleteComment(courseId: String, postId: String, solutionId: String, commentId: String) async throws {
+    func deleteComment(courseId: String, postId: String, solutionId: String, commentId: String) async throws {
         let req = try SolutionCommentsEndpoint.delete(courseId: courseId, postId: postId, solutionId: solutionId, commentId: commentId, baseURL: baseURL).makeURLRequest()
         let (_, res) = try await client.send(req)
         

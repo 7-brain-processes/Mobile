@@ -7,13 +7,13 @@
 
 import Foundation
 
-public struct MockCourseMembersRepositoryImpl: CourseMembersRepository {
+struct MockCourseMembersRepositoryImpl: CourseMembersRepository {
     private let client: HTTPClient
     private let baseURL: URL
     
-    public init(client: HTTPClient, baseURL: URL) { self.client = client; self.baseURL = baseURL }
+    init(client: HTTPClient, baseURL: URL) { self.client = client; self.baseURL = baseURL }
     
-    public func listMembers(courseId: String, page: Int, size: Int, role: CourseRole?) async throws -> PageMember {
+    func listMembers(courseId: String, page: Int, size: Int, role: CourseRole?) async throws -> PageMember {
         let req = try CourseMembersEndpoint.list(courseId: courseId, page: page, size: size, role: role, baseURL: baseURL).makeURLRequest()
         let (data, res) = try await client.send(req)
         
@@ -23,7 +23,7 @@ public struct MockCourseMembersRepositoryImpl: CourseMembersRepository {
         return try JSONDecoder().decode(PageMember.self, from: data)
     }
     
-    public func removeMember(courseId: String, userId: String) async throws {
+    func removeMember(courseId: String, userId: String) async throws {
         let req = try CourseMembersEndpoint.remove(courseId: courseId, userId: userId, baseURL: baseURL).makeURLRequest()
         let (_, res) = try await client.send(req)
         

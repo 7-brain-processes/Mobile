@@ -6,9 +6,9 @@
 //
 
 
-public struct MockDeleteSolutionUseCase: DeleteSolutionUseCase {
+struct MockDeleteSolutionUseCase: DeleteSolutionUseCase {
     let repo: SolutionRepository
-    public func execute(courseId: String, postId: String, solutionId: String) async throws {
+    func execute(courseId: String, postId: String, solutionId: String) async throws {
         try validateIds(courseId: courseId, postId: postId, solutionId: solutionId)
         try await repo.deleteSolution(courseId: courseId, postId: postId, solutionId: solutionId)
     }

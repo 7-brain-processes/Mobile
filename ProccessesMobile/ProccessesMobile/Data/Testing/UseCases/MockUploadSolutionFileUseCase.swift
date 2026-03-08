@@ -7,11 +7,11 @@
 
 import Foundation
 
-public struct MockUploadSolutionFileUseCase: UploadSolutionFileUseCase {
+struct MockUploadSolutionFileUseCase: UploadSolutionFileUseCase {
     private let repository: SolutionFilesRepository
-    public init(repository: SolutionFilesRepository) { self.repository = repository }
+    init(repository: SolutionFilesRepository) { self.repository = repository }
     
-    public func execute(courseId: String, postId: String, solutionId: String, request: UploadFileRequest) async throws -> AttachedFile {
+    func execute(courseId: String, postId: String, solutionId: String, request: UploadFileRequest) async throws -> AttachedFile {
         guard !courseId.trimmingCharacters(in: .whitespaces).isEmpty else { throw FileValidationError.emptyId("courseId") }
         guard !solutionId.trimmingCharacters(in: .whitespaces).isEmpty else { throw FileValidationError.emptyId("solutionId") }
         guard !request.data.isEmpty else { throw FileValidationError.emptyFileData }

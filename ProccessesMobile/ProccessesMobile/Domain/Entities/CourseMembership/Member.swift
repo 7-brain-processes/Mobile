@@ -6,12 +6,12 @@
 //
 
 
-public struct Member: Equatable, Sendable, Codable {
-    public let user: User?
-    public let role: CourseRole
-    public let joinedAt: String
+struct Member: Equatable, Sendable, Codable {
+    let user: User?
+    let role: CourseRole
+    let joinedAt: String
     
-    public init(user: User?, role: CourseRole, joinedAt: String) {
+    init(user: User?, role: CourseRole, joinedAt: String) {
         self.user = user
         self.role = role
         self.joinedAt = joinedAt

@@ -6,11 +6,11 @@
 //
 
 
-public struct MockUpdateCourseUseCase: UpdateCourseUseCase {
+struct MockUpdateCourseUseCase: UpdateCourseUseCase {
     private let repository: CourseDetailsRepository
-    public init(repository: CourseDetailsRepository) { self.repository = repository }
+    init(repository: CourseDetailsRepository) { self.repository = repository }
     
-    public func execute(courseId: String, request: UpdateCourseRequest) async throws -> Course {
+    func execute(courseId: String, request: UpdateCourseRequest) async throws -> Course {
         if let name = request.name {
             guard name.count >= 1 && name.count <= 200 else {
                 throw CourseValidationError.invalidNameLength(min: 1, max: 200)

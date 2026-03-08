@@ -6,6 +6,6 @@
 //
 
 
-public protocol ListSolutionsUseCase: Sendable {
+protocol ListSolutionsUseCase: Sendable {
     func execute(courseId: String, postId: String, page: Int, size: Int, status: SolutionStatus?) async throws -> PageSolution
 }

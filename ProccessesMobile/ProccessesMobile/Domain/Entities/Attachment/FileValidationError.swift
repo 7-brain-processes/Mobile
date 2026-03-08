@@ -7,7 +7,7 @@
 
 
 
-public enum FileValidationError: Error, Equatable, Sendable {
+enum FileValidationError: Error, Equatable, Sendable {
     case emptyId(String)
     case emptyFileData
     case invalidFileName

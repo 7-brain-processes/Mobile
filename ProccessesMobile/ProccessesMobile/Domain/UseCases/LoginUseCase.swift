@@ -6,6 +6,6 @@
 //
 
 
-public protocol LoginUseCase: Sendable {
+protocol LoginUseCase: Sendable {
     func execute(request: LoginRequest) async throws -> AuthResponse
 }

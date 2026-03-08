@@ -7,16 +7,16 @@
 
 import Foundation
 
-public struct MockSolutionFilesRepositoryImpl: SolutionFilesRepository {
+struct MockSolutionFilesRepositoryImpl: SolutionFilesRepository {
     private let client: HTTPClient
     private let baseURL: URL
     
-    public init(client: HTTPClient, baseURL: URL) {
+    init(client: HTTPClient, baseURL: URL) {
         self.client = client
         self.baseURL = baseURL
     }
     
-    public func listSolutionFiles(courseId: String, postId: String, solutionId: String) async throws -> [AttachedFile] {
+    func listSolutionFiles(courseId: String, postId: String, solutionId: String) async throws -> [AttachedFile] {
         let req = try SolutionFilesEndpoint.list(courseId: courseId, postId: postId, solutionId: solutionId, baseURL: baseURL).makeURLRequest()
         let (data, res) = try await client.send(req)
         
@@ -28,7 +28,7 @@ public struct MockSolutionFilesRepositoryImpl: SolutionFilesRepository {
         return try JSONDecoder().decode([AttachedFile].self, from: data)
     }
     
-    public func deleteSolutionFile(courseId: String, postId: String, solutionId: String, fileId: String) async throws {
+    func deleteSolutionFile(courseId: String, postId: String, solutionId: String, fileId: String) async throws {
         let req = try SolutionFilesEndpoint.delete(courseId: courseId, postId: postId, solutionId: solutionId, fileId: fileId, baseURL: baseURL).makeURLRequest()
         let (_, res) = try await client.send(req)
         
@@ -38,7 +38,7 @@ public struct MockSolutionFilesRepositoryImpl: SolutionFilesRepository {
         guard res.statusCode == 204 || res.statusCode == 200 else { throw APIError.serverError(code: res.statusCode) }
     }
     
-    public func downloadSolutionFile(courseId: String, postId: String, solutionId: String, fileId: String) async throws -> Data {
+    func downloadSolutionFile(courseId: String, postId: String, solutionId: String, fileId: String) async throws -> Data {
         let req = try SolutionFilesEndpoint.download(courseId: courseId, postId: postId, solutionId: solutionId, fileId: fileId, baseURL: baseURL).makeURLRequest()
         let (data, res) = try await client.send(req)
         
@@ -50,7 +50,7 @@ public struct MockSolutionFilesRepositoryImpl: SolutionFilesRepository {
         return data
     }
     
-    public func uploadSolutionFile(courseId: String, postId: String, solutionId: String, request: UploadFileRequest) async throws -> AttachedFile {
+    func uploadSolutionFile(courseId: String, postId: String, solutionId: String, request: UploadFileRequest) async throws -> AttachedFile {
         let req = try SolutionFilesEndpoint.upload(courseId: courseId, postId: postId, solutionId: solutionId, request: request, baseURL: baseURL).makeURLRequest()
         let (data, res) = try await client.send(req)
         

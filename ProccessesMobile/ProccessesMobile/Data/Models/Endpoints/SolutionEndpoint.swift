@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum SolutionEndpoint {
+enum SolutionEndpoint {
     case list(courseId: String, postId: String, page: Int, size: Int, status: SolutionStatus?, baseURL: URL)
     case submit(courseId: String, postId: String, request: CreateSolutionRequest, baseURL: URL)
     case getMy(courseId: String, postId: String, baseURL: URL)
@@ -15,7 +15,7 @@ public enum SolutionEndpoint {
     case update(courseId: String, postId: String, solutionId: String, request: CreateSolutionRequest, baseURL: URL)
     case delete(courseId: String, postId: String, solutionId: String, baseURL: URL)
     
-    public func makeURLRequest() throws -> URLRequest {
+    func makeURLRequest() throws -> URLRequest {
         let basePath = "/courses"
         switch self {
         case let .list(courseId, postId, page, size, status, baseURL):
