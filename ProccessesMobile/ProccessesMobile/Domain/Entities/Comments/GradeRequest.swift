@@ -8,10 +8,10 @@
 import Foundation
 
 struct GradeRequest: Equatable, Sendable, Codable {
-    let grade: UUID
+    let grade: Int
     let comment: String?
     
-    init(grade: UUID, comment: String? = nil) {
+    init(grade: Int, comment: String? = nil) {
         self.grade = grade
         self.comment = comment
     }
