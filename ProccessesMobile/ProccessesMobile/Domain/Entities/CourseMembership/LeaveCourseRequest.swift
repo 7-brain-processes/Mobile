@@ -5,11 +5,12 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
 struct LeaveCourseRequest: Equatable, Sendable, Codable {
-    let courseId: String
+    let courseId: UUID
     
-    init(courseId: String) {
+    init(courseId: UUID) {
         self.courseId = courseId
     }
 }

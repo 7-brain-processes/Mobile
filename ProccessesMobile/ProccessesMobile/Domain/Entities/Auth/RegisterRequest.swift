@@ -5,6 +5,7 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
 struct RegisterRequest: Equatable, Codable, Sendable {
     let username: String

@@ -5,11 +5,6 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
-struct PageMember: Equatable, Sendable, Codable {
-    let content: [Member]
-    let page: Int
-    let size: Int
-    let totalElements: Int
-    let totalPages: Int
-}
+typealias PageMember = Page<Member>

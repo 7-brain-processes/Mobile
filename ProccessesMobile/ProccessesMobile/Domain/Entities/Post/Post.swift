@@ -5,22 +5,23 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
 struct Post: Equatable, Sendable, Codable {
-    let id: String
+    let id: UUID
     let title: String
     let content: String?
     let type: PostType
-    let deadline: String?
+    let deadline: Date?
     let author: User?
     let materialsCount: Int
     let commentsCount: Int
     let solutionsCount: Int?
-    let mySolutionId: String?
-    let createdAt: String
-    let updatedAt: String
+    let mySolutionId: UUID?
+    let createdAt: Date
+    let updatedAt: Date
     
-    init(id: String, title: String, content: String?, type: PostType, deadline: String?, author: User?, materialsCount: Int, commentsCount: Int, solutionsCount: Int?, mySolutionId: String?, createdAt: String, updatedAt: String) {
+    init(id: UUID, title: String, content: String?, type: PostType, deadline: Date?, author: User?, materialsCount: Int, commentsCount: Int, solutionsCount: Int?, mySolutionId: UUID?, createdAt: Date, updatedAt: Date) {
         self.id = id
         self.title = title
         self.content = content

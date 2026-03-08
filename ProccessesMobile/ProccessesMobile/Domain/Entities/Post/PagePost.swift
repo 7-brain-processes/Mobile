@@ -5,11 +5,6 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
-struct PagePost: Equatable, Sendable, Codable {
-    let content: [Post]
-    let page: Int
-    let size: Int
-    let totalElements: Int
-    let totalPages: Int
-}
+typealias PagePost = Page<Post>

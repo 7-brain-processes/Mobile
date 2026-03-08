@@ -5,19 +5,20 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
 struct Solution: Equatable, Sendable, Codable {
-    let id: String
+    let id: UUID
     let text: String?
     let status: SolutionStatus
     let grade: Int?
     let filesCount: Int
     let student: User?
-    let submittedAt: String
-    let updatedAt: String
-    let gradedAt: String?
+    let submittedAt: Date
+    let updatedAt: Date
+    let gradedAt: Date?
     
-    init(id: String, text: String?, status: SolutionStatus, grade: Int?, filesCount: Int, student: User?, submittedAt: String, updatedAt: String, gradedAt: String?) {
+    init(id: UUID, text: String?, status: SolutionStatus, grade: Int?, filesCount: Int, student: User?, submittedAt: Date, updatedAt: Date, gradedAt: Date?) {
         self.id = id
         self.text = text
         self.status = status

@@ -5,11 +5,6 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
-struct PageCourse: Equatable, Sendable, Codable {
-    let content: [Course]
-    let page: Int
-    let size: Int
-    let totalElements: Int
-    let totalPages: Int
-}
+typealias PageCourse = Page<Course>
