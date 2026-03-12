@@ -38,7 +38,7 @@ struct DefaultCourseRepositoryImpl: CourseRepository {
 
         try validate(response, success: 200)
 
-        let dto = try decoder.decode(PageCourseDTO.self, from: data)
+        let dto = try decoder.decode(PageDTO<CourseDTO>.self, from: data)
 
         return try dto.toDomain { try $0.toDomain() }
     }

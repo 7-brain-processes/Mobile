@@ -35,7 +35,7 @@ struct DefaultSolutionCommentsRepositoryImpl: SolutionCommentsRepository {
         let (data, res) = try await client.send(req)
         try validate(res, success: 200)
 
-        let dto = try decoder.decode(PageCommentDTO.self, from: data)
+        let dto = try decoder.decode(PageDTO<CommentDTO>.self, from: data)
         return try dto.toDomain { try $0.toDomain() }
     }
 

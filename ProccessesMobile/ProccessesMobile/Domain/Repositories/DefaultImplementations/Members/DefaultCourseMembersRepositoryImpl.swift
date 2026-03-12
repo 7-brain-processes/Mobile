@@ -33,7 +33,7 @@ struct DefaultCourseMembersRepositoryImpl: CourseMembersRepository {
 
         try validate(res, success: 200)
 
-        let dto = try JSONDecoder().decode(PageMemberDTO.self, from: data)
+        let dto = try JSONDecoder().decode(PageDTO<MemberDTO>.self, from: data)
 
         return try dto.toDomain { try $0.toDomain() }
     }

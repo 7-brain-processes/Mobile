@@ -47,7 +47,7 @@ struct DefaultPostRepositoryImpl: PostRepository {
 
         let (data, res) = try await client.send(req)
 
-        let dto: PagePostDTO = try handleResponse(
+        let dto: PageDTO<PostDTO> = try handleResponse(
             data: data,
             response: res,
             successCodes: [200]

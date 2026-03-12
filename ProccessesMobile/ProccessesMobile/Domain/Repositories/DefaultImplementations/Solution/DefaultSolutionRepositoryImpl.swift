@@ -51,7 +51,7 @@ struct DefaultSolutionRepositoryImpl: SolutionRepository {
 
         let (data, res) = try await client.send(req)
 
-        let dto: PageSolutionDTO = try handleResponse(
+        let dto: PageDTO<SolutionDTO> = try handleResponse(
             data: data,
             response: res,
             successCodes: [200]

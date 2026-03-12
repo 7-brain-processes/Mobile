@@ -31,7 +31,7 @@ struct DefaultPostCommentsRepositoryImpl: PostCommentsRepository {
 
         try validate(res, success: 200)
 
-        let dto = try JSONDecoder().decode(PageCommentDTO.self, from: data)
+        let dto = try JSONDecoder().decode(PageDTO<CommentDTO>.self, from: data)
 
         return try dto.toDomain { try $0.toDomain() }
     }
