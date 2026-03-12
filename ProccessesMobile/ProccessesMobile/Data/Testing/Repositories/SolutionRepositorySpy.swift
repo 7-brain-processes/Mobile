@@ -9,55 +9,89 @@ import Foundation
 
 actor SolutionRepositorySpy: SolutionRepository {
 
-    private var listResult: Result<Page<Solution>, Error> = .failure(APIError.invalidResponse)
-    private var submitResult: Result<Solution, Error> = .failure(APIError.invalidResponse)
-    private var getMyResult: Result<Solution, Error> = .failure(APIError.invalidResponse)
-    private var getResult: Result<Solution, Error> = .failure(APIError.invalidResponse)
-    private var updateResult: Result<Solution, Error> = .failure(APIError.invalidResponse)
+    private var listResult: Result<Page<ProccessesMobile.Solution>, Error> = .failure(APIError.invalidResponse)
+    private var submitResult: Result<ProccessesMobile.Solution, Error> = .failure(APIError.invalidResponse)
+    private var getMyResult: Result<ProccessesMobile.Solution, Error> = .failure(APIError.invalidResponse)
+    private var getResult: Result<ProccessesMobile.Solution, Error> = .failure(APIError.invalidResponse)
+    private var updateResult: Result<ProccessesMobile.Solution, Error> = .failure(APIError.invalidResponse)
     private var deleteResult: Result<Void, Error> = .success(())
-
-    func setListResult(_ res: Result<Page<Solution>, Error>) { listResult = res }
-    func setSubmitResult(_ res: Result<Solution, Error>) { submitResult = res }
-    func setGetMyResult(_ res: Result<Solution, Error>) { getMyResult = res }
-    func setGetResult(_ res: Result<Solution, Error>) { getResult = res }
-    func setUpdateResult(_ res: Result<Solution, Error>) { updateResult = res }
-    func setDeleteResult(_ res: Result<Void, Error>) { deleteResult = res }
 
     private var recordedListQueries: [ListSolutionsQuery] = []
     private var recordedSubmitCommands: [SubmitSolutionCommand] = []
-    private var recordedGetMyArgs: [GetMySolutionQuery] = []
+    private var recordedGetMyQueries: [GetMySolutionQuery] = []
     private var recordedGetCommands: [SolutionOfPost] = []
     private var recordedUpdateCommands: [UpdateSolutionCommand] = []
     private var recordedDeleteCommands: [SolutionOfPost] = []
 
-    func getRecordedListQueries() -> [ListSolutionsQuery] { recordedListQueries }
-    func getRecordedSubmitCommands() -> [SubmitSolutionCommand] { recordedSubmitCommands }
-    func getRecordedGetMyArgs() -> [GetMySolutionQuery] { recordedGetMyArgs }
-    func getRecordedGetCommands() -> [SolutionOfPost] { recordedGetCommands }
-    func getRecordedUpdateCommands() -> [UpdateSolutionCommand] { recordedUpdateCommands }
-    func getRecordedDeleteCommands() -> [SolutionOfPost] { recordedDeleteCommands }
+    func setListResult(_ result: Result<Page<ProccessesMobile.Solution>, Error>) {
+        listResult = result
+    }
 
-    func listSolutions(_ query: ListSolutionsQuery) async throws -> Page<Solution> {
+    func setSubmitResult(_ result: Result<ProccessesMobile.Solution, Error>) {
+        submitResult = result
+    }
+
+    func setGetMyResult(_ result: Result<ProccessesMobile.Solution, Error>) {
+        getMyResult = result
+    }
+
+    func setGetResult(_ result: Result<ProccessesMobile.Solution, Error>) {
+        getResult = result
+    }
+
+    func setUpdateResult(_ result: Result<ProccessesMobile.Solution, Error>) {
+        updateResult = result
+    }
+
+    func setDeleteResult(_ result: Result<Void, Error>) {
+        deleteResult = result
+    }
+
+    func getRecordedListQueries() -> [ListSolutionsQuery] {
+        recordedListQueries
+    }
+
+    func getRecordedSubmitCommands() -> [SubmitSolutionCommand] {
+        recordedSubmitCommands
+    }
+
+    func getRecordedGetMyQueries() -> [GetMySolutionQuery] {
+        recordedGetMyQueries
+    }
+
+    func getRecordedGetCommands() -> [SolutionOfPost] {
+        recordedGetCommands
+    }
+
+    func getRecordedUpdateCommands() -> [UpdateSolutionCommand] {
+        recordedUpdateCommands
+    }
+
+    func getRecordedDeleteCommands() -> [SolutionOfPost] {
+        recordedDeleteCommands
+    }
+
+    func listSolutions(_ query: ListSolutionsQuery) async throws -> Page<ProccessesMobile.Solution> {
         recordedListQueries.append(query)
         return try listResult.get()
     }
 
-    func submitSolution(_ command: SubmitSolutionCommand) async throws -> Solution {
+    func submitSolution(_ command: SubmitSolutionCommand) async throws -> ProccessesMobile.Solution {
         recordedSubmitCommands.append(command)
         return try submitResult.get()
     }
 
-    func getMySolution(_ command: GetMySolutionQuery) async throws -> Solution {
-        recordedGetMyArgs.append(command)
+    func getMySolution(_ command: GetMySolutionQuery) async throws -> ProccessesMobile.Solution {
+        recordedGetMyQueries.append(command)
         return try getMyResult.get()
     }
 
-    func getSolution(_ command: SolutionOfPost) async throws -> Solution {
+    func getSolution(_ command: SolutionOfPost) async throws -> ProccessesMobile.Solution {
         recordedGetCommands.append(command)
         return try getResult.get()
     }
 
-    func updateSolution(_ command: UpdateSolutionCommand) async throws -> Solution {
+    func updateSolution(_ command: UpdateSolutionCommand) async throws -> ProccessesMobile.Solution {
         recordedUpdateCommands.append(command)
         return try updateResult.get()
     }

@@ -7,13 +7,6 @@
 
 import Foundation
 
-//enum DateParser {
-//    static func parse(_ string: String) -> Date? {
-//        APIFormatters.iso8601WithFractionalSeconds.date(from: string)
-//        ?? APIFormatters.iso8601.date(from: string)
-//    }
-//}
-
 enum APIFormatters {
     static let iso8601WithFractionalSeconds: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
@@ -26,4 +19,18 @@ enum APIFormatters {
         formatter.formatOptions = [.withInternetDateTime]
         return formatter
     }()
+}
+
+func parseDate(_ value: String) throws -> Date {
+    if let date =
+        APIFormatters.iso8601WithFractionalSeconds.date(from: value) ??
+        APIFormatters.iso8601.date(from: value) {
+        return date
+    }
+
+    throw APIError.invalidResponse
+}
+
+func formatDate(_ date: Date) -> String {
+    APIFormatters.iso8601WithFractionalSeconds.string(from: date)
 }
