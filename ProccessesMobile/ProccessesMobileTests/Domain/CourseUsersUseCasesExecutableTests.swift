@@ -23,7 +23,7 @@ struct CourseUsersUseCasesExecutableTests {
         DefaultCreateInviteUseCase(repository: repo)
     }
 
-    private func makeRevokeInviteSUT(repo: CourseInvitesRepository) -> RevokeInviteUseCase {
+    private func makeRevokeInviteSUT(repo: CourseInvitesRepository) -> DefaultRevokeInviteUseCase {
         DefaultRevokeInviteUseCase(repository: repo)
     }
 

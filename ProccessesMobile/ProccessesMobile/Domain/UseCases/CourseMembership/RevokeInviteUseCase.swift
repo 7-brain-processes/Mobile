@@ -2,8 +2,9 @@
 //  RevokeInviteUseCase.swift
 //  ProccessesMobile
 //
-//  Created by dark type on 06.03.2026.
+//  Created by Tark Wight on 13.03.2026.
 //
+
 
 import Foundation
 

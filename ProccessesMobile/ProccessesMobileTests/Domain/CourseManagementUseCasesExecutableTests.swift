@@ -24,7 +24,6 @@ struct CourseManagementUseCasesExecutableTests {
     }
 
     private func makeDeleteSUT(repo: CourseDetailsRepository) -> DeleteCourseUseCase {
-        //TODO: Default
         DefaultDeleteCourseUseCase(repository: repo)
     }
 
