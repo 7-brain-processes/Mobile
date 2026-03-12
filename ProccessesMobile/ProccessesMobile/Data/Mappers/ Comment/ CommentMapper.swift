@@ -7,26 +7,24 @@
 
 import Foundation
 
-extension CommentDTO {
-    func toDomain() throws -> Comment {
+enum CommentMapper {
+    static func toDomain(_ dto: CommentDTO) throws -> Comment {
         Comment(
-            id: try parseUUID(id),
-            text: text,
-            author: try author?.toDomain(),
-            createdAt: try parseDate(createdAt),
-            updatedAt: try parseDate(updatedAt)
+            id: try parseUUID(dto.id),
+            text: dto.text,
+            author: try dto.author.map(UserMapper.toDomain),
+            createdAt: try parseDate(dto.createdAt),
+            updatedAt: try parseDate(dto.updatedAt)
         )
     }
-}
 
-extension Comment {
-    func toDTO() -> CommentDTO {
+    static func toDTO(_ domain: Comment) -> CommentDTO {
         CommentDTO(
-            id: id.uuidString,
-            text: text,
-            author: author?.toDTO(),
-            createdAt: formatDate(createdAt),
-            updatedAt: formatDate(updatedAt)
+            id: domain.id.uuidString,
+            text: domain.text,
+            author: domain.author.map(UserMapper.toDTO),
+            createdAt: formatDate(domain.createdAt),
+            updatedAt: formatDate(domain.updatedAt)
         )
     }
 }

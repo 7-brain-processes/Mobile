@@ -13,11 +13,3 @@ struct UpdatePostCommentCommand: Equatable, Sendable {
     let commentId: UUID
     let text: String
 }
-
-extension UpdatePostCommentCommand {
-    func toDTO() -> CreateCommentRequestDTO {
-        CreateCommentRequestDTO(
-            text: text
-        )
-    }
-}

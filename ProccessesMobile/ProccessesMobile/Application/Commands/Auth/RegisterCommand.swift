@@ -12,13 +12,3 @@ struct RegisterCommand: Equatable, Sendable {
     let password: String
     let displayName: String?
 }
-
-extension RegisterCommand {
-    func toDTO() -> RegisterRequestDTO {
-        RegisterRequestDTO(
-            username: username,
-            password: password,
-            displayName: displayName
-        )
-    }
-}

@@ -7,14 +7,14 @@
 
 import Foundation
 
-extension AttachedFileDTO {
-    func toDomain() throws -> AttachedFile {
+enum AttachedFileMapper {
+    static func toDomain(_ dto: AttachedFileDTO) throws -> AttachedFile {
         AttachedFile(
-            id: try parseUUID(id),
-            originalName: originalName,
-            contentType: contentType,
-            sizeBytes: sizeBytes,
-            uploadedAt: try parseDate(uploadedAt)
+            id: try parseUUID(dto.id),
+            originalName: dto.originalName,
+            contentType: dto.contentType,
+            sizeBytes: dto.sizeBytes,
+            uploadedAt: try parseDate(dto.uploadedAt)
         )
     }
 }

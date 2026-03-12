@@ -14,13 +14,3 @@ struct UpdatePostCommand: Equatable, Sendable {
     let content: String?
     let deadline: Date?
 }
-
-extension UpdatePostCommand {
-    func toDTO() -> UpdatePostRequestDTO {
-        UpdatePostRequestDTO(
-            title: title,
-            content: content,
-            deadline: deadline.map(formatDate)
-        )
-    }
-}

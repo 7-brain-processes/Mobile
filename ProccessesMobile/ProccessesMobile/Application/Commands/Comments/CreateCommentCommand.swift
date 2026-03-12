@@ -13,9 +13,3 @@ struct CreateSolutionCommentCommand: Equatable, Sendable {
     let solutionId: UUID
     let text: String
 }
-
-extension CreateSolutionCommentCommand {
-    func toDTO() -> CreateCommentRequestDTO {
-        CreateCommentRequestDTO(text: text)
-    }
-}

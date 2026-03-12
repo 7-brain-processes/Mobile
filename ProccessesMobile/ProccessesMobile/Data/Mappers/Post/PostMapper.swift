@@ -7,40 +7,21 @@
 
 import Foundation
 
-extension PostDTO {
-    func toDomain() throws -> Post {
+enum PostMapper {
+    static func toDomain(_ dto: PostDTO) throws -> Post {
         Post(
-            id: try parseUUID(id),
-            title: title,
-            content: content,
-            type: type.toDomain(),
-            deadline: try deadline.map(parseDate),
-            author: try author?.toDomain(),
-            materialsCount: materialsCount,
-            commentsCount: commentsCount,
-            solutionsCount: solutionsCount,
-            mySolutionId: try mySolutionId.map(parseUUID),
-            createdAt: try parseDate(createdAt),
-            updatedAt: try parseDate(updatedAt)
+            id: try parseUUID(dto.id),
+            title: dto.title,
+            content: dto.content,
+            type: PostTypeMapper.toDomain(dto.type),
+            deadline: try dto.deadline.map(parseDate),
+            author: try dto.author.map(UserMapper.toDomain),
+            materialsCount: dto.materialsCount,
+            commentsCount: dto.commentsCount,
+            solutionsCount: dto.solutionsCount,
+            mySolutionId: try dto.mySolutionId.map(parseUUID),
+            createdAt: try parseDate(dto.createdAt),
+            updatedAt: try parseDate(dto.updatedAt)
         )
     }
 }
-
-extension PostTypeDTO {
-    func toDomain() -> PostType {
-        switch self {
-        case .material: return .material
-        case .task: return .task
-        }
-    }
-}
-
-extension PostType {
-    func toDTO() -> PostTypeDTO {
-        switch self {
-        case .material: return .material
-        case .task: return .task
-        }
-    }
-}
-

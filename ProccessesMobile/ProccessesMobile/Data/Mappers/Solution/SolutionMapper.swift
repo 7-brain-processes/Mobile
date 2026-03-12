@@ -7,37 +7,18 @@
 
 import Foundation
 
-extension SolutionDTO {
-    func toDomain() throws -> Solution {
+enum SolutionMapper {
+    static func toDomain(_ dto: SolutionDTO) throws -> Solution {
         Solution(
-            id: try parseUUID(id),
-            text: text,
-            status: status.toDomain(),
-            grade: grade,
-            filesCount: filesCount,
-            student: try student?.toDomain(),
-            submittedAt: try parseDate(submittedAt),
-            updatedAt: try parseDate(updatedAt),
-            gradedAt: try gradedAt.map(parseDate)
+            id: try parseUUID(dto.id),
+            text: dto.text,
+            status: SolutionStatusMapper.toDomain(dto.status),
+            grade: dto.grade,
+            filesCount: dto.filesCount,
+            student: try dto.student.map(UserMapper.toDomain),
+            submittedAt: try parseDate(dto.submittedAt),
+            updatedAt: try parseDate(dto.updatedAt),
+            gradedAt: try dto.gradedAt.map(parseDate)
         )
-    }
-}
-
-extension SolutionStatusDTO {
-    func toDomain() -> SolutionStatus {
-        switch self {
-        case .submitted: return .submitted
-        case .graded: return .graded
-        }
-    }
-}
-
-
-extension SolutionStatus {
-    func toDTO() -> SolutionStatusDTO {
-        switch self {
-        case .submitted: return .submitted
-        case .graded: return .graded
-        }
     }
 }

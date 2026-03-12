@@ -11,12 +11,3 @@ struct CreateCourseCommand: Equatable, Sendable {
     let name: String
     let description: String?
 }
-
-extension CreateCourseCommand {
-    func toDTO() -> CreateCourseRequestDTO {
-        CreateCourseRequestDTO(
-            name: name,
-            description: description
-        )
-    }
-}

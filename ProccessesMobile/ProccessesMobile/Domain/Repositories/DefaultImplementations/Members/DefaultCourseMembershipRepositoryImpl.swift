@@ -28,7 +28,8 @@ struct DefaultCourseMembershipRepositoryImpl: CourseMembershipRepository {
         try validate(response, success: 200)
 
         let dto = try JSONDecoder().decode(CourseDTO.self, from: data)
-        return try dto.toDomain()
+
+        return try CourseMapper.toDomain(dto)
     }
 
     func leaveCourse(_ command: LeaveCourseCommand) async throws {

@@ -14,12 +14,3 @@ struct GradeSolutionCommand: Equatable, Sendable {
     let grade: Int
     let comment: String?
 }
-
-extension GradeSolutionCommand {
-    func toDTO() -> GradeRequestDTO {
-        GradeRequestDTO(
-            grade: grade,
-            comment: comment
-        )
-    }
-}

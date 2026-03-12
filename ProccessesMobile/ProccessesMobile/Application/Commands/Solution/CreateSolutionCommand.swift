@@ -12,9 +12,3 @@ struct SubmitSolutionCommand: Equatable, Sendable {
     let postId: UUID
     let text: String?
 }
-
-extension SubmitSolutionCommand {
-    func toDTO() -> CreateSolutionRequestDTO {
-        CreateSolutionRequestDTO(text: text)
-    }
-}

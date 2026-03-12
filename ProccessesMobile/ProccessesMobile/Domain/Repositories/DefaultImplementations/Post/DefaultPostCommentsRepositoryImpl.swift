@@ -33,7 +33,10 @@ struct DefaultPostCommentsRepositoryImpl: PostCommentsRepository {
 
         let dto = try JSONDecoder().decode(PageDTO<CommentDTO>.self, from: data)
 
-        return try dto.toDomain { try $0.toDomain() }
+        return try PageMapper.toDomain(
+            dto,
+            itemMapper: CommentMapper.toDomain
+        )
     }
 
     func createComment(_ command: CreatePostCommentCommand) async throws -> Comment {
@@ -41,7 +44,7 @@ struct DefaultPostCommentsRepositoryImpl: PostCommentsRepository {
         let req = try PostCommentsEndpoint.create(
             courseId: command.courseId.uuidString,
             postId: command.postId.uuidString,
-            request: command.toDTO(),
+            request: CreatePostCommentMapper.toDTO(command),
             baseURL: baseURL
         ).makeURLRequest()
 
@@ -51,7 +54,7 @@ struct DefaultPostCommentsRepositoryImpl: PostCommentsRepository {
 
         let dto = try JSONDecoder().decode(CommentDTO.self, from: data)
 
-        return try dto.toDomain()
+        return try CommentMapper.toDomain(dto)
     }
 
     func updateComment(_ command: UpdatePostCommentCommand) async throws -> Comment {
@@ -60,7 +63,7 @@ struct DefaultPostCommentsRepositoryImpl: PostCommentsRepository {
             courseId: command.courseId.uuidString,
             postId: command.postId.uuidString,
             commentId: command.commentId.uuidString,
-            request: command.toDTO(),
+            request: UpdatePostCommentMapper.toDTO(command),
             baseURL: baseURL
         ).makeURLRequest()
 
@@ -70,7 +73,7 @@ struct DefaultPostCommentsRepositoryImpl: PostCommentsRepository {
 
         let dto = try JSONDecoder().decode(CommentDTO.self, from: data)
 
-        return try dto.toDomain()
+        return try CommentMapper.toDomain(dto)
     }
 
     func deleteComment(_ command: DeletePostCommentCommand) async throws {

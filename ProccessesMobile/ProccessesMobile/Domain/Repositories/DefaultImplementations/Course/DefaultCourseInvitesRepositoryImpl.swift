@@ -25,7 +25,6 @@ struct DefaultCourseInvitesRepositoryImpl: CourseInvitesRepository {
     }()
 
     func listInvites(courseId: UUID) async throws -> [Invite] {
-
         let req = try CourseInvitesEndpoint
             .list(courseId: courseId.uuidString, baseURL: baseURL)
             .makeURLRequest()
@@ -38,7 +37,7 @@ struct DefaultCourseInvitesRepositoryImpl: CourseInvitesRepository {
 
         let dto = try decoder.decode([InviteDTO].self, from: data)
 
-        return try dto.map { try $0.toDomain() }
+        return try dto.map(InviteMapper.toDomain)
     }
 
     func createInvite(_ command: CreateInviteCommand) async throws -> Invite {
@@ -46,7 +45,7 @@ struct DefaultCourseInvitesRepositoryImpl: CourseInvitesRepository {
         let req = try CourseInvitesEndpoint
             .create(
                 courseId: command.courseId.uuidString,
-                request: command.toDTO(),
+                request: CreateInviteMapper.toDTO(command),
                 baseURL: baseURL
             )
             .makeURLRequest()
@@ -59,7 +58,7 @@ struct DefaultCourseInvitesRepositoryImpl: CourseInvitesRepository {
 
         let dto = try decoder.decode(InviteDTO.self, from: data)
 
-        return try dto.toDomain()
+        return try InviteMapper.toDomain(dto)
     }
 
     func revokeInvite(_ command: RevokeInviteCommand) async throws {

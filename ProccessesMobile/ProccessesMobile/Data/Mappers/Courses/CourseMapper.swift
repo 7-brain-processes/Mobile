@@ -7,58 +7,16 @@
 
 import Foundation
 
-extension CourseDTO {
-
-    func toDomain() throws -> Course {
+enum CourseMapper {
+    static func toDomain(_ dto: CourseDTO) throws -> Course {
         Course(
-            id: try parseUUID(id),
-            name: name,
-            description: description,
-            createdAt: try parseDate(createdAt),
-            currentUserRole: currentUserRole?.toDomain(),
-            teacherCount: teacherCount,
-            studentCount: studentCount
+            id: try parseUUID(dto.id),
+            name: dto.name,
+            description: dto.description,
+            createdAt: try parseDate(dto.createdAt),
+            currentUserRole: dto.currentUserRole.map(CourseRoleMapper.toDomain),
+            teacherCount: dto.teacherCount,
+            studentCount: dto.studentCount
         )
     }
 }
-
-extension CourseRoleDTO {
-
-    func toDomain() -> CourseRole {
-        switch self {
-        case .teacher:
-            return .teacher
-        case .student:
-            return .student
-        }
-    }
-}
-
-extension CourseRole {
-    func toDTO() -> CourseRoleDTO {
-        switch self {
-        case .teacher: return .teacher
-        case .student: return .student
-        }
-    }
-}
-
-extension UpdateCourseRequestDTO {
-    func toCommand(courseId: UUID) -> UpdateCourseCommand {
-        UpdateCourseCommand(
-            courseId: courseId,
-            name: name,
-            description: description
-        )
-    }
-}
-
-extension UpdateCourseCommand {
-    func toDTO() -> UpdateCourseRequestDTO {
-        UpdateCourseRequestDTO(
-            name: name,
-            description: description
-        )
-    }
-}
-

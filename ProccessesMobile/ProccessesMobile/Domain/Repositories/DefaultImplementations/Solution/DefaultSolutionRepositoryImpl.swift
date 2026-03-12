@@ -45,7 +45,7 @@ struct DefaultSolutionRepositoryImpl: SolutionRepository {
             postId: query.postId.uuidString,
             page: query.page,
             size: query.size,
-            status: query.status?.toDTO(),
+            status: query.status.map(SolutionStatusMapper.toDTO),
             baseURL: baseURL
         ).makeURLRequest()
 
@@ -57,14 +57,17 @@ struct DefaultSolutionRepositoryImpl: SolutionRepository {
             successCodes: [200]
         )
 
-        return try dto.toDomain { try $0.toDomain() }
+        return try PageMapper.toDomain(
+            dto,
+            itemMapper: SolutionMapper.toDomain
+        )
     }
 
     func submitSolution(_ command: SubmitSolutionCommand) async throws -> Solution {
         let req = try SolutionEndpoint.submit(
             courseId: command.courseId.uuidString,
             postId: command.postId.uuidString,
-            request: command.toDTO(),
+            request: SubmitSolutionMapper.toDTO(command),
             baseURL: baseURL
         ).makeURLRequest()
 
@@ -76,7 +79,7 @@ struct DefaultSolutionRepositoryImpl: SolutionRepository {
             successCodes: [201]
         )
 
-        return try dto.toDomain()
+        return try SolutionMapper.toDomain(dto)
     }
 
     func getMySolution(_ command: GetMySolutionQuery) async throws -> Solution {
@@ -94,7 +97,7 @@ struct DefaultSolutionRepositoryImpl: SolutionRepository {
             successCodes: [200]
         )
 
-        return try dto.toDomain()
+        return try SolutionMapper.toDomain(dto)
     }
 
     func getSolution(_ command: SolutionOfPost) async throws -> Solution {
@@ -113,7 +116,7 @@ struct DefaultSolutionRepositoryImpl: SolutionRepository {
             successCodes: [200]
         )
 
-        return try dto.toDomain()
+        return try SolutionMapper.toDomain(dto)
     }
 
     func updateSolution(_ command: UpdateSolutionCommand) async throws -> Solution {
@@ -121,7 +124,7 @@ struct DefaultSolutionRepositoryImpl: SolutionRepository {
             courseId: command.courseId.uuidString,
             postId: command.postId.uuidString,
             solutionId: command.solutionId.uuidString,
-            request: command.toDTO(),
+            request: UpdateSolutionMapper.toDTO(command),
             baseURL: baseURL
         ).makeURLRequest()
 
@@ -133,7 +136,7 @@ struct DefaultSolutionRepositoryImpl: SolutionRepository {
             successCodes: [200]
         )
 
-        return try dto.toDomain()
+        return try SolutionMapper.toDomain(dto)
     }
 
     func deleteSolution(_ command: SolutionOfPost) async throws {

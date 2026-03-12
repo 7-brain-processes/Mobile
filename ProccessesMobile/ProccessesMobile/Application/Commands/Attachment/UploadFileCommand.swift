@@ -15,13 +15,3 @@ struct UploadSolutionFileCommand: Equatable, Sendable {
     let mimeType: String
     let data: Data
 }
-
-extension UploadSolutionFileCommand {
-    func toDTO() -> UploadFileRequestDTO {
-        UploadFileRequestDTO(
-            fileName: fileName,
-            mimeType: mimeType,
-            data: data
-        )
-    }
-}

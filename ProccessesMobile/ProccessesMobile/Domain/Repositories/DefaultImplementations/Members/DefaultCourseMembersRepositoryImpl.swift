@@ -24,7 +24,7 @@ struct DefaultCourseMembersRepositoryImpl: CourseMembersRepository {
                 courseId: query.courseId.uuidString,
                 page: query.page,
                 size: query.size,
-                role: query.role?.toDTO(),
+                role: query.role.map(CourseRoleMapper.toDTO),
                 baseURL: baseURL
             )
             .makeURLRequest()
@@ -35,7 +35,10 @@ struct DefaultCourseMembersRepositoryImpl: CourseMembersRepository {
 
         let dto = try JSONDecoder().decode(PageDTO<MemberDTO>.self, from: data)
 
-        return try dto.toDomain { try $0.toDomain() }
+        return try PageMapper.toDomain(
+            dto,
+            itemMapper: MemberMapper.toDomain
+        )
     }
 
     func removeMember(_ command: RemoveMemberCommand) async throws {

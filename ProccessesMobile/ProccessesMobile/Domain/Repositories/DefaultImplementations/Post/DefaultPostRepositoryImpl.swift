@@ -41,7 +41,7 @@ struct DefaultPostRepositoryImpl: PostRepository {
             courseId: query.courseId.uuidString,
             page: query.page,
             size: query.size,
-            type: query.type?.toDTO(),
+            type: query.type.map(PostTypeMapper.toDTO),
             baseURL: baseURL
         ).makeURLRequest()
 
@@ -53,13 +53,16 @@ struct DefaultPostRepositoryImpl: PostRepository {
             successCodes: [200]
         )
 
-        return try dto.toDomain { try $0.toDomain() }
+        return try PageMapper.toDomain(
+            dto,
+            itemMapper: PostMapper.toDomain
+        )
     }
 
     func createPost(_ command: CreatePostCommand) async throws -> Post {
         let req = try PostEndpoint.create(
             courseId: command.courseId.uuidString,
-            request: command.toDTO(),
+            request: CreatePostMapper.toDTO(command),
             baseURL: baseURL
         ).makeURLRequest()
 
@@ -71,7 +74,7 @@ struct DefaultPostRepositoryImpl: PostRepository {
             successCodes: [201]
         )
 
-        return try dto.toDomain()
+        return try PostMapper.toDomain(dto)
     }
 
     func getPost(courseId: UUID, postId: UUID) async throws -> Post {
@@ -89,14 +92,14 @@ struct DefaultPostRepositoryImpl: PostRepository {
             successCodes: [200]
         )
 
-        return try dto.toDomain()
+        return try PostMapper.toDomain(dto)
     }
 
     func updatePost(_ command: UpdatePostCommand) async throws -> Post {
         let req = try PostEndpoint.update(
             courseId: command.courseId.uuidString,
             postId: command.postId.uuidString,
-            request: command.toDTO(),
+            request: UpdatePostMapper.toDTO(command),
             baseURL: baseURL
         ).makeURLRequest()
 
@@ -108,7 +111,7 @@ struct DefaultPostRepositoryImpl: PostRepository {
             successCodes: [200]
         )
 
-        return try dto.toDomain()
+        return try PostMapper.toDomain(dto)
     }
 
     func deletePost(courseId: UUID, postId: UUID) async throws {

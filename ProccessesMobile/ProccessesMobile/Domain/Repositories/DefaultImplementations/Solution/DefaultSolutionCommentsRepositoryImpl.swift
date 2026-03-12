@@ -36,7 +36,11 @@ struct DefaultSolutionCommentsRepositoryImpl: SolutionCommentsRepository {
         try validate(res, success: 200)
 
         let dto = try decoder.decode(PageDTO<CommentDTO>.self, from: data)
-        return try dto.toDomain { try $0.toDomain() }
+
+        return try PageMapper.toDomain(
+            dto,
+            itemMapper: CommentMapper.toDomain
+        )
     }
 
     func createComment(_ command: CreateSolutionCommentCommand) async throws -> Comment {
@@ -44,7 +48,7 @@ struct DefaultSolutionCommentsRepositoryImpl: SolutionCommentsRepository {
             courseId: command.courseId.uuidString,
             postId: command.postId.uuidString,
             solutionId: command.solutionId.uuidString,
-            request: command.toDTO(),
+            request: CreateSolutionCommentMapper.toDTO(command),
             baseURL: baseURL
         ).makeURLRequest()
 
@@ -52,7 +56,8 @@ struct DefaultSolutionCommentsRepositoryImpl: SolutionCommentsRepository {
         try validate(res, success: 201)
 
         let dto = try decoder.decode(CommentDTO.self, from: data)
-        return try dto.toDomain()
+
+        return try CommentMapper.toDomain(dto)
     }
 
     func updateComment(_ command: UpdateSolutionCommentCommand) async throws -> Comment {
@@ -61,7 +66,7 @@ struct DefaultSolutionCommentsRepositoryImpl: SolutionCommentsRepository {
             postId: command.postId.uuidString,
             solutionId: command.solutionId.uuidString,
             commentId: command.commentId.uuidString,
-            request: command.toDTO(),
+            request: UpdateSolutionCommentMapper.toDTO(command),
             baseURL: baseURL
         ).makeURLRequest()
 
@@ -69,7 +74,8 @@ struct DefaultSolutionCommentsRepositoryImpl: SolutionCommentsRepository {
         try validate(res, success: 200)
 
         let dto = try decoder.decode(CommentDTO.self, from: data)
-        return try dto.toDomain()
+
+        return try CommentMapper.toDomain(dto)
     }
 
     func deleteComment(_ command: DeleteSolutionCommentCommand) async throws {

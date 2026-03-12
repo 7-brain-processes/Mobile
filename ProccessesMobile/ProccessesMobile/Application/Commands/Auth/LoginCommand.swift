@@ -11,9 +11,3 @@ struct LoginCommand: Equatable, Sendable {
     let username: String
     let password: String
 }
-
-extension LoginCommand {
-    func toDTO() -> LoginRequestDTO {
-        LoginRequestDTO(username: username, password: password)
-    }
-}

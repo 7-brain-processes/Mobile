@@ -14,14 +14,3 @@ struct CreatePostCommand: Equatable, Sendable, Codable {
     let type: PostType
     let deadline: Date?
 }
-
-extension CreatePostCommand {
-    func toDTO() -> CreatePostRequestDTO {
-        CreatePostRequestDTO(
-            title: title,
-            content: content,
-            type: type.toDTO(),
-            deadline: deadline.map(formatDate)
-        )
-    }
-}

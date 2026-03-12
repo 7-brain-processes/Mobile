@@ -25,7 +25,7 @@ struct DefaultAuthRepository: AuthRepository, Sendable {
 
     func login(request: LoginCommand) async throws -> AuthResponse {
 
-        let endpoint = AuthEndpoint.login(request.toDTO(), baseURL: baseURL)
+        let endpoint = AuthEndpoint.login(LoginMapper.toDTO(request), baseURL: baseURL)
         let urlRequest = try endpoint.makeURLRequest()
 
         let (data, response) = try await client.send(urlRequest)
@@ -38,7 +38,7 @@ struct DefaultAuthRepository: AuthRepository, Sendable {
 
     func register(request: RegisterCommand) async throws -> AuthResponse {
 
-        let endpoint = AuthEndpoint.register(request.toDTO(), baseURL: baseURL)
+        let endpoint = AuthEndpoint.register(RegisterMapper.toDTO(request), baseURL: baseURL)
         let urlRequest = try endpoint.makeURLRequest()
 
         let (data, response) = try await client.send(urlRequest)

@@ -35,7 +35,7 @@ struct DefaultSolutionFilesRepositoryImpl: SolutionFilesRepository {
         try validate(response, success: 200)
 
         let dto = try decoder.decode([AttachedFileDTO].self, from: data)
-        return try dto.map { try $0.toDomain() }
+        return try dto.map(AttachedFileMapper.toDomain)
     }
 
     func uploadSolutionFile(_ command: UploadSolutionFileCommand) async throws -> AttachedFile {
@@ -43,7 +43,7 @@ struct DefaultSolutionFilesRepositoryImpl: SolutionFilesRepository {
             courseId: command.courseId.uuidString,
             postId: command.postId.uuidString,
             solutionId: command.solutionId.uuidString,
-            request: command.toDTO(),
+            request: UploadSolutionFileMapper.toDTO(command),
             baseURL: baseURL
         ).makeURLRequest()
 
@@ -56,7 +56,7 @@ struct DefaultSolutionFilesRepositoryImpl: SolutionFilesRepository {
         try validate(response, success: 201)
 
         let dto = try decoder.decode(AttachedFileDTO.self, from: data)
-        return try dto.toDomain()
+        return try AttachedFileMapper.toDomain(dto)
     }
 
     func deleteSolutionFile(_ command: DeleteSolutionFileCommand) async throws {

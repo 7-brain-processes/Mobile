@@ -13,14 +13,3 @@ struct CreateInviteCommand: Equatable, Sendable {
     let expiresAt: Date?
     let maxUses: Int?
 }
-
-extension CreateInviteCommand {
-
-    func toDTO() -> CreateInviteRequestDTO {
-        CreateInviteRequestDTO(
-            role: role.toDTO(),
-            expiresAt: expiresAt.map(formatDate),
-            maxUses: maxUses
-        )
-    }
-}

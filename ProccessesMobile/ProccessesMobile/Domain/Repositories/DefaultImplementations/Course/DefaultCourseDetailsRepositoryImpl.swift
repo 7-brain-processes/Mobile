@@ -35,25 +35,26 @@ struct DefaultCourseDetailsRepository: CourseDetailsRepository {
         try validate(response, success: 200)
 
         let dto = try decoder.decode(CourseDTO.self, from: data)
-        return try dto.toDomain()
+        return try CourseMapper.toDomain(dto)
     }
 
     func updateCourse(_ command: UpdateCourseCommand) async throws -> Course {
-
         let request = try CourseDetailsEndpoint.update(
             courseId: command.courseId.uuidString,
-            request: command.toDTO(),
+            request: UpdateCourseMapper.toDTO(command),
             baseURL: baseURL
         ).makeURLRequest()
 
         let (data, response) = try await client.send(request)
 
-        if response.statusCode == 401 { throw APIError.unauthorized }
+        if response.statusCode == 401 {
+            throw APIError.unauthorized
+        }
+
         try validate(response, success: 200)
 
         let dto = try decoder.decode(CourseDTO.self, from: data)
-
-        return try dto.toDomain()
+        return try CourseMapper.toDomain(dto)
     }
 
     func deleteCourse(_ query: DeleteCourseQuery) async throws {

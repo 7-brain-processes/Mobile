@@ -7,12 +7,12 @@
 
 import Foundation
 
-extension MemberDTO {
-    func toDomain() throws -> Member {
+enum MemberMapper {
+    static func toDomain(_ dto: MemberDTO) throws -> Member {
         Member(
-            user: try user?.toDomain(),
-            role: role.toDomain(),
-            joinedAt: try parseDate(joinedAt)
+            user: try dto.user.map(UserMapper.toDomain),
+            role: CourseRoleMapper.toDomain(dto.role),
+            joinedAt: try parseDate(dto.joinedAt)
         )
     }
 }

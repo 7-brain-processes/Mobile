@@ -29,7 +29,7 @@ struct DefaultCourseRepositoryImpl: CourseRepository {
             .getCourses(
                 page: query.page,
                 size: query.size,
-                role: query.role?.toDTO(),
+                role: query.role.map(CourseRoleMapper.toDTO),
                 baseURL: baseURL
             )
             .makeURLRequest()
@@ -40,21 +40,26 @@ struct DefaultCourseRepositoryImpl: CourseRepository {
 
         let dto = try decoder.decode(PageDTO<CourseDTO>.self, from: data)
 
-        return try dto.toDomain { try $0.toDomain() }
+        return try PageMapper.toDomain(
+            dto,
+            itemMapper: CourseMapper.toDomain
+        )
     }
 
     func createCourse(_ command: CreateCourseCommand) async throws -> Course {
 
         let urlRequest = try CourseEndpoint
             .create(
-                request: command.toDTO(),
+                request: CreateCourseMapper.toDTO(command),
                 baseURL: baseURL
             )
             .makeURLRequest()
 
         let (data, response) = try await client.send(urlRequest)
 
-        if response.statusCode == 401 { throw APIError.unauthorized }
+        if response.statusCode == 401 {
+            throw APIError.unauthorized
+        }
 
         guard response.statusCode == 201 else {
             throw APIError.serverError(code: response.statusCode)
@@ -62,6 +67,6 @@ struct DefaultCourseRepositoryImpl: CourseRepository {
 
         let dto = try decoder.decode(CourseDTO.self, from: data)
 
-        return try dto.toDomain()
+        return try CourseMapper.toDomain(dto)
     }
 }

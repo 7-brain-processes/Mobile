@@ -29,7 +29,7 @@ struct DefaultGradingRepositoryImpl: GradingRepository {
             courseId: command.courseId.uuidString,
             postId: command.postId.uuidString,
             solutionId: command.solutionId.uuidString,
-            request: command.toDTO(),
+            request: GradeSolutionMapper.toDTO(command),
             baseURL: baseURL
         ).makeURLRequest()
 
@@ -39,6 +39,6 @@ struct DefaultGradingRepositoryImpl: GradingRepository {
 
         let dto = try decoder.decode(SolutionDTO.self, from: data)
 
-        return try dto.toDomain()
+        return try SolutionMapper.toDomain(dto)
     }
 }

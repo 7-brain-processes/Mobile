@@ -14,13 +14,3 @@ struct UploadPostMaterialCommand: Equatable, Sendable {
     let mimeType: String
     let data: Data
 }
-
-extension UploadPostMaterialCommand {
-    func toDTO() -> UploadFileRequestDTO {
-        UploadFileRequestDTO(
-            fileName: fileName,
-            mimeType: mimeType,
-            data: data
-        )
-    }
-}

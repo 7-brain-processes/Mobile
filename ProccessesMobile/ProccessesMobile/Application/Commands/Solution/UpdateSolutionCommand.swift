@@ -13,9 +13,3 @@ struct UpdateSolutionCommand: Equatable, Sendable {
     let solutionId: UUID
     let text: String?
 }
-
-extension UpdateSolutionCommand {
-    func toDTO() -> CreateSolutionRequestDTO {
-        CreateSolutionRequestDTO(text: text)
-    }
-}

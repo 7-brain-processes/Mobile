@@ -37,7 +37,7 @@ struct DefaultPostMaterialsRepositoryImpl: PostMaterialsRepository {
 
         let dto = try decoder.decode([AttachedFileDTO].self, from: data)
 
-        return try dto.map { try $0.toDomain() }
+        return try dto.map(AttachedFileMapper.toDomain)
     }
 
     func uploadMaterial(_ command: UploadPostMaterialCommand) async throws -> AttachedFile {
@@ -45,7 +45,7 @@ struct DefaultPostMaterialsRepositoryImpl: PostMaterialsRepository {
         let req = try PostMaterialsEndpoint.upload(
             courseId: command.courseId.uuidString,
             postId: command.postId.uuidString,
-            request: command.toDTO(),
+            request: UploadPostMaterialMapper.toDTO(command),
             baseURL: baseURL
         ).makeURLRequest()
 
@@ -59,7 +59,7 @@ struct DefaultPostMaterialsRepositoryImpl: PostMaterialsRepository {
 
         let dto = try decoder.decode(AttachedFileDTO.self, from: data)
 
-        return try dto.toDomain()
+        return try AttachedFileMapper.toDomain(dto)
     }
 
     func deleteMaterial(_ command: DeletePostMaterialCommand) async throws {
