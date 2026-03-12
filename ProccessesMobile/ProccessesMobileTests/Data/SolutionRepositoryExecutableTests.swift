@@ -19,7 +19,7 @@ struct SolutionRepositoryExecutableTests {
     let solutionId = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440003")!
 
     func makeSUT(client: HTTPClient, baseURL: URL) -> SolutionRepository {
-        MockSolutionRepositoryImpl(client: client, baseURL: baseURL)
+        DefaultSolutionRepositoryImpl(client: client, baseURL: baseURL)
     }
 
     private func makeSolutionJSON() -> Data {

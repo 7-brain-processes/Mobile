@@ -1,5 +1,5 @@
 //
-//  MockPostCommentsRepositoryImpl.swift
+//  DefaultPostCommentsRepositoryImpl.swift
 //  ProccessesMobile
 //
 //  Created by dark type on 06.03.2026.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MockPostCommentsRepositoryImpl: PostCommentsRepository {
+struct DefaultPostCommentsRepositoryImpl: PostCommentsRepository {
 
     private let client: HTTPClient
     private let baseURL: URL

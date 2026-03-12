@@ -1,5 +1,5 @@
 //
-//  MockSolutionCommentsRepositoryImpl.swift
+//  DefaultSolutionCommentsRepositoryImpl.swift
 //  ProccessesMobile
 //
 //  Created by dark type on 06.03.2026.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MockSolutionCommentsRepositoryImpl: SolutionCommentsRepository {
+struct DefaultSolutionCommentsRepositoryImpl: SolutionCommentsRepository {
     private let client: HTTPClient
     private let baseURL: URL
 

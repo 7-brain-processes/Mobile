@@ -69,7 +69,7 @@ struct CourseUsersRepositoryExecutableTests {
             )
         )
 
-        let sut = MockCourseMembersRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultCourseMembersRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         _ = try await sut.listMembers(
             ListMembersQuery(
@@ -112,7 +112,7 @@ struct CourseUsersRepositoryExecutableTests {
             )
         )
 
-        let sut = MockCourseMembersRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultCourseMembersRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         await #expect(throws: APIError.serverError(code: 403)) {
             try await sut.removeMember(
@@ -150,7 +150,7 @@ struct CourseUsersRepositoryExecutableTests {
             )
         )
 
-        let sut = MockCourseInvitesRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultCourseInvitesRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         _ = try await sut.createInvite(
             CreateInviteCommand(
@@ -195,7 +195,7 @@ struct CourseUsersRepositoryExecutableTests {
             )
         )
 
-        let sut = MockCourseInvitesRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultCourseInvitesRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         let result = try await sut.listInvites(
             courseId: courseId
@@ -222,7 +222,7 @@ struct CourseUsersRepositoryExecutableTests {
             )
         )
 
-        let sut = MockCourseInvitesRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultCourseInvitesRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         try await sut.revokeInvite(
             RevokeInviteCommand(

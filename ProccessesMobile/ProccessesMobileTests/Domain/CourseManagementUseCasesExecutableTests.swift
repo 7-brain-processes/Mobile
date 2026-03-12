@@ -25,7 +25,7 @@ struct CourseManagementUseCasesExecutableTests {
 
     private func makeDeleteSUT(repo: CourseDetailsRepository) -> DeleteCourseUseCase {
         //TODO: Default
-        MockDeleteCourseUseCase(repository: repo)
+        DefaultDeleteCourseUseCase(repository: repo)
     }
 
     // MARK: - Get Course Tests

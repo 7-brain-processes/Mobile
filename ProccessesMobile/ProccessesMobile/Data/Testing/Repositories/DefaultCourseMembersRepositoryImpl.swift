@@ -1,5 +1,5 @@
 //
-//  MockCourseMembersRepositoryImpl.swift
+//  DefaultCourseMembersRepositoryImpl.swift
 //  ProccessesMobile
 //
 //  Created by dark type on 06.03.2026.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MockCourseMembersRepositoryImpl: CourseMembersRepository {
+struct DefaultCourseMembersRepositoryImpl: CourseMembersRepository {
 
     private let client: HTTPClient
     private let baseURL: URL

@@ -1,5 +1,5 @@
 //
-//  MockPostMaterialsRepositoryImpl.swift
+//  DefaultPostMaterialsRepositoryImpl.swift
 //  ProccessesMobile
 //
 //  Created by dark type on 06.03.2026.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MockPostMaterialsRepositoryImpl: PostMaterialsRepository {
+struct DefaultPostMaterialsRepositoryImpl: PostMaterialsRepository {
 
     private let client: HTTPClient
     private let baseURL: URL

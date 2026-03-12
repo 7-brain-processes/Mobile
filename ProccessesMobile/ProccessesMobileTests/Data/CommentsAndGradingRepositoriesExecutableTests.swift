@@ -66,7 +66,7 @@ struct CommentsAndGradingRepositoriesExecutableTests {
             )
         )
 
-        let sut = MockPostCommentsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultPostCommentsRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         let command = CreatePostCommentCommand(
             courseId: courseId,
@@ -111,7 +111,7 @@ struct CommentsAndGradingRepositoriesExecutableTests {
             )
         )
 
-        let sut = MockPostCommentsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultPostCommentsRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         try await sut.deleteComment(
             DeletePostCommentCommand(
@@ -148,7 +148,7 @@ struct CommentsAndGradingRepositoriesExecutableTests {
             )
         )
 
-        let sut = MockGradingRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultGradingRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         let command = GradeSolutionCommand(
             courseId: courseId,
@@ -196,7 +196,7 @@ struct CommentsAndGradingRepositoriesExecutableTests {
             )
         )
 
-        let sut = MockGradingRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultGradingRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         await #expect(throws: APIError.serverError(code: 403)) {
             _ = try await sut.gradeSolution(

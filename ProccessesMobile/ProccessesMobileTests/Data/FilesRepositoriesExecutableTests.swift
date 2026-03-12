@@ -59,7 +59,7 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let sut = MockPostMaterialsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultPostMaterialsRepositoryImpl(client: clientSpy, baseURL: anyURL)
         let fileData = "fake_pdf_binary".data(using: .utf8)!
 
         let result = try await sut.uploadMaterial(
@@ -106,7 +106,7 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let sut = MockPostMaterialsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultPostMaterialsRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         await #expect(throws: APIError.serverError(code: 413)) {
             _ = try await sut.uploadMaterial(
@@ -133,7 +133,7 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let sut = MockPostMaterialsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultPostMaterialsRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         let result = try await sut.listMaterials(
             ListPostMaterialsQuery(
@@ -167,7 +167,7 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let sut = MockPostMaterialsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultPostMaterialsRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         try await sut.deleteMaterial(
             DeletePostMaterialCommand(
@@ -200,7 +200,7 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let sut = MockPostMaterialsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultPostMaterialsRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         let result = try await sut.downloadMaterial(
             DownloadPostMaterialQuery(
@@ -236,7 +236,7 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultSolutionFilesRepository(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultSolutionFilesRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         _ = try await sut.uploadSolutionFile(
             UploadSolutionFileCommand(
@@ -271,7 +271,7 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultSolutionFilesRepository(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultSolutionFilesRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         let result = try await sut.listSolutionFiles(
             ListSolutionFilesQuery(
@@ -306,7 +306,7 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultSolutionFilesRepository(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultSolutionFilesRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         try await sut.deleteSolutionFile(
             DeleteSolutionFileCommand(
@@ -340,7 +340,7 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultSolutionFilesRepository(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultSolutionFilesRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         let result = try await sut.downloadSolutionFile(
             DownloadSolutionFileQuery(

@@ -47,7 +47,7 @@ struct SolutionCommentsRepositoriesExecutableTests {
             )
         )
 
-        let sut = MockSolutionCommentsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultSolutionCommentsRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         let result = try await sut.createComment(
             CreateSolutionCommentCommand(
@@ -90,7 +90,7 @@ struct SolutionCommentsRepositoriesExecutableTests {
             )
         )
 
-        let sut = MockSolutionCommentsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultSolutionCommentsRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         _ = try await sut.updateComment(
             UpdateSolutionCommentCommand(
@@ -128,7 +128,7 @@ struct SolutionCommentsRepositoriesExecutableTests {
             )
         )
 
-        let sut = MockSolutionCommentsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultSolutionCommentsRepositoryImpl(client: clientSpy, baseURL: anyURL)
 
         try await sut.deleteComment(
             DeleteSolutionCommentCommand(

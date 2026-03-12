@@ -19,7 +19,7 @@ struct PostRepositoryExecutableTests {
     private let postId   = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440002")!
 
     func makeSUT(client: HTTPClient, baseURL: URL) -> PostRepository {
-        MockPostRepositoryImpl(client: client, baseURL: baseURL)
+        DefaultPostRepositoryImpl(client: client, baseURL: baseURL)
     }
 
     private func makePostJSON() -> Data {

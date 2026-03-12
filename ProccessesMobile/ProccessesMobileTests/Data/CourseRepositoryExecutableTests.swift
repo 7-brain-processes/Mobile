@@ -15,7 +15,7 @@ struct CourseRepositoryExecutableTests {
     private let anyURL = URL(string: "http://localhost:8080/api/v1")!
 
     private func makeSUT(client: HTTPClient, baseURL: URL) -> CourseRepository {
-        MockCourseRepositoryImpl(client: client, baseURL: baseURL)
+        DefaultCourseRepositoryImpl(client: client, baseURL: baseURL)
     }
 
     // MARK: - JSON Builders

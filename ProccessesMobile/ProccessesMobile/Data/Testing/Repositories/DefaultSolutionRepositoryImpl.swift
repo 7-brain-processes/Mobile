@@ -1,5 +1,5 @@
 //
-//  MockPostRepositoryImpl.swift
+//  DefaultSolutionRepositoryImpl.swift
 //  ProccessesMobile
 //
 //  Created by dark type on 06.03.2026.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MockPostRepositoryImpl: PostRepository {
+struct DefaultSolutionRepositoryImpl: SolutionRepository {
     private let client: HTTPClient
     private let baseURL: URL
 
@@ -30,24 +30,28 @@ struct MockPostRepositoryImpl: PostRepository {
         if response.statusCode == 401 { throw APIError.unauthorized }
         if response.statusCode == 403 { throw APIError.serverError(code: 403) }
         if response.statusCode == 404 { throw APIError.serverError(code: 404) }
+        if response.statusCode == 409 { throw APIError.serverError(code: 409) }
+
         guard successCodes.contains(response.statusCode) else {
             throw APIError.serverError(code: response.statusCode)
         }
+
         return try decoder.decode(T.self, from: data)
     }
 
-    func listPosts(_ query: ListPostsQuery) async throws -> Page<Post> {
-        let req = try PostEndpoint.list(
+    func listSolutions(_ query: ListSolutionsQuery) async throws -> Page<Solution> {
+        let req = try SolutionEndpoint.list(
             courseId: query.courseId.uuidString,
+            postId: query.postId.uuidString,
             page: query.page,
             size: query.size,
-            type: query.type?.toDTO(),
+            status: query.status?.toDTO(),
             baseURL: baseURL
         ).makeURLRequest()
 
         let (data, res) = try await client.send(req)
 
-        let dto: PagePostDTO = try handleResponse(
+        let dto: PageSolutionDTO = try handleResponse(
             data: data,
             response: res,
             successCodes: [200]
@@ -56,44 +60,8 @@ struct MockPostRepositoryImpl: PostRepository {
         return try dto.toDomain { try $0.toDomain() }
     }
 
-    func createPost(_ command: CreatePostCommand) async throws -> Post {
-        let req = try PostEndpoint.create(
-            courseId: command.courseId.uuidString,
-            request: command.toDTO(),
-            baseURL: baseURL
-        ).makeURLRequest()
-
-        let (data, res) = try await client.send(req)
-
-        let dto: PostDTO = try handleResponse(
-            data: data,
-            response: res,
-            successCodes: [201]
-        )
-
-        return try dto.toDomain()
-    }
-
-    func getPost(courseId: UUID, postId: UUID) async throws -> Post {
-        let req = try PostEndpoint.get(
-            courseId: courseId.uuidString,
-            postId: postId.uuidString,
-            baseURL: baseURL
-        ).makeURLRequest()
-
-        let (data, res) = try await client.send(req)
-
-        let dto: PostDTO = try handleResponse(
-            data: data,
-            response: res,
-            successCodes: [200]
-        )
-
-        return try dto.toDomain()
-    }
-
-    func updatePost(_ command: UpdatePostCommand) async throws -> Post {
-        let req = try PostEndpoint.update(
+    func submitSolution(_ command: SubmitSolutionCommand) async throws -> Solution {
+        let req = try SolutionEndpoint.submit(
             courseId: command.courseId.uuidString,
             postId: command.postId.uuidString,
             request: command.toDTO(),
@@ -102,7 +70,25 @@ struct MockPostRepositoryImpl: PostRepository {
 
         let (data, res) = try await client.send(req)
 
-        let dto: PostDTO = try handleResponse(
+        let dto: SolutionDTO = try handleResponse(
+            data: data,
+            response: res,
+            successCodes: [201]
+        )
+
+        return try dto.toDomain()
+    }
+
+    func getMySolution(_ command: GetMySolutionQuery) async throws -> Solution {
+        let req = try SolutionEndpoint.getMy(
+            courseId: command.courseId.uuidString,
+            postId: command.postId.uuidString,
+            baseURL: baseURL
+        ).makeURLRequest()
+
+        let (data, res) = try await client.send(req)
+
+        let dto: SolutionDTO = try handleResponse(
             data: data,
             response: res,
             successCodes: [200]
@@ -111,20 +97,62 @@ struct MockPostRepositoryImpl: PostRepository {
         return try dto.toDomain()
     }
 
-    func deletePost(courseId: UUID, postId: UUID) async throws {
-        let req = try PostEndpoint.delete(
-            courseId: courseId.uuidString,
-            postId: postId.uuidString,
+    func getSolution(_ command: SolutionOfPost) async throws -> Solution {
+        let req = try SolutionEndpoint.get(
+            courseId: command.courseId.uuidString,
+            postId: command.postId.uuidString,
+            solutionId: command.solutionId.uuidString,
+            baseURL: baseURL
+        ).makeURLRequest()
+
+        let (data, res) = try await client.send(req)
+
+        let dto: SolutionDTO = try handleResponse(
+            data: data,
+            response: res,
+            successCodes: [200]
+        )
+
+        return try dto.toDomain()
+    }
+
+    func updateSolution(_ command: UpdateSolutionCommand) async throws -> Solution {
+        let req = try SolutionEndpoint.update(
+            courseId: command.courseId.uuidString,
+            postId: command.postId.uuidString,
+            solutionId: command.solutionId.uuidString,
+            request: command.toDTO(),
+            baseURL: baseURL
+        ).makeURLRequest()
+
+        let (data, res) = try await client.send(req)
+
+        let dto: SolutionDTO = try handleResponse(
+            data: data,
+            response: res,
+            successCodes: [200]
+        )
+
+        return try dto.toDomain()
+    }
+
+    func deleteSolution(_ command: SolutionOfPost) async throws {
+        let req = try SolutionEndpoint.delete(
+            courseId: command.courseId.uuidString,
+            postId: command.postId.uuidString,
+            solutionId: command.solutionId.uuidString,
             baseURL: baseURL
         ).makeURLRequest()
 
         let (_, res) = try await client.send(req)
 
+        if res.statusCode == 200 || res.statusCode == 204 {
+            return
+        }
+
         if res.statusCode == 401 { throw APIError.unauthorized }
         if res.statusCode == 403 { throw APIError.serverError(code: 403) }
         if res.statusCode == 404 { throw APIError.serverError(code: 404) }
-        guard res.statusCode == 204 || res.statusCode == 200 else {
-            throw APIError.serverError(code: res.statusCode)
-        }
+        throw APIError.serverError(code: res.statusCode)
     }
 }
