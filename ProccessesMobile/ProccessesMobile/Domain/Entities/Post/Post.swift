@@ -20,19 +20,4 @@ struct Post: Equatable, Sendable {
     let mySolutionId: UUID?
     let createdAt: Date
     let updatedAt: Date
-    
-    init(id: UUID, title: String, content: String?, type: PostType, deadline: Date?, author: User?, materialsCount: Int, commentsCount: Int, solutionsCount: Int?, mySolutionId: UUID?, createdAt: Date, updatedAt: Date) {
-        self.id = id
-        self.title = title
-        self.content = content
-        self.type = type
-        self.deadline = deadline
-        self.author = author
-        self.materialsCount = materialsCount
-        self.commentsCount = commentsCount
-        self.solutionsCount = solutionsCount
-        self.mySolutionId = mySolutionId
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-    }
 }

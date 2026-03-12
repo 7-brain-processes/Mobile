@@ -8,9 +8,4 @@
 struct GradeRequestDTO: Equatable, Sendable, Codable {
     let grade: Int
     let comment: String?
-    
-    init(grade: Int, comment: String? = nil) {
-        self.grade = grade
-        self.comment = comment
-    }
 }

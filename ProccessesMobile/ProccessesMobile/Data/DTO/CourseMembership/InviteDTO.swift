@@ -14,18 +14,3 @@ struct InviteDTO: Equatable, Sendable, Codable {
     let currentUses: Int
     let createdAt: String
 }
-
-extension InviteDTO {
-
-    func toDomain() throws -> Invite {
-        Invite(
-            id: try parseUUID(id),
-            code: code,
-            role: role.toDomain(),
-            expiresAt: try expiresAt.map(parseDate),
-            maxUses: maxUses,
-            currentUses: currentUses,
-            createdAt: try parseDate(createdAt)
-        )
-    }
-}

@@ -16,19 +16,3 @@ struct SolutionDTO: Equatable, Sendable, Codable {
     let updatedAt: String
     let gradedAt: String?
 }
-
-extension SolutionDTO {
-    func toDomain() throws -> Solution {
-        Solution(
-            id: try parseUUID(id),
-            text: text,
-            status: status.toDomain(),
-            grade: grade,
-            filesCount: filesCount,
-            student: try student?.toDomain(),
-            submittedAt: try parseDate(submittedAt),
-            updatedAt: try parseDate(updatedAt),
-            gradedAt: try gradedAt.map(parseDate)
-        )
-    }
-}

@@ -7,8 +7,4 @@
 
 struct LeaveCourseRequestDTO: Equatable, Sendable, Codable {
     let courseId: String
-    
-    init(courseId: String) {
-        self.courseId = courseId
-    }
 }

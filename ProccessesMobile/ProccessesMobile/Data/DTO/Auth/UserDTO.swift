@@ -10,13 +10,3 @@ struct UserDTO: Equatable, Codable, Sendable {
     let username: String
     let displayName: String?
 }
-
-extension UserDTO {
-    func toDomain() throws -> User {
-        User(
-            id: try parseUUID(id),
-            username: username,
-            displayName: displayName
-        )
-    }
-}

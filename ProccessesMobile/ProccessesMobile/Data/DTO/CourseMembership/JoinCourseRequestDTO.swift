@@ -8,9 +8,4 @@
 struct JoinCourseRequestDTO: Equatable, Sendable, Codable {
     let courseId: String
     let role: CourseRoleDTO
-    
-    init(courseId: String, role: CourseRoleDTO) {
-        self.courseId = courseId
-        self.role = role
-    }
 }

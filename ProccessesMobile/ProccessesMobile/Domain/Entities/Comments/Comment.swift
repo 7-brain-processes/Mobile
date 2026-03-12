@@ -14,15 +14,3 @@ struct Comment: Equatable, Sendable {
     let createdAt: Date
     let updatedAt: Date
 }
-
-extension Comment {
-    func toDTO() -> CommentDTO {
-        CommentDTO(
-            id: id.uuidString,
-            text: text,
-            author: author?.toDTO(),
-            createdAt: formatDate(createdAt),
-            updatedAt: formatDate(updatedAt)
-        )
-    }
-}

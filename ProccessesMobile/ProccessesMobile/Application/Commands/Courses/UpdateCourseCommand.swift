@@ -12,12 +12,3 @@ struct UpdateCourseCommand: Equatable, Sendable {
     let name: String?
     let description: String?
 }
-
-extension UpdateCourseCommand {
-    func toDTO() -> UpdateCourseRequestDTO {
-        UpdateCourseRequestDTO(
-            name: name,
-            description: description
-        )
-    }
-}

@@ -20,3 +20,15 @@ enum PageMapper {
         )
     }
 }
+
+extension PageDTO {
+    func toDomain<U>(_ map: (T) throws -> U) rethrows -> Page<U> {
+        Page(
+            content: try content.map(map),
+            page: page,
+            size: size,
+            totalElements: totalElements,
+            totalPages: totalPages
+        )
+    }
+}

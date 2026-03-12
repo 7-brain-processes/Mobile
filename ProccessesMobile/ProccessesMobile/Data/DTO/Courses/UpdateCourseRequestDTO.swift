@@ -11,13 +11,3 @@ struct UpdateCourseRequestDTO: Equatable, Sendable, Codable {
     let name: String?
     let description: String?
 }
-
-extension UpdateCourseRequestDTO {
-    func toCommand(courseId: UUID) -> UpdateCourseCommand {
-        UpdateCourseCommand(
-            courseId: courseId,
-            name: name,
-            description: description
-        )
-    }
-}

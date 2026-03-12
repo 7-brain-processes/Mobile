@@ -14,15 +14,3 @@ struct AttachedFileDTO: Equatable, Sendable, Codable {
     let sizeBytes: Int64
     let uploadedAt: String
 }
-
-extension AttachedFileDTO {
-    func toDomain() throws -> AttachedFile {
-        AttachedFile(
-            id: try parseUUID(id),
-            originalName: originalName,
-            contentType: contentType,
-            sizeBytes: sizeBytes,
-            uploadedAt: try parseDate(uploadedAt)
-        )
-    }
-}

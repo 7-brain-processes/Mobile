@@ -19,22 +19,3 @@ struct PostDTO: Equatable, Sendable, Codable {
     let createdAt: String
     let updatedAt: String
 }
-
-extension PostDTO {
-    func toDomain() throws -> Post {
-        Post(
-            id: try parseUUID(id),
-            title: title,
-            content: content,
-            type: type.toDomain(),
-            deadline: try deadline.map(parseDate),
-            author: try author?.toDomain(),
-            materialsCount: materialsCount,
-            commentsCount: commentsCount,
-            solutionsCount: solutionsCount,
-            mySolutionId: try mySolutionId.map(parseUUID),
-            createdAt: try parseDate(createdAt),
-            updatedAt: try parseDate(updatedAt)
-        )
-    }
-}

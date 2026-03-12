@@ -7,8 +7,4 @@
 
 struct CreateSolutionRequestDTO: Equatable, Sendable, Codable {
     let text: String?
-    
-    init(text: String? = nil) {
-        self.text = text
-    }
 }
