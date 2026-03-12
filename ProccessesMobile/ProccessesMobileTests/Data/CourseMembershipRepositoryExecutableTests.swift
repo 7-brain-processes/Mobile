@@ -25,8 +25,7 @@ struct CourseMembershipRepositoryExecutableTests {
     // MARK: - Factory
 
     private func makeSUT(client: HTTPClient, baseURL: URL) -> CourseMembershipRepository {
-        // TODO: переименовать
-        MockCourseMembershipRepositoryImpl(client: client, baseURL: baseURL)
+        DefaultCourseMembershipRepositoryImpl(client: client, baseURL: baseURL)
     }
 
     // MARK: - JSON Helpers
