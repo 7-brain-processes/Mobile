@@ -7,5 +7,6 @@
 
 
 protocol GradingRepository: Sendable {
+    // TODO: - ADD DELETE
     func gradeSolution(_ command: GradeSolutionCommand) async throws -> Solution
 }
