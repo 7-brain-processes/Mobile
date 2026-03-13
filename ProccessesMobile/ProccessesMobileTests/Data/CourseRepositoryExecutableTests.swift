@@ -15,7 +15,12 @@ struct CourseRepositoryExecutableTests {
     private let anyURL = URL(string: "http://localhost:8080/api/v1")!
 
     private func makeSUT(client: HTTPClient, baseURL: URL) -> CourseRepository {
-        DefaultCourseRepositoryImpl(client: client, baseURL: baseURL)
+        let apiClient = APIClient(
+            httpClient: client,
+            configuration: APIConfiguration(baseURL: baseURL)
+        )
+
+        return DefaultCourseRepository(apiClient: apiClient)
     }
 
     // MARK: - JSON Builders
@@ -91,6 +96,7 @@ struct CourseRepositoryExecutableTests {
 
         #expect(sentRequest.httpMethod == "GET")
         #expect(requestURL.path.contains("/courses"))
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
         #expect(components.queryItems?.contains(URLQueryItem(name: "page", value: "2")) == true)
         #expect(components.queryItems?.contains(URLQueryItem(name: "size", value: "50")) == true)
         #expect(components.queryItems?.contains(URLQueryItem(name: "role", value: "STUDENT")) == true)
@@ -153,6 +159,8 @@ struct CourseRepositoryExecutableTests {
 
         #expect(sentRequest.httpMethod == "POST")
         #expect(sentRequest.url?.path.contains("/courses") == true)
+        #expect(sentRequest.value(forHTTPHeaderField: "Content-Type") == "application/json")
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
 
         let bodyData = try #require(sentRequest.httpBody)
         let sentBody = try JSONDecoder().decode(

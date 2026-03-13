@@ -20,6 +20,15 @@ struct SolutionCommentsRepositoriesExecutableTests {
     private let solutionId = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440003")!
     private let commentId = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440123")!
 
+    // MARK: - Factory
+
+    private func makeAPIClient(_ client: HTTPClient) -> APIClient {
+        APIClient(
+            httpClient: client,
+            configuration: APIConfiguration(baseURL: anyURL)
+        )
+    }
+
     private func makeCommentJSON() -> Data {
         """
         {
@@ -36,6 +45,7 @@ struct SolutionCommentsRepositoriesExecutableTests {
 
     @Test("Create solution comment routes correctly and sends POST JSON")
     func createRouting() async throws {
+
         let clientSpy = HTTPClientSpy()
 
         clientSpy.addStub(
@@ -47,7 +57,9 @@ struct SolutionCommentsRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultSolutionCommentsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultSolutionCommentsRepository(
+            apiClient: makeAPIClient(clientSpy)
+        )
 
         let result = try await sut.createComment(
             CreateSolutionCommentCommand(
@@ -60,8 +72,7 @@ struct SolutionCommentsRepositoriesExecutableTests {
 
         #expect(result.id == commentId)
 
-        let requests = clientSpy.getRecordedRequests()
-        let sentRequest = try #require(requests.first)
+        let sentRequest = try #require(clientSpy.getRecordedRequests().first)
 
         #expect(sentRequest.httpMethod == "POST")
 
@@ -70,8 +81,12 @@ struct SolutionCommentsRepositoriesExecutableTests {
             "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions/\(solutionId.uuidString)/comments"
         )
 
+        #expect(sentRequest.value(forHTTPHeaderField: "Content-Type") == "application/json")
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
+
         let bodyData = try #require(sentRequest.httpBody)
         let sentBody = try JSONDecoder().decode(CreateCommentRequestDTO.self, from: bodyData)
+
         #expect(sentBody.text == "Great logic here!")
     }
 
@@ -79,6 +94,7 @@ struct SolutionCommentsRepositoriesExecutableTests {
 
     @Test("Update solution comment uses PUT to specific comment ID")
     func updateRouting() async throws {
+
         let clientSpy = HTTPClientSpy()
 
         clientSpy.addStub(
@@ -90,7 +106,9 @@ struct SolutionCommentsRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultSolutionCommentsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultSolutionCommentsRepository(
+            apiClient: makeAPIClient(clientSpy)
+        )
 
         _ = try await sut.updateComment(
             UpdateSolutionCommentCommand(
@@ -102,8 +120,7 @@ struct SolutionCommentsRepositoriesExecutableTests {
             )
         )
 
-        let requests = clientSpy.getRecordedRequests()
-        let sentRequest = try #require(requests.first)
+        let sentRequest = try #require(clientSpy.getRecordedRequests().first)
 
         #expect(sentRequest.httpMethod == "PUT")
 
@@ -111,12 +128,15 @@ struct SolutionCommentsRepositoriesExecutableTests {
             sentRequest.url?.absoluteString ==
             "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions/\(solutionId.uuidString)/comments/\(commentId.uuidString)"
         )
+
+        #expect(sentRequest.value(forHTTPHeaderField: "Content-Type") == "application/json")
     }
 
     // MARK: - Delete
 
     @Test("Delete solution comment uses DELETE method")
     func deleteRouting() async throws {
+
         let clientSpy = HTTPClientSpy()
 
         clientSpy.addStub(
@@ -128,7 +148,9 @@ struct SolutionCommentsRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultSolutionCommentsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultSolutionCommentsRepository(
+            apiClient: makeAPIClient(clientSpy)
+        )
 
         try await sut.deleteComment(
             DeleteSolutionCommentCommand(
@@ -139,8 +161,7 @@ struct SolutionCommentsRepositoriesExecutableTests {
             )
         )
 
-        let requests = clientSpy.getRecordedRequests()
-        let sentRequest = try #require(requests.first)
+        let sentRequest = try #require(clientSpy.getRecordedRequests().first)
 
         #expect(sentRequest.httpMethod == "DELETE")
 

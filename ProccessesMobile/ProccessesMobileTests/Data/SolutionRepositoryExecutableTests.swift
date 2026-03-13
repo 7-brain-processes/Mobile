@@ -14,13 +14,27 @@ import Foundation
 struct SolutionRepositoryExecutableTests {
 
     private let anyURL = URL(string: "http://localhost:8080/api/v1")!
-    let courseId = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440001")!
-    let postId = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440002")!
-    let solutionId = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440003")!
 
-    func makeSUT(client: HTTPClient, baseURL: URL) -> SolutionRepository {
-        DefaultSolutionRepositoryImpl(client: client, baseURL: baseURL)
+    private let courseId = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440001")!
+    private let postId = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440002")!
+    private let solutionId = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440003")!
+
+    // MARK: - Factory
+
+    private func makeAPIClient(_ client: HTTPClient) -> APIClient {
+        APIClient(
+            httpClient: client,
+            configuration: APIConfiguration(baseURL: anyURL)
+        )
     }
+
+    private func makeSUT(_ client: HTTPClient) -> SolutionRepository {
+        DefaultSolutionRepository(
+            apiClient: makeAPIClient(client)
+        )
+    }
+
+    // MARK: - JSON Builders
 
     private func makeSolutionJSON() -> Data {
         """
@@ -38,8 +52,11 @@ struct SolutionRepositoryExecutableTests {
         """.data(using: .utf8)!
     }
 
+    // MARK: - List
+
     @Test("List solutions constructs correct URL and query parameters")
     func listSolutionsRouting() async throws {
+
         let clientSpy = HTTPClientSpy()
 
         let solutionString = try #require(String(data: makeSolutionJSON(), encoding: .utf8))
@@ -62,7 +79,7 @@ struct SolutionRepositoryExecutableTests {
             )
         )
 
-        let sut = makeSUT(client: clientSpy, baseURL: anyURL)
+        let sut = makeSUT(clientSpy)
 
         _ = try await sut.listSolutions(
             ListSolutionsQuery(
@@ -74,27 +91,31 @@ struct SolutionRepositoryExecutableTests {
             )
         )
 
-        let requests = clientSpy.getRecordedRequests()
-        let sentRequest = try #require(requests.first)
+        let sentRequest = try #require(clientSpy.getRecordedRequests().first)
 
         #expect(sentRequest.httpMethod == "GET")
 
         #expect(
-            sentRequest.url?.path
-                == "/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions"
+            sentRequest.url?.path ==
+            "/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions"
         )
 
-        let url = try #require(sentRequest.url)
-        let components = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false))
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
+
+        let components = try #require(URLComponents(url: sentRequest.url!, resolvingAgainstBaseURL: false))
 
         #expect(components.queryItems?.contains(URLQueryItem(name: "status", value: "SUBMITTED")) == true)
         #expect(components.queryItems?.contains(URLQueryItem(name: "page", value: "0")) == true)
         #expect(components.queryItems?.contains(URLQueryItem(name: "size", value: "20")) == true)
     }
 
+    // MARK: - Submit
+
     @Test("Submit solution sends POST method and maps 409 Conflict properly")
     func submitSolutionRoutingAndConflict() async throws {
+
         let clientSpy = HTTPClientSpy()
+
         clientSpy.addStub(
             .success(
                 (
@@ -104,30 +125,37 @@ struct SolutionRepositoryExecutableTests {
             )
         )
 
-        let sut = makeSUT(client: clientSpy, baseURL: anyURL)
+        let sut = makeSUT(clientSpy)
 
         await #expect(throws: APIError.serverError(code: 409)) {
             _ = try await sut.submitSolution(
                 SubmitSolutionCommand(
-                    courseId: UUID(uuidString: "550e8400-e29b-41d4-a716-446655440001")!,
-                    postId: UUID(uuidString: "550e8400-e29b-41d4-a716-446655440002")!,
+                    courseId: courseId,
+                    postId: postId,
                     text: "My answer code."
                 )
             )
         }
 
-        let requests = clientSpy.getRecordedRequests()
-        let sentRequest = try #require(requests.first)
+        let sentRequest = try #require(clientSpy.getRecordedRequests().first)
+
         #expect(sentRequest.httpMethod == "POST")
+
         #expect(
-            sentRequest.url?.absoluteString
-                == "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions"
+            sentRequest.url?.absoluteString ==
+            "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions"
         )
+
+        #expect(sentRequest.value(forHTTPHeaderField: "Content-Type") == "application/json")
     }
+
+    // MARK: - Get My Solution
 
     @Test("Get My Solution accesses the exact /my subpath")
     func getMySolutionRouting() async throws {
+
         let clientSpy = HTTPClientSpy()
+
         clientSpy.addStub(
             .success(
                 (
@@ -137,28 +165,32 @@ struct SolutionRepositoryExecutableTests {
             )
         )
 
-        let sut = makeSUT(client: clientSpy, baseURL: anyURL)
+        let sut = makeSUT(clientSpy)
 
         _ = try await sut.getMySolution(
             GetMySolutionQuery(
-                courseId: UUID(uuidString: "550e8400-e29b-41d4-a716-446655440001")!,
-                postId: UUID(uuidString: "550e8400-e29b-41d4-a716-446655440002")!
+                courseId: courseId,
+                postId: postId
             )
         )
 
-        let requests = clientSpy.getRecordedRequests()
-        let sentRequest = try #require(requests.first)
+        let sentRequest = try #require(clientSpy.getRecordedRequests().first)
+
         #expect(sentRequest.httpMethod == "GET")
+
         #expect(
-            sentRequest.url?.absoluteString
-            == "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions/my"
+            sentRequest.url?.absoluteString ==
+            "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions/my"
         )
     }
+
+    // MARK: - Update
 
     @Test("Update solution sends PUT method with payload")
     func updateSolutionRouting() async throws {
 
         let clientSpy = HTTPClientSpy()
+
         clientSpy.addStub(
             .success(
                 (
@@ -168,34 +200,39 @@ struct SolutionRepositoryExecutableTests {
             )
         )
 
-        let sut = makeSUT(client: clientSpy, baseURL: anyURL)
+        let sut = makeSUT(clientSpy)
 
         _ = try await sut.updateSolution(
             UpdateSolutionCommand(
-                courseId: UUID(uuidString: "550e8400-e29b-41d4-a716-446655440001")!,
-                postId: UUID(uuidString: "550e8400-e29b-41d4-a716-446655440002")!,
-                solutionId: UUID(uuidString: "550e8400-e29b-41d4-a716-446655440003")!,
+                courseId: courseId,
+                postId: postId,
+                solutionId: solutionId,
                 text: "Updated text"
             )
         )
 
-        let requests = clientSpy.getRecordedRequests()
-        let sentRequest = try #require(requests.first)
+        let sentRequest = try #require(clientSpy.getRecordedRequests().first)
 
         #expect(sentRequest.httpMethod == "PUT")
+
         #expect(
-            sentRequest.url?.absoluteString
-                == "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions/\(solutionId.uuidString)"
+            sentRequest.url?.absoluteString ==
+            "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions/\(solutionId.uuidString)"
         )
 
         let bodyData = try #require(sentRequest.httpBody)
         let json = try JSONDecoder().decode(CreateSolutionRequestDTO.self, from: bodyData)
+
         #expect(json.text == "Updated text")
     }
 
+    // MARK: - Delete
+
     @Test("Delete solution uses DELETE method")
     func deleteSolutionRouting() async throws {
+
         let clientSpy = HTTPClientSpy()
+
         clientSpy.addStub(
             .success(
                 (
@@ -205,22 +242,23 @@ struct SolutionRepositoryExecutableTests {
             )
         )
 
-        let sut = makeSUT(client: clientSpy, baseURL: anyURL)
+        let sut = makeSUT(clientSpy)
 
         try await sut.deleteSolution(
             SolutionOfPost(
-                courseId: UUID(uuidString: "550e8400-e29b-41d4-a716-446655440001")!,
-                postId: UUID(uuidString: "550e8400-e29b-41d4-a716-446655440002")!,
-                solutionId: UUID(uuidString: "550e8400-e29b-41d4-a716-446655440003")!
+                courseId: courseId,
+                postId: postId,
+                solutionId: solutionId
             )
         )
 
-        let requests = clientSpy.getRecordedRequests()
-        let sentRequest = try #require(requests.first)
+        let sentRequest = try #require(clientSpy.getRecordedRequests().first)
+
         #expect(sentRequest.httpMethod == "DELETE")
+
         #expect(
-            sentRequest.url?.absoluteString
-                == "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions/\(solutionId.uuidString)"
+            sentRequest.url?.absoluteString ==
+            "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions/\(solutionId.uuidString)"
         )
     }
 }

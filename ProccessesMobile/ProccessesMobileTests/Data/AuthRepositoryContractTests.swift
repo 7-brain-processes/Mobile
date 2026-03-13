@@ -5,7 +5,6 @@
 //  Created by dark type on 06.03.2026.
 //
 
-
 import Testing
 import Foundation
 @testable import ProccessesMobile
@@ -18,7 +17,12 @@ struct AuthRepositoryExecutableTests {
     // MARK: - SUT Factory
 
     private func makeSUT(client: HTTPClient, baseURL: URL) -> AuthRepository {
-        DefaultAuthRepository(client: client, baseURL: baseURL)
+        let apiClient = APIClient(
+            httpClient: client,
+            configuration: APIConfiguration(baseURL: baseURL)
+        )
+
+        return DefaultAuthRepository(apiClient: apiClient)
     }
 
     private func makeValidAuthJSON() -> Data {
@@ -51,7 +55,12 @@ struct AuthRepositoryExecutableTests {
     @Test("Login successfully parses 200 OK JSON and routes to correct endpoint")
     func loginSuccess() async throws {
         let jsonResponse = makeValidAuthJSON()
-        let response = HTTPURLResponse(url: anyURL, statusCode: 200, httpVersion: nil, headerFields: nil)!
+        let response = HTTPURLResponse(
+            url: anyURL,
+            statusCode: 200,
+            httpVersion: nil,
+            headerFields: nil
+        )!
 
         let clientSpy = HTTPClientSpy()
         clientSpy.addStub(.success((jsonResponse, response)))
@@ -67,9 +76,14 @@ struct AuthRepositoryExecutableTests {
         #expect(result.user.displayName == "Test User")
 
         let recordedRequests = clientSpy.getRecordedRequests()
+        let sentRequest = try #require(recordedRequests.first)
+
         #expect(recordedRequests.count == 1)
-        #expect(recordedRequests.first?.url?.absoluteString == "http://localhost:8080/api/v1/auth/login")
-        #expect(recordedRequests.first?.httpMethod == "POST")
+        #expect(sentRequest.url?.absoluteString == "http://localhost:8080/api/v1/auth/login")
+        #expect(sentRequest.httpMethod == "POST")
+        #expect(sentRequest.value(forHTTPHeaderField: "Content-Type") == "application/json")
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
+        #expect(sentRequest.value(forHTTPHeaderField: "Authorization") == nil)
     }
 
     @Test("Login maps 401 HTTP response to Domain Unauthorized error")
@@ -77,7 +91,13 @@ struct AuthRepositoryExecutableTests {
         let errorJson = """
         { "timestamp": "2026-03-06", "status": 401, "error": "Unauthorized", "message": "Invalid credentials", "path": "/api/v1/auth/login" }
         """.data(using: .utf8)!
-        let response = HTTPURLResponse(url: anyURL, statusCode: 401, httpVersion: nil, headerFields: nil)!
+
+        let response = HTTPURLResponse(
+            url: anyURL,
+            statusCode: 401,
+            httpVersion: nil,
+            headerFields: nil
+        )!
 
         let clientSpy = HTTPClientSpy()
         clientSpy.addStub(.success((errorJson, response)))
@@ -85,7 +105,9 @@ struct AuthRepositoryExecutableTests {
         let sut = makeSUT(client: clientSpy, baseURL: anyURL)
 
         await #expect(throws: APIError.unauthorized) {
-            _ = try await sut.login(request: LoginCommand(username: "test", password: "pwd"))
+            _ = try await sut.login(
+                request: LoginCommand(username: "test", password: "pwd")
+            )
         }
     }
 
@@ -94,13 +116,22 @@ struct AuthRepositoryExecutableTests {
     @Test("Register successfully parses 201 Created JSON and routes correctly")
     func registerSuccess() async throws {
         let jsonResponse = makeValidAuthJSON()
-        let response = HTTPURLResponse(url: anyURL, statusCode: 201, httpVersion: nil, headerFields: nil)!
+        let response = HTTPURLResponse(
+            url: anyURL,
+            statusCode: 201,
+            httpVersion: nil,
+            headerFields: nil
+        )!
 
         let clientSpy = HTTPClientSpy()
         clientSpy.addStub(.success((jsonResponse, response)))
 
         let sut = makeSUT(client: clientSpy, baseURL: anyURL)
-        let command = RegisterCommand(username: "testuser", password: "pwd", displayName: "Test User")
+        let command = RegisterCommand(
+            username: "testuser",
+            password: "pwd",
+            displayName: "Test User"
+        )
 
         let result = try await sut.register(request: command)
 
@@ -109,9 +140,14 @@ struct AuthRepositoryExecutableTests {
         #expect(result.user.displayName == "Test User")
 
         let recordedRequests = clientSpy.getRecordedRequests()
+        let sentRequest = try #require(recordedRequests.first)
+
         #expect(recordedRequests.count == 1)
-        #expect(recordedRequests.first?.url?.absoluteString == "http://localhost:8080/api/v1/auth/register")
-        #expect(recordedRequests.first?.httpMethod == "POST")
+        #expect(sentRequest.url?.absoluteString == "http://localhost:8080/api/v1/auth/register")
+        #expect(sentRequest.httpMethod == "POST")
+        #expect(sentRequest.value(forHTTPHeaderField: "Content-Type") == "application/json")
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
+        #expect(sentRequest.value(forHTTPHeaderField: "Authorization") == nil)
     }
 
     @Test("Register maps 409 HTTP response to Domain Conflict error")
@@ -119,7 +155,13 @@ struct AuthRepositoryExecutableTests {
         let errorJson = """
         { "timestamp": "2026-03-06", "status": 409, "error": "Conflict", "message": "Username already taken" }
         """.data(using: .utf8)!
-        let response = HTTPURLResponse(url: anyURL, statusCode: 409, httpVersion: nil, headerFields: nil)!
+
+        let response = HTTPURLResponse(
+            url: anyURL,
+            statusCode: 409,
+            httpVersion: nil,
+            headerFields: nil
+        )!
 
         let clientSpy = HTTPClientSpy()
         clientSpy.addStub(.success((errorJson, response)))
@@ -128,7 +170,11 @@ struct AuthRepositoryExecutableTests {
 
         await #expect(throws: APIError.serverError(code: 409)) {
             _ = try await sut.register(
-                request: RegisterCommand(username: "taken", password: "pwd", displayName: nil)
+                request: RegisterCommand(
+                    username: "taken",
+                    password: "pwd",
+                    displayName: nil
+                )
             )
         }
     }
@@ -138,7 +184,12 @@ struct AuthRepositoryExecutableTests {
     @Test("GetMe routes to GET /auth/me and parses User correctly")
     func getMeRoutingAndParsing() async throws {
         let jsonResponse = makeValidUserJSON()
-        let response = HTTPURLResponse(url: anyURL, statusCode: 200, httpVersion: nil, headerFields: nil)!
+        let response = HTTPURLResponse(
+            url: anyURL,
+            statusCode: 200,
+            httpVersion: nil,
+            headerFields: nil
+        )!
 
         let clientSpy = HTTPClientSpy()
         clientSpy.addStub(.success((jsonResponse, response)))
@@ -159,7 +210,12 @@ struct AuthRepositoryExecutableTests {
 
     @Test("GetMe maps 401 HTTP response to Domain Unauthorized error")
     func getMeMapsUnauthorized() async {
-        let response = HTTPURLResponse(url: anyURL, statusCode: 401, httpVersion: nil, headerFields: nil)!
+        let response = HTTPURLResponse(
+            url: anyURL,
+            statusCode: 401,
+            httpVersion: nil,
+            headerFields: nil
+        )!
 
         let clientSpy = HTTPClientSpy()
         clientSpy.addStub(.success((Data(), response)))

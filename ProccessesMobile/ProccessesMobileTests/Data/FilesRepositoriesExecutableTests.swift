@@ -19,6 +19,17 @@ struct FilesRepositoriesExecutableTests {
     private let solutionId = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440003")!
     private let fileId = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440123")!
 
+    // MARK: - Factory
+
+    private func makeAPIClient(_ client: HTTPClient) -> APIClient {
+        APIClient(
+            httpClient: client,
+            configuration: APIConfiguration(baseURL: anyURL)
+        )
+    }
+
+    // MARK: - JSON Builders
+
     private func makeFileJSON() -> Data {
         """
         {
@@ -45,10 +56,11 @@ struct FilesRepositoriesExecutableTests {
         """.data(using: .utf8)!
     }
 
-    // MARK: - Post Materials Tests
+    // MARK: - Post Materials
 
     @Test("Upload material uses multipart/form-data and POST method")
     func uploadMaterialRouting() async throws {
+
         let clientSpy = HTTPClientSpy()
         clientSpy.addStub(
             .success(
@@ -59,7 +71,10 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultPostMaterialsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultPostMaterialsRepository(
+            apiClient: makeAPIClient(clientSpy)
+        )
+
         let fileData = "fake_pdf_binary".data(using: .utf8)!
 
         let result = try await sut.uploadMaterial(
@@ -75,28 +90,31 @@ struct FilesRepositoriesExecutableTests {
         #expect(result.id == fileId)
         #expect(result.sizeBytes == 204800)
 
-        let requests = clientSpy.getRecordedRequests()
-        let sentRequest = try #require(requests.first)
+        let sentRequest = try #require(clientSpy.getRecordedRequests().first)
 
         #expect(sentRequest.httpMethod == "POST")
+
         #expect(
-            sentRequest.url?.absoluteString
-                == "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/materials"
+            sentRequest.url?.absoluteString ==
+            "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/materials"
         )
 
         let contentType = try #require(sentRequest.value(forHTTPHeaderField: "Content-Type"))
         #expect(contentType.contains("multipart/form-data"))
         #expect(contentType.contains("boundary="))
 
-        let sentBody = try #require(sentRequest.httpBody)
-        let bodyString = String(data: sentBody, encoding: .utf8) ?? ""
+        let body = try #require(sentRequest.httpBody)
+        let bodyString = String(data: body, encoding: .utf8) ?? ""
+
         #expect(bodyString.contains("filename=\"lecture_03.pdf\""))
         #expect(bodyString.contains("fake_pdf_binary"))
     }
 
     @Test("Upload material maps 413 File Too Large correctly")
     func uploadMaterialFileTooLarge() async {
+
         let clientSpy = HTTPClientSpy()
+
         clientSpy.addStub(
             .success(
                 (
@@ -106,7 +124,9 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultPostMaterialsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultPostMaterialsRepository(
+            apiClient: makeAPIClient(clientSpy)
+        )
 
         await #expect(throws: APIError.serverError(code: 413)) {
             _ = try await sut.uploadMaterial(
@@ -123,7 +143,9 @@ struct FilesRepositoriesExecutableTests {
 
     @Test("List post materials routes to correct GET path")
     func listPostMaterialsRouting() async throws {
+
         let clientSpy = HTTPClientSpy()
+
         clientSpy.addStub(
             .success(
                 (
@@ -133,7 +155,9 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultPostMaterialsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultPostMaterialsRepository(
+            apiClient: makeAPIClient(clientSpy)
+        )
 
         let result = try await sut.listMaterials(
             ListPostMaterialsQuery(
@@ -145,19 +169,23 @@ struct FilesRepositoriesExecutableTests {
         #expect(result.count == 1)
         #expect(result.first?.id == fileId)
 
-        let requests = clientSpy.getRecordedRequests()
-        let sentRequest = try #require(requests.first)
+        let sentRequest = try #require(clientSpy.getRecordedRequests().first)
 
         #expect(sentRequest.httpMethod == "GET")
+
         #expect(
-            sentRequest.url?.absoluteString
-                == "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/materials"
+            sentRequest.url?.absoluteString ==
+            "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/materials"
         )
+
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
     }
 
     @Test("Delete post material routes to correct DELETE path")
     func deletePostMaterialRouting() async throws {
+
         let clientSpy = HTTPClientSpy()
+
         clientSpy.addStub(
             .success(
                 (
@@ -167,7 +195,9 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultPostMaterialsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultPostMaterialsRepository(
+            apiClient: makeAPIClient(clientSpy)
+        )
 
         try await sut.deleteMaterial(
             DeletePostMaterialCommand(
@@ -177,20 +207,23 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let requests = clientSpy.getRecordedRequests()
-        let sentRequest = try #require(requests.first)
+        let sentRequest = try #require(clientSpy.getRecordedRequests().first)
 
         #expect(sentRequest.httpMethod == "DELETE")
+
         #expect(
-            sentRequest.url?.absoluteString
-                == "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/materials/\(fileId.uuidString)"
+            sentRequest.url?.absoluteString ==
+            "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/materials/\(fileId.uuidString)"
         )
     }
 
     @Test("Download post material routes to /download and returns binary data")
     func downloadPostMaterialRouting() async throws {
+
         let clientSpy = HTTPClientSpy()
+
         let binaryData = "raw_post_material_bytes".data(using: .utf8)!
+
         clientSpy.addStub(
             .success(
                 (
@@ -200,7 +233,9 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultPostMaterialsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultPostMaterialsRepository(
+            apiClient: makeAPIClient(clientSpy)
+        )
 
         let result = try await sut.downloadMaterial(
             DownloadPostMaterialQuery(
@@ -212,21 +247,23 @@ struct FilesRepositoriesExecutableTests {
 
         #expect(result == binaryData)
 
-        let requests = clientSpy.getRecordedRequests()
-        let sentRequest = try #require(requests.first)
+        let sentRequest = try #require(clientSpy.getRecordedRequests().first)
 
         #expect(sentRequest.httpMethod == "GET")
+
         #expect(
-            sentRequest.url?.absoluteString
-                == "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/materials/\(fileId.uuidString)/download"
+            sentRequest.url?.absoluteString ==
+            "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/materials/\(fileId.uuidString)/download"
         )
     }
 
-    // MARK: - Solution Files Tests
+    // MARK: - Solution Files
 
     @Test("Upload solution file routes to correct subpath")
     func uploadSolutionFileRouting() async throws {
+
         let clientSpy = HTTPClientSpy()
+
         clientSpy.addStub(
             .success(
                 (
@@ -236,7 +273,9 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultSolutionFilesRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultSolutionFilesRepository(
+            apiClient: makeAPIClient(clientSpy)
+        )
 
         _ = try await sut.uploadSolutionFile(
             UploadSolutionFileCommand(
@@ -249,19 +288,21 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let requests = clientSpy.getRecordedRequests()
-        let sentRequest = try #require(requests.first)
+        let sentRequest = try #require(clientSpy.getRecordedRequests().first)
 
         #expect(sentRequest.httpMethod == "POST")
+
         #expect(
-            sentRequest.url?.absoluteString
-                == "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions/\(solutionId.uuidString)/files"
+            sentRequest.url?.absoluteString ==
+            "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions/\(solutionId.uuidString)/files"
         )
     }
 
     @Test("List solution files routes to correct GET path")
     func listSolutionFilesRouting() async throws {
+
         let clientSpy = HTTPClientSpy()
+
         clientSpy.addStub(
             .success(
                 (
@@ -271,7 +312,9 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultSolutionFilesRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultSolutionFilesRepository(
+            apiClient: makeAPIClient(clientSpy)
+        )
 
         let result = try await sut.listSolutionFiles(
             ListSolutionFilesQuery(
@@ -284,19 +327,21 @@ struct FilesRepositoriesExecutableTests {
         #expect(result.count == 1)
         #expect(result.first?.id == fileId)
 
-        let requests = clientSpy.getRecordedRequests()
-        let sentRequest = try #require(requests.first)
+        let sentRequest = try #require(clientSpy.getRecordedRequests().first)
 
         #expect(sentRequest.httpMethod == "GET")
+
         #expect(
-            sentRequest.url?.absoluteString
-                == "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions/\(solutionId.uuidString)/files"
+            sentRequest.url?.absoluteString ==
+            "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions/\(solutionId.uuidString)/files"
         )
     }
 
     @Test("Delete solution file routes to correct DELETE path")
     func deleteSolutionFileRouting() async throws {
+
         let clientSpy = HTTPClientSpy()
+
         clientSpy.addStub(
             .success(
                 (
@@ -306,7 +351,9 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultSolutionFilesRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultSolutionFilesRepository(
+            apiClient: makeAPIClient(clientSpy)
+        )
 
         try await sut.deleteSolutionFile(
             DeleteSolutionFileCommand(
@@ -317,20 +364,23 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let requests = clientSpy.getRecordedRequests()
-        let sentRequest = try #require(requests.first)
+        let sentRequest = try #require(clientSpy.getRecordedRequests().first)
 
         #expect(sentRequest.httpMethod == "DELETE")
+
         #expect(
-            sentRequest.url?.absoluteString
-                == "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions/\(solutionId.uuidString)/files/\(fileId.uuidString)"
+            sentRequest.url?.absoluteString ==
+            "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions/\(solutionId.uuidString)/files/\(fileId.uuidString)"
         )
     }
 
     @Test("Download solution file routes to /download and returns binary data")
     func downloadSolutionFileRouting() async throws {
+
         let clientSpy = HTTPClientSpy()
+
         let binaryData = "raw_solution_bytes".data(using: .utf8)!
+
         clientSpy.addStub(
             .success(
                 (
@@ -340,7 +390,9 @@ struct FilesRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultSolutionFilesRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultSolutionFilesRepository(
+            apiClient: makeAPIClient(clientSpy)
+        )
 
         let result = try await sut.downloadSolutionFile(
             DownloadSolutionFileQuery(
@@ -353,13 +405,13 @@ struct FilesRepositoriesExecutableTests {
 
         #expect(result == binaryData)
 
-        let requests = clientSpy.getRecordedRequests()
-        let sentRequest = try #require(requests.first)
+        let sentRequest = try #require(clientSpy.getRecordedRequests().first)
 
         #expect(sentRequest.httpMethod == "GET")
+
         #expect(
-            sentRequest.url?.absoluteString
-                == "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions/\(solutionId.uuidString)/files/\(fileId.uuidString)/download"
+            sentRequest.url?.absoluteString ==
+            "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions/\(solutionId.uuidString)/files/\(fileId.uuidString)/download"
         )
     }
 }

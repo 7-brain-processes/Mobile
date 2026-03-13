@@ -5,7 +5,6 @@
 //  Created by dark type on 06.03.2026.
 //
 
-
 import Testing
 import Foundation
 @testable import ProccessesMobile
@@ -18,8 +17,13 @@ struct PostRepositoryExecutableTests {
     private let courseId = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440001")!
     private let postId   = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440002")!
 
-    func makeSUT(client: HTTPClient, baseURL: URL) -> PostRepository {
-        DefaultPostRepositoryImpl(client: client, baseURL: baseURL)
+    private func makeSUT(client: HTTPClient, baseURL: URL) -> PostRepository {
+        let apiClient = APIClient(
+            httpClient: client,
+            configuration: APIConfiguration(baseURL: baseURL)
+        )
+
+        return DefaultPostRepository(apiClient: apiClient)
     }
 
     private func makePostJSON() -> Data {
@@ -88,6 +92,8 @@ struct PostRepositoryExecutableTests {
                 == "/api/v1/courses/\(courseId.uuidString)/posts"
         )
 
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
+
         let url = try #require(sentRequest.url)
         let components = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false))
 
@@ -132,8 +138,10 @@ struct PostRepositoryExecutableTests {
                 == "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts"
         )
 
-        let bodyData = try #require(sentRequest.httpBody)
+        #expect(sentRequest.value(forHTTPHeaderField: "Content-Type") == "application/json")
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
 
+        let bodyData = try #require(sentRequest.httpBody)
         let sentJSON = try JSONDecoder().decode(CreatePostRequestDTO.self, from: bodyData)
 
         #expect(sentJSON.title == "Assignment 1")

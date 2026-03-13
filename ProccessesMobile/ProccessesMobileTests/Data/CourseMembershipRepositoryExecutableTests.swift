@@ -5,7 +5,6 @@
 //  Created by dark type on 06.03.2026.
 //
 
-
 import Testing
 import Foundation
 @testable import ProccessesMobile
@@ -25,7 +24,12 @@ struct CourseMembershipRepositoryExecutableTests {
     // MARK: - Factory
 
     private func makeSUT(client: HTTPClient, baseURL: URL) -> CourseMembershipRepository {
-        DefaultCourseMembershipRepositoryImpl(client: client, baseURL: baseURL)
+        let apiClient = APIClient(
+            httpClient: client,
+            configuration: APIConfiguration(baseURL: baseURL)
+        )
+
+        return DefaultCourseMembershipRepository(apiClient: apiClient)
     }
 
     // MARK: - JSON Helpers
@@ -77,9 +81,9 @@ struct CourseMembershipRepositoryExecutableTests {
             sentRequest.url?.absoluteString ==
             "http://localhost:8080/api/v1/invites/\(validInviteCode)/join"
         )
-
         #expect(sentRequest.httpMethod == "POST")
         #expect(sentRequest.httpBody == nil)
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
     }
 
     @Test("Join course maps 404 (Invite not found) to server error")
@@ -147,9 +151,7 @@ struct CourseMembershipRepositoryExecutableTests {
         let sut = makeSUT(client: clientSpy, baseURL: anyURL)
 
         try await sut.leaveCourse(
-            LeaveCourseCommand(
-                courseId: leaveCourseId
-            )
+            LeaveCourseCommand(courseId: leaveCourseId)
         )
 
         let requests = clientSpy.getRecordedRequests()
@@ -159,9 +161,9 @@ struct CourseMembershipRepositoryExecutableTests {
             sentRequest.url?.absoluteString ==
             "http://localhost:8080/api/v1/courses/\(leaveCourseId.uuidString)/leave"
         )
-
         #expect(sentRequest.httpMethod == "POST")
         #expect(sentRequest.httpBody == nil)
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
     }
 
     @Test("Leave course handles Unauthorized 401 correctly")
@@ -182,9 +184,7 @@ struct CourseMembershipRepositoryExecutableTests {
 
         await #expect(throws: APIError.unauthorized) {
             try await sut.leaveCourse(
-                LeaveCourseCommand(
-                    courseId: unauthorizedCourseId
-                )
+                LeaveCourseCommand(courseId: unauthorizedCourseId)
             )
         }
     }

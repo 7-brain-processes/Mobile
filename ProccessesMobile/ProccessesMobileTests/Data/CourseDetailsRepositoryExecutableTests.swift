@@ -5,7 +5,6 @@
 //  Created by dark type on 06.03.2026.
 //
 
-
 import Testing
 import Foundation
 @testable import ProccessesMobile
@@ -24,7 +23,12 @@ struct CourseDetailsRepositoryExecutableTests {
     // MARK: - Factory
 
     private func makeSUT(client: HTTPClient, baseURL: URL) -> CourseDetailsRepository {
-        DefaultCourseDetailsRepository(client: client, baseURL: baseURL)
+        let apiClient = APIClient(
+            httpClient: client,
+            configuration: APIConfiguration(baseURL: baseURL)
+        )
+
+        return DefaultCourseDetailsRepository(apiClient: apiClient)
     }
 
     // MARK: - JSON Helpers
@@ -73,11 +77,11 @@ struct CourseDetailsRepositoryExecutableTests {
         let sentRequest = try #require(requests.first)
 
         #expect(sentRequest.httpMethod == "GET")
-
         #expect(
             sentRequest.url?.absoluteString ==
             "http://localhost:8080/api/v1/courses/\(getCourseId.uuidString)"
         )
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
     }
 
     @Test("Get course maps 404 HTTP to Domain Error")
@@ -133,11 +137,12 @@ struct CourseDetailsRepositoryExecutableTests {
         let sentRequest = try #require(requests.first)
 
         #expect(sentRequest.httpMethod == "PUT")
-
         #expect(
             sentRequest.url?.absoluteString ==
             "http://localhost:8080/api/v1/courses/\(updateCourseId.uuidString)"
         )
+        #expect(sentRequest.value(forHTTPHeaderField: "Content-Type") == "application/json")
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
 
         let bodyData = try #require(sentRequest.httpBody)
         let json = try JSONDecoder().decode(UpdateCourseRequestDTO.self, from: bodyData)
@@ -199,12 +204,11 @@ struct CourseDetailsRepositoryExecutableTests {
         let sentRequest = try #require(requests.first)
 
         #expect(sentRequest.httpMethod == "DELETE")
-
         #expect(
             sentRequest.url?.absoluteString ==
             "http://localhost:8080/api/v1/courses/\(deleteCourseId.uuidString)"
         )
-
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
         #expect(sentRequest.httpBody == nil)
     }
 }

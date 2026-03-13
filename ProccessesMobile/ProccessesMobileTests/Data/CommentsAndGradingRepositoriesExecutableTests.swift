@@ -5,7 +5,6 @@
 //  Created by dark type on 06.03.2026.
 //
 
-
 import Testing
 import Foundation
 @testable import ProccessesMobile
@@ -19,6 +18,15 @@ struct CommentsAndGradingRepositoriesExecutableTests {
     private let postId = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440002")!
     private let commentId = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440111")!
     private let solutionId = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440222")!
+
+    // MARK: - Helpers
+
+    private func makeAPIClient(httpClient: HTTPClient) -> APIClient {
+        APIClient(
+            httpClient: httpClient,
+            configuration: APIConfiguration(baseURL: anyURL)
+        )
+    }
 
     // MARK: - JSON Helpers
 
@@ -66,7 +74,9 @@ struct CommentsAndGradingRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultPostCommentsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultPostCommentsRepository(
+            apiClient: makeAPIClient(httpClient: clientSpy)
+        )
 
         let command = CreatePostCommentCommand(
             courseId: courseId,
@@ -83,11 +93,12 @@ struct CommentsAndGradingRepositoriesExecutableTests {
         let sentRequest = try #require(requests.first)
 
         #expect(sentRequest.httpMethod == "POST")
-
         #expect(
             sentRequest.url?.absoluteString ==
             "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/comments"
         )
+        #expect(sentRequest.value(forHTTPHeaderField: "Content-Type") == "application/json")
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
 
         let sentBody = try JSONDecoder().decode(
             CreateCommentRequestDTO.self,
@@ -111,7 +122,9 @@ struct CommentsAndGradingRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultPostCommentsRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultPostCommentsRepository(
+            apiClient: makeAPIClient(httpClient: clientSpy)
+        )
 
         try await sut.deleteComment(
             DeletePostCommentCommand(
@@ -125,7 +138,6 @@ struct CommentsAndGradingRepositoriesExecutableTests {
         let sentRequest = try #require(requests.first)
 
         #expect(sentRequest.httpMethod == "DELETE")
-
         #expect(
             sentRequest.url?.absoluteString ==
             "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/comments/\(commentId.uuidString)"
@@ -148,7 +160,9 @@ struct CommentsAndGradingRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultGradingRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultGradingRepository(
+            apiClient: makeAPIClient(httpClient: clientSpy)
+        )
 
         let command = GradeSolutionCommand(
             courseId: courseId,
@@ -167,11 +181,12 @@ struct CommentsAndGradingRepositoriesExecutableTests {
         let sentRequest = try #require(requests.first)
 
         #expect(sentRequest.httpMethod == "PUT")
-
         #expect(
             sentRequest.url?.absoluteString ==
             "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/posts/\(postId.uuidString)/solutions/\(solutionId.uuidString)/grade"
         )
+        #expect(sentRequest.value(forHTTPHeaderField: "Content-Type") == "application/json")
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
 
         let sentBody = try JSONDecoder().decode(
             GradeRequestDTO.self,
@@ -196,7 +211,9 @@ struct CommentsAndGradingRepositoriesExecutableTests {
             )
         )
 
-        let sut = DefaultGradingRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultGradingRepository(
+            apiClient: makeAPIClient(httpClient: clientSpy)
+        )
 
         await #expect(throws: APIError.serverError(code: 403)) {
             _ = try await sut.gradeSolution(

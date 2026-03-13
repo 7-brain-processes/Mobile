@@ -5,7 +5,6 @@
 //  Created by dark type on 06.03.2026.
 //
 
-
 import Testing
 import Foundation
 @testable import ProccessesMobile
@@ -18,6 +17,15 @@ struct CourseUsersRepositoryExecutableTests {
     private let courseId = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440001")!
     private let userId = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440002")!
     private let inviteId = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440123")!
+
+    // MARK: - Factory
+
+    private func makeAPIClient(_ client: HTTPClient) -> APIClient {
+        APIClient(
+            httpClient: client,
+            configuration: APIConfiguration(baseURL: anyURL)
+        )
+    }
 
     // MARK: - JSON Helpers
 
@@ -69,7 +77,9 @@ struct CourseUsersRepositoryExecutableTests {
             )
         )
 
-        let sut = DefaultCourseMembersRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultCourseMembersRepository(
+            apiClient: makeAPIClient(clientSpy)
+        )
 
         _ = try await sut.listMembers(
             ListMembersQuery(
@@ -86,9 +96,11 @@ struct CourseUsersRepositoryExecutableTests {
         #expect(sentRequest.httpMethod == "GET")
 
         #expect(
-            sentRequest.url?.path
-                == "/api/v1/courses/\(courseId.uuidString)/members"
+            sentRequest.url?.path ==
+            "/api/v1/courses/\(courseId.uuidString)/members"
         )
+
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
 
         let url = try #require(sentRequest.url)
         let components = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false))
@@ -112,7 +124,9 @@ struct CourseUsersRepositoryExecutableTests {
             )
         )
 
-        let sut = DefaultCourseMembersRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultCourseMembersRepository(
+            apiClient: makeAPIClient(clientSpy)
+        )
 
         await #expect(throws: APIError.serverError(code: 403)) {
             try await sut.removeMember(
@@ -129,8 +143,8 @@ struct CourseUsersRepositoryExecutableTests {
         #expect(sentRequest.httpMethod == "DELETE")
 
         #expect(
-            sentRequest.url?.absoluteString
-                == "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/members/\(userId.uuidString)"
+            sentRequest.url?.absoluteString ==
+            "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/members/\(userId.uuidString)"
         )
     }
 
@@ -150,7 +164,9 @@ struct CourseUsersRepositoryExecutableTests {
             )
         )
 
-        let sut = DefaultCourseInvitesRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultCourseInvitesRepository(
+            apiClient: makeAPIClient(clientSpy)
+        )
 
         _ = try await sut.createInvite(
             CreateInviteCommand(
@@ -167,9 +183,12 @@ struct CourseUsersRepositoryExecutableTests {
         #expect(sentRequest.httpMethod == "POST")
 
         #expect(
-            sentRequest.url?.absoluteString
-                == "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/invites"
+            sentRequest.url?.absoluteString ==
+            "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/invites"
         )
+
+        #expect(sentRequest.value(forHTTPHeaderField: "Content-Type") == "application/json")
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
 
         let bodyData = try #require(sentRequest.httpBody)
         let json = try JSONDecoder().decode(CreateInviteRequestDTO.self, from: bodyData)
@@ -195,7 +214,9 @@ struct CourseUsersRepositoryExecutableTests {
             )
         )
 
-        let sut = DefaultCourseInvitesRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultCourseInvitesRepository(
+            apiClient: makeAPIClient(clientSpy)
+        )
 
         let result = try await sut.listInvites(
             courseId: courseId
@@ -205,7 +226,10 @@ struct CourseUsersRepositoryExecutableTests {
         #expect(result.first?.code == "aBcD1234")
 
         let requests = clientSpy.getRecordedRequests()
-        #expect(requests.first?.httpMethod == "GET")
+        let sentRequest = try #require(requests.first)
+
+        #expect(sentRequest.httpMethod == "GET")
+        #expect(sentRequest.value(forHTTPHeaderField: "Accept") == "application/json")
     }
 
     @Test("Revoke invite uses DELETE method")
@@ -222,7 +246,9 @@ struct CourseUsersRepositoryExecutableTests {
             )
         )
 
-        let sut = DefaultCourseInvitesRepositoryImpl(client: clientSpy, baseURL: anyURL)
+        let sut = DefaultCourseInvitesRepository(
+            apiClient: makeAPIClient(clientSpy)
+        )
 
         try await sut.revokeInvite(
             RevokeInviteCommand(
@@ -237,8 +263,8 @@ struct CourseUsersRepositoryExecutableTests {
         #expect(sentRequest.httpMethod == "DELETE")
 
         #expect(
-            sentRequest.url?.absoluteString
-                == "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/invites/\(inviteId.uuidString)"
+            sentRequest.url?.absoluteString ==
+            "http://localhost:8080/api/v1/courses/\(courseId.uuidString)/invites/\(inviteId.uuidString)"
         )
     }
 }
