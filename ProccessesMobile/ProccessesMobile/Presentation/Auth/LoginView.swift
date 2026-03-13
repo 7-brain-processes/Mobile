@@ -5,9 +5,7 @@
 //  Created by dark type on 09.03.2026.
 //
 
-
 import SwiftUI
-
 
 struct LoginView: View {
     @StateObject private var viewModel: LoginViewModel
@@ -48,18 +46,36 @@ struct LoginView: View {
                     .accessibilityIdentifier(AccessibilityID.Login.passwordField)
             }
 
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier(AccessibilityID.Login.errorMessage)
+            }
+
             VStack(spacing: 12) {
                 Button {
-                    viewModel.simulateLoginTapped()
+                    Task {
+                        await viewModel.loginTapped()
+                    }
                 } label: {
-                    Text("Simulate Login")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accentColor)
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                    HStack {
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .tint(.white)
+                        } else {
+                            Text("Login")
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.accentColor)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
-                .accessibilityIdentifier(AccessibilityID.Login.simulateLoginButton)
+                .disabled(viewModel.isLoading)
+                .accessibilityIdentifier(AccessibilityID.Login.loginButton)
 
                 Button {
                     viewModel.registerTapped()
@@ -71,6 +87,7 @@ struct LoginView: View {
                         .foregroundStyle(.primary)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
+                .disabled(viewModel.isLoading)
                 .accessibilityIdentifier(AccessibilityID.Login.registerButton)
             }
 

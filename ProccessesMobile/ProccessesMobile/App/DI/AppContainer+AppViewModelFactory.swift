@@ -10,7 +10,13 @@ import Foundation
 @MainActor
 extension AppContainer: ViewModelFactory {
     func makeLoginViewModel(authCoordinator: AuthCoordinator) -> LoginViewModel {
-        LoginViewModel(
+        let loginUseCase = DefaultLoginUseCase(
+            repository: authRepository,
+            tokenStorage: tokenStorage
+        )
+
+        return LoginViewModel(
+            loginUseCase: loginUseCase,
             authNavigator: authCoordinator,
             appRouter: appCoordinator
         )

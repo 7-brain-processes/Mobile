@@ -13,7 +13,8 @@ enum AccessibilityID {
         static let loginField = "login.loginField"
         static let passwordField = "login.passwordField"
         static let registerButton = "login.registerButton"
-        static let simulateLoginButton = "login.simulateLoginButton"
+        static let loginButton = "login.loginButton"
+        static let errorMessage = "login.errorMessage"
     }
 
     enum Register {
