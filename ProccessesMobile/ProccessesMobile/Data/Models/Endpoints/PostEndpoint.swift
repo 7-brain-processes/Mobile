@@ -7,25 +7,48 @@
 
 import Foundation
 
-enum PostEndpoint {
+enum PostEndpoint: Endpoint {
+    case list(courseId: String, page: Int, size: Int, type: PostTypeDTO?)
+    case create(courseId: String, request: CreatePostRequestDTO)
+    case get(courseId: String, postId: String)
+    case update(courseId: String, postId: String, request: UpdatePostRequestDTO)
+    case delete(courseId: String, postId: String)
 
-    case list(courseId: String, page: Int, size: Int, type: PostTypeDTO?, baseURL: URL)
-    case create(courseId: String, request: CreatePostRequestDTO, baseURL: URL)
-    case get(courseId: String, postId: String, baseURL: URL)
-    case update(courseId: String, postId: String, request: UpdatePostRequestDTO, baseURL: URL)
-    case delete(courseId: String, postId: String, baseURL: URL)
-
-    func makeURLRequest() throws -> URLRequest {
-
+    var path: String {
         switch self {
+        case .list(let courseId, _, _, _),
+             .create(let courseId, _):
+            return "courses/\(courseId)/posts"
 
-        case let .list(courseId, page, size, type, baseURL):
+        case .get(let courseId, let postId),
+             .update(let courseId, let postId, _),
+             .delete(let courseId, let postId):
+            return "courses/\(courseId)/posts/\(postId)"
+        }
+    }
 
-            var components = URLComponents(
-                url: baseURL.appendingPathComponent("/courses/\(courseId)/posts"),
-                resolvingAgainstBaseURL: false
-            )!
+    var method: HTTPMethod {
+        switch self {
+        case .list, .get:
+            return .GET
+        case .create:
+            return .POST
+        case .update:
+            return .PUT
+        case .delete:
+            return .DELETE
+        }
+    }
 
+    var headers: [String: String] {
+        [
+            "Accept": "application/json"
+        ]
+    }
+
+    var queryItems: [URLQueryItem] {
+        switch self {
+        case .list(_, let page, let size, let type):
             var items = [
                 URLQueryItem(name: "page", value: String(page)),
                 URLQueryItem(name: "size", value: String(size))
@@ -35,60 +58,27 @@ enum PostEndpoint {
                 items.append(URLQueryItem(name: "type", value: type.rawValue))
             }
 
-            components.queryItems = items
+            return items
 
-            var request = URLRequest(url: components.url!)
-            request.httpMethod = "GET"
-
-            return request
-
-
-        case let .create(courseId, dto, baseURL):
-
-            var request = URLRequest(
-                url: baseURL.appendingPathComponent("/courses/\(courseId)/posts")
-            )
-
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = try JSONEncoder().encode(dto)
-
-            return request
-
-
-        case let .get(courseId, postId, baseURL):
-
-            var request = URLRequest(
-                url: baseURL.appendingPathComponent("/courses/\(courseId)/posts/\(postId)")
-            )
-
-            request.httpMethod = "GET"
-
-            return request
-
-
-        case let .update(courseId, postId, dto, baseURL):
-
-            var request = URLRequest(
-                url: baseURL.appendingPathComponent("/courses/\(courseId)/posts/\(postId)")
-            )
-
-            request.httpMethod = "PUT"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = try JSONEncoder().encode(dto)
-
-            return request
-
-
-        case let .delete(courseId, postId, baseURL):
-
-            var request = URLRequest(
-                url: baseURL.appendingPathComponent("/courses/\(courseId)/posts/\(postId)")
-            )
-
-            request.httpMethod = "DELETE"
-
-            return request
+        case .create, .get, .update, .delete:
+            return []
         }
+    }
+
+    var body: EndpointBody {
+        switch self {
+        case .list, .get, .delete:
+            return .none
+
+        case .create(_, let request):
+            return .json(request)
+
+        case .update(_, _, let request):
+            return .json(request)
+        }
+    }
+
+    var requiresAuth: Bool {
+        true
     }
 }

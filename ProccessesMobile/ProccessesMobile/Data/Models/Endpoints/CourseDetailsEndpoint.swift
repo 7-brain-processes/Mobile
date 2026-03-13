@@ -7,45 +7,51 @@
 
 import Foundation
 
-enum CourseDetailsEndpoint {
+enum CourseDetailsEndpoint: Endpoint {
+    case get(courseId: String)
+    case update(courseId: String, request: UpdateCourseRequestDTO)
+    case delete(courseId: String)
 
-    case get(courseId: String, baseURL: URL)
-    case update(courseId: String, request: UpdateCourseRequestDTO, baseURL: URL)
-    case delete(courseId: String, baseURL: URL)
-
-    func makeURLRequest() throws -> URLRequest {
-
+    var path: String {
         switch self {
-
-        case let .get(courseId, baseURL):
-
-            let url = baseURL.appendingPathComponent("/courses/\(courseId)")
-            var request = URLRequest(url: url)
-            request.httpMethod = "GET"
-            return request
-
-
-        case let .update(courseId, dto, baseURL):
-
-            let url = baseURL.appendingPathComponent("/courses/\(courseId)")
-
-            var request = URLRequest(url: url)
-            request.httpMethod = "PUT"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-            request.httpBody = try JSONEncoder().encode(dto)
-
-            return request
-
-
-        case let .delete(courseId, baseURL):
-
-            let url = baseURL.appendingPathComponent("/courses/\(courseId)")
-
-            var request = URLRequest(url: url)
-            request.httpMethod = "DELETE"
-
-            return request
+        case .get(let courseId),
+             .update(let courseId, _),
+             .delete(let courseId):
+            return "courses/\(courseId)"
         }
+    }
+
+    var method: HTTPMethod {
+        switch self {
+        case .get:
+            return .GET
+        case .update:
+            return .PUT
+        case .delete:
+            return .DELETE
+        }
+    }
+
+    var headers: [String: String] {
+        [
+            "Accept": "application/json"
+        ]
+    }
+
+    var queryItems: [URLQueryItem] {
+        []
+    }
+
+    var body: EndpointBody {
+        switch self {
+        case .get, .delete:
+            return .none
+        case .update(_, let request):
+            return .json(request)
+        }
+    }
+
+    var requiresAuth: Bool {
+        true
     }
 }

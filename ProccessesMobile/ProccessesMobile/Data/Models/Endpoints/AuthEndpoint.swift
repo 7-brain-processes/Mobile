@@ -5,49 +5,60 @@
 //  Created by dark type on 06.03.2026.
 //
 
-
 import Foundation
 
 enum AuthEndpoint: Endpoint {
-    case login(LoginRequestDTO, baseURL: URL)
-    case register(RegisterRequestDTO, baseURL: URL)
-    case me(baseURL: URL)
-    
-    var baseURL: URL {
-        switch self {
-        case .login(_, let url), .register(_, let url), .me(let url):
-            return url
-        }
-    }
-    
+    case login(LoginRequestDTO)
+    case register(RegisterRequestDTO)
+    case me
+
     var path: String {
         switch self {
-        case .login: return "/auth/login"
-        case .register: return "/auth/register"
-        case .me: return "/auth/me"
+        case .login:
+            return "auth/login"
+        case .register:
+            return "auth/register"
+        case .me:
+            return "auth/me"
         }
     }
-    
+
     var method: HTTPMethod {
         switch self {
-        case .login, .register: return .post
-        case .me: return .get
+        case .login, .register:
+            return .POST
+        case .me:
+            return .GET
         }
     }
-    
-    var headers: [String: String]? {
-        return ["Accept": "application/json"]
+
+    var headers: [String: String] {
+        [
+            "Accept": "application/json"
+        ]
     }
-    
-    var body: Data? {
-        let encoder = JSONEncoder()
+
+    var queryItems: [URLQueryItem] {
+        []
+    }
+
+    var body: EndpointBody {
         switch self {
-        case .login(let request, _):
-            return try? encoder.encode(request)
-        case .register(let request, _):
-            return try? encoder.encode(request)
+        case .login(let request):
+            return .json(request)
+        case .register(let request):
+            return .json(request)
         case .me:
-            return nil
+            return .none
+        }
+    }
+
+    var requiresAuth: Bool {
+        switch self {
+        case .login, .register:
+            return false
+        case .me:
+            return true
         }
     }
 }

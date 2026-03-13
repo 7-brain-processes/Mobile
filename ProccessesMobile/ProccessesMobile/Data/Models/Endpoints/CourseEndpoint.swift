@@ -7,51 +7,63 @@
 
 import Foundation
 
-enum CourseEndpoint {
+enum CourseEndpoint: Endpoint {
+    case getCourses(page: Int, size: Int, role: CourseRoleDTO?)
+    case create(request: CreateCourseRequestDTO)
 
-    case getCourses(page: Int, size: Int, role: CourseRoleDTO?, baseURL: URL)
-    case create(request: CreateCourseRequestDTO, baseURL: URL)
-
-    func makeURLRequest() throws -> URLRequest {
-
+    var path: String {
         switch self {
+        case .getCourses, .create:
+            return "courses"
+        }
+    }
 
-        case let .getCourses(page, size, role, baseURL):
+    var method: HTTPMethod {
+        switch self {
+        case .getCourses:
+            return .GET
+        case .create:
+            return .POST
+        }
+    }
 
-            var components = URLComponents(
-                url: baseURL.appendingPathComponent("/courses"),
-                resolvingAgainstBaseURL: false
-            )!
+    var headers: [String: String] {
+        [
+            "Accept": "application/json"
+        ]
+    }
 
-            var queryItems = [
+    var queryItems: [URLQueryItem] {
+        switch self {
+        case .getCourses(let page, let size, let role):
+            var items = [
                 URLQueryItem(name: "page", value: String(page)),
                 URLQueryItem(name: "size", value: String(size))
             ]
 
             if let role {
-                queryItems.append(
+                items.append(
                     URLQueryItem(name: "role", value: role.rawValue)
                 )
             }
 
-            components.queryItems = queryItems
+            return items
 
-            var request = URLRequest(url: components.url!)
-            request.httpMethod = "GET"
-
-            return request
-
-
-        case let .create(dto, baseURL):
-
-            let url = baseURL.appendingPathComponent("/courses")
-
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = try JSONEncoder().encode(dto)
-
-            return request
+        case .create:
+            return []
         }
+    }
+
+    var body: EndpointBody {
+        switch self {
+        case .getCourses:
+            return .none
+        case .create(let request):
+            return .json(request)
+        }
+    }
+
+    var requiresAuth: Bool {
+        true
     }
 }

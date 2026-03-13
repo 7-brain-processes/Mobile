@@ -7,18 +7,46 @@
 
 import Foundation
 
-enum GradingEndpoint {
-    case grade(courseId: String, postId: String, solutionId: String, request: GradeRequestDTO, baseURL: URL)
-    
-    func makeURLRequest() throws -> URLRequest {
+enum GradingEndpoint: Endpoint {
+    case grade(
+        courseId: String,
+        postId: String,
+        solutionId: String,
+        request: GradeRequestDTO
+    )
+
+    var path: String {
         switch self {
-        case let .grade(courseId, postId, solutionId, dto, baseURL):
-            let path = "/courses/\(courseId)/posts/\(postId)/solutions/\(solutionId)/grade"
-            var request = URLRequest(url: baseURL.appendingPathComponent(path))
-            request.httpMethod = "PUT"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = try JSONEncoder().encode(dto)
-            return request
+        case .grade(let courseId, let postId, let solutionId, _):
+            return "courses/\(courseId)/posts/\(postId)/solutions/\(solutionId)/grade"
         }
+    }
+
+    var method: HTTPMethod {
+        switch self {
+        case .grade:
+            return .PUT
+        }
+    }
+
+    var headers: [String: String] {
+        [
+            "Accept": "application/json"
+        ]
+    }
+
+    var queryItems: [URLQueryItem] {
+        []
+    }
+
+    var body: EndpointBody {
+        switch self {
+        case .grade(_, _, _, let request):
+            return .json(request)
+        }
+    }
+
+    var requiresAuth: Bool {
+        true
     }
 }
