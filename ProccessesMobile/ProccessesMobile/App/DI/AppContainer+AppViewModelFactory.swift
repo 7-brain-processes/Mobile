@@ -10,11 +10,6 @@ import Foundation
 @MainActor
 extension AppContainer: ViewModelFactory {
     func makeLoginViewModel(authCoordinator: AuthCoordinator) -> LoginViewModel {
-        let loginUseCase = DefaultLoginUseCase(
-            repository: authRepository,
-            tokenStorage: tokenStorage
-        )
-        
         return LoginViewModel(
             loginUseCase: loginUseCase,
             authNavigator: authCoordinator,
@@ -23,11 +18,6 @@ extension AppContainer: ViewModelFactory {
     }
     
     func makeRegisterViewModel(authCoordinator: AuthCoordinator) -> RegisterViewModel {
-        let registerUseCase = DefaultRegisterUseCase(
-            repository: authRepository,
-            tokenStorage: tokenStorage
-        )
-
         return RegisterViewModel(
             registerUseCase: registerUseCase,
             authNavigator: authCoordinator,
@@ -36,12 +26,9 @@ extension AppContainer: ViewModelFactory {
     }
     
     func makeCoursesViewModel(coordinator: CoursesCoordinator) -> CoursesViewModel {
-        let getMeUseCase = DefaultGetMeUseCase(
-            repository: authRepository
-        )
-
         return CoursesViewModel(
             getMeUseCase: getMeUseCase,
+            getMyCoursesUseCase: getMyCoursesUseCase,
             navigator: coordinator,
             appRouter: appCoordinator
         )

@@ -11,57 +11,38 @@ import Foundation
 @MainActor
 final class CoursesViewModel: ObservableObject {
     private let getMeUseCase: GetMeUseCase
+    private let getMyCoursesUseCase: GetMyCoursesUseCase
 
     private weak var navigator: CoursesNavigating?
     private weak var appRouter: AppFlowRouting?
 
     @Published var courses: [CourseCardItem]
     @Published var currentUserDisplayName: String
-    @Published var isLoadingUser: Bool = false
+    @Published var isLoading: Bool
     @Published var errorMessage: String?
 
     init(
         getMeUseCase: GetMeUseCase,
+        getMyCoursesUseCase: GetMyCoursesUseCase,
         navigator: CoursesNavigating,
         appRouter: AppFlowRouting? = nil,
         currentUserDisplayName: String = "User",
-        courses: [CourseCardItem] = [
-            CourseCardItem(
-                id: UUID(),
-                name: "Mathematics",
-                description: "Linear algebra and analysis",
-                isTeacher: true,
-                teacherCount: 1,
-                studentCount: 24
-            ),
-            CourseCardItem(
-                id: UUID(),
-                name: "Physics",
-                description: "Mechanics and waves",
-                isTeacher: false,
-                teacherCount: 2,
-                studentCount: 31
-            ),
-            CourseCardItem(
-                id: UUID(),
-                name: "Biology",
-                description: "Cell structure and genetics",
-                isTeacher: false,
-                teacherCount: 1,
-                studentCount: 18
-            )
-        ]
+        courses: [CourseCardItem] = [],
+        isLoading: Bool = false
     ) {
         self.getMeUseCase = getMeUseCase
+        self.getMyCoursesUseCase = getMyCoursesUseCase
         self.navigator = navigator
         self.appRouter = appRouter
         self.currentUserDisplayName = currentUserDisplayName
         self.courses = courses
+        self.isLoading = isLoading
     }
 
     var currentUserInitial: String {
         let source = currentUserDisplayName.trimmingCharacters(in: .whitespacesAndNewlines)
-        return String(source.prefix(1)).uppercased().isEmpty ? "U" : String(source.prefix(1)).uppercased()
+        let initial = String(source.prefix(1)).uppercased()
+        return initial.isEmpty ? "U" : initial
     }
 
     var teachingCourses: [CourseCardItem] {
@@ -73,24 +54,40 @@ final class CoursesViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        await loadCurrentUser()
+        await loadInitialData()
     }
 
-    func loadCurrentUser() async {
-        guard !isLoadingUser else { return }
+    func loadInitialData() async {
+        guard !isLoading else { return }
 
-        isLoadingUser = true
+        isLoading = true
         errorMessage = nil
-        defer { isLoadingUser = false }
+        defer { isLoading = false }
 
         do {
-            let user = try await getMeUseCase.execute()
+            async let userTask = getMeUseCase.execute()
+            async let coursesTask = getMyCoursesUseCase.execute(
+                GetMyCoursesQuery(
+                    page: 0,
+                    size: 100,
+                    role: nil
+                )
+            )
+
+            let user = try await userTask
+            let coursesPage = try await coursesTask
+
             currentUserDisplayName = resolvedDisplayName(from: user)
+            courses = coursesPage.content.map(Self.mapCourseToCardItem)
         } catch let error as APIError {
             errorMessage = mapAPIError(error)
         } catch {
             errorMessage = "Unexpected error"
         }
+    }
+
+    func retryTapped() async {
+        await loadInitialData()
     }
 
     func createCourseTapped() {
@@ -117,6 +114,17 @@ final class CoursesViewModel: ObservableObject {
         }
 
         return user.username
+    }
+
+    private static func mapCourseToCardItem(_ course: Course) -> CourseCardItem {
+        CourseCardItem(
+            id: course.id,
+            name: course.name,
+            description: course.description ?? "",
+            isTeacher: course.currentUserRole == .teacher,
+            teacherCount: course.teacherCount,
+            studentCount: course.studentCount
+        )
     }
 
     private func mapAPIError(_ error: APIError) -> String {
