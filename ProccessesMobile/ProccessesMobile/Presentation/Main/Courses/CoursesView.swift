@@ -36,6 +36,9 @@ struct CoursesView: View {
                     .zIndex(2)
             }
         }
+        .task {
+            await viewModel.onAppear()
+        }
         .toolbar(isSideMenuPresented ? .hidden : .visible, for: .navigationBar)
         .animation(.easeInOut(duration: 0.22), value: isSideMenuPresented)
     }

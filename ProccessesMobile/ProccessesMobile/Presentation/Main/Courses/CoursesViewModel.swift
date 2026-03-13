@@ -10,14 +10,18 @@ import Foundation
 
 @MainActor
 final class CoursesViewModel: ObservableObject {
+    private let getMeUseCase: GetMeUseCase
+
     private weak var navigator: CoursesNavigating?
     private weak var appRouter: AppFlowRouting?
 
     @Published var courses: [CourseCardItem]
-
-    let currentUserDisplayName: String
+    @Published var currentUserDisplayName: String
+    @Published var isLoadingUser: Bool = false
+    @Published var errorMessage: String?
 
     init(
+        getMeUseCase: GetMeUseCase,
         navigator: CoursesNavigating,
         appRouter: AppFlowRouting? = nil,
         currentUserDisplayName: String = "User",
@@ -48,6 +52,7 @@ final class CoursesViewModel: ObservableObject {
             )
         ]
     ) {
+        self.getMeUseCase = getMeUseCase
         self.navigator = navigator
         self.appRouter = appRouter
         self.currentUserDisplayName = currentUserDisplayName
@@ -55,7 +60,8 @@ final class CoursesViewModel: ObservableObject {
     }
 
     var currentUserInitial: String {
-        String(currentUserDisplayName.prefix(1)).uppercased()
+        let source = currentUserDisplayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return String(source.prefix(1)).uppercased().isEmpty ? "U" : String(source.prefix(1)).uppercased()
     }
 
     var teachingCourses: [CourseCardItem] {
@@ -64,6 +70,27 @@ final class CoursesViewModel: ObservableObject {
 
     var attendingCourses: [CourseCardItem] {
         courses.filter { !$0.isTeacher }
+    }
+
+    func onAppear() async {
+        await loadCurrentUser()
+    }
+
+    func loadCurrentUser() async {
+        guard !isLoadingUser else { return }
+
+        isLoadingUser = true
+        errorMessage = nil
+        defer { isLoadingUser = false }
+
+        do {
+            let user = try await getMeUseCase.execute()
+            currentUserDisplayName = resolvedDisplayName(from: user)
+        } catch let error as APIError {
+            errorMessage = mapAPIError(error)
+        } catch {
+            errorMessage = "Unexpected error"
+        }
     }
 
     func createCourseTapped() {
@@ -80,5 +107,30 @@ final class CoursesViewModel: ObservableObject {
 
     func logoutTapped() {
         appRouter?.showAuth()
+    }
+
+    private func resolvedDisplayName(from user: User) -> String {
+        if let displayName = user.displayName?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           !displayName.isEmpty {
+            return displayName
+        }
+
+        return user.username
+    }
+
+    private func mapAPIError(_ error: APIError) -> String {
+        switch error {
+        case .unauthorized:
+            return "Сессия истекла"
+        case .serverError(let code):
+            return "Ошибка сервера: \(code)"
+        case .invalidResponse:
+            return "Некорректный ответ сервера"
+        case .underlying:
+            return "Ошибка сети"
+        case .invalidURL:
+            return "Ошибка URL"
+        }
     }
 }

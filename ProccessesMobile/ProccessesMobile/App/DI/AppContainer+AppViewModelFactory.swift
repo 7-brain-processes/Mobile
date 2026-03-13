@@ -36,7 +36,15 @@ extension AppContainer: ViewModelFactory {
     }
     
     func makeCoursesViewModel(coordinator: CoursesCoordinator) -> CoursesViewModel {
-        CoursesViewModel(navigator: coordinator)
+        let getMeUseCase = DefaultGetMeUseCase(
+            repository: authRepository
+        )
+
+        return CoursesViewModel(
+            getMeUseCase: getMeUseCase,
+            navigator: coordinator,
+            appRouter: appCoordinator
+        )
     }
     
     func makeCreateCourseViewModel(coordinator: CoursesCoordinator) -> CreateCourseViewModel {
