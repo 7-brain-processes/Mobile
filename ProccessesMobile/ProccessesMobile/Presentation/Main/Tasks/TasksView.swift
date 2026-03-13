@@ -18,7 +18,24 @@ struct TasksView: View {
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             Group {
-                if viewModel.isEmpty {
+                if viewModel.isLoading && viewModel.tasks.isEmpty {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color(.systemGroupedBackground))
+                } else if let errorMessage = viewModel.errorMessage, viewModel.tasks.isEmpty {
+                    VStack(spacing: 12) {
+                        Text(errorMessage)
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                            .multilineTextAlignment(.center)
+
+                        Button("Retry") {
+                            viewModel.refresh()
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(.systemGroupedBackground))
+                } else if viewModel.isEmpty {
                     ContentUnavailableView(
                         "No tasks yet",
                         systemImage: "checklist",
@@ -95,5 +112,11 @@ struct TasksView: View {
             }
         }
         .navigationTitle("Tasks")
+        .task {
+            viewModel.onAppear()
+        }
+        .refreshable {
+            viewModel.refresh()
+        }
     }
 }

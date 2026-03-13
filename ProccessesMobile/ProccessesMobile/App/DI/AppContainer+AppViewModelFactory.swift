@@ -60,6 +60,7 @@ extension AppContainer: ViewModelFactory {
         FeedViewModel(
             courseId: courseId,
             role: role,
+            listPostsUseCase: listPostsUseCase,
             navigator: navigator
         )
     }
@@ -72,6 +73,7 @@ extension AppContainer: ViewModelFactory {
         TasksViewModel(
             courseId: courseId,
             role: role,
+            listPostsUseCase: listPostsUseCase,
             navigator: navigator
         )
     }

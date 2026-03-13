@@ -15,7 +15,7 @@ enum PostMapper {
             content: dto.content,
             type: PostTypeMapper.toDomain(dto.type),
             deadline: try dto.deadline.map(parseDate),
-            author: try dto.author.map(UserMapper.toDomain),
+            author: try UserMapper.toDomain(dto.author),
             materialsCount: dto.materialsCount,
             commentsCount: dto.commentsCount,
             solutionsCount: dto.solutionsCount,

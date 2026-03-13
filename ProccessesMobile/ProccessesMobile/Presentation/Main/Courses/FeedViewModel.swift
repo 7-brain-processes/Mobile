@@ -11,25 +11,38 @@ import Combine
 @MainActor
 final class FeedViewModel: ObservableObject {
     private let courseId: UUID
+    private let listPostsUseCase: ListPostsUseCase
     private weak var navigator: FeedScreenNavigating?
 
     let role: CourseRole
-    @Published var posts: [FeedPostItem]
+
+    @Published var posts: [FeedPostItem] = []
+    @Published var isLoading: Bool = false
+    @Published var errorMessage: String?
 
     init(
         courseId: UUID,
         role: CourseRole,
-        navigator: FeedScreenNavigating?,
-        posts: [FeedPostItem] = FeedViewModel.mockPosts
+        listPostsUseCase: ListPostsUseCase,
+        navigator: FeedScreenNavigating?
     ) {
         self.courseId = courseId
         self.role = role
+        self.listPostsUseCase = listPostsUseCase
         self.navigator = navigator
-        self.posts = posts
     }
 
     var canCreatePost: Bool {
         role == .teacher
+    }
+
+    func onAppear() {
+        guard posts.isEmpty, !isLoading else { return }
+        loadPosts()
+    }
+
+    func refresh() {
+        loadPosts()
     }
 
     func createPostTapped() {
@@ -53,40 +66,64 @@ final class FeedViewModel: ObservableObject {
     func attachmentTapped(post: FeedPostItem, attachment: FeedAttachmentItem) {
         postTapped(post)
     }
-}
 
-extension FeedViewModel {
-    static let mockPosts: [FeedPostItem] = [
+    private func loadPosts() {
+        Task {
+            isLoading = true
+            errorMessage = nil
+
+            defer { isLoading = false }
+
+            do {
+                let page = try await listPostsUseCase.execute(
+                    ListPostsQuery(
+                        courseId: courseId,
+                        page: 0,
+                        size: 20,
+                        type: nil
+                    )
+                )
+
+                posts = page.content.map(Self.mapToFeedPostItem)
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    private static func mapToFeedPostItem(_ post: Post) -> FeedPostItem {
         FeedPostItem(
-            id: UUID(),
-            type: .material,
-            title: "Lecture slides",
-            contentPreview: "Review these slides before the next lesson.",
-            createdAt: Date(),
-            deadline: nil,
-            author: FeedAuthorItem(displayName: "Professor Adams"),
-            attachments: [
-                FeedAttachmentItem(id: UUID(), type: .image, fileName: "slides-1.png", previewURL: nil),
-                FeedAttachmentItem(id: UUID(), type: .image, fileName: "slides-2.png", previewURL: nil)
-            ],
-            commentsCount: 4,
-            solutionsCount: nil,
-            mySolutionId: nil
-        ),
-        FeedPostItem(
-            id: UUID(),
-            type: .task,
-            title: "Homework 1",
-            contentPreview: "Solve the first five problems and attach your work.",
-            createdAt: Date(),
-            deadline: Calendar.current.date(byAdding: .day, value: 3, to: Date()),
-            author: FeedAuthorItem(displayName: "Professor Adams"),
-            attachments: [
-                FeedAttachmentItem(id: UUID(), type: .image, fileName: "worksheet.png", previewURL: nil)
-            ],
-            commentsCount: 7,
-            solutionsCount: 12,
-            mySolutionId: nil
+            id: post.id,
+            type: mapPostType(post.type),
+            title: post.title,
+            contentPreview: post.content ?? "",
+            createdAt: post.createdAt,
+            deadline: post.deadline,
+            author: FeedAuthorItem(
+                displayName: post.author.displayName!
+            ),
+            attachments: [],
+            commentsCount: post.commentsCount,
+            solutionsCount: mapSolutionsCount(for: post),
+            mySolutionId: post.mySolutionId
         )
-    ]
+    }
+
+    private static func mapPostType(_ type: PostType) -> FeedPostType {
+        switch type {
+        case .material:
+            return .material
+        case .task:
+            return .task
+        }
+    }
+
+    private static func mapSolutionsCount(for post: Post) -> Int? {
+        switch post.type {
+        case .material:
+            return nil
+        case .task:
+            return post.solutionsCount
+        }
+    }
 }

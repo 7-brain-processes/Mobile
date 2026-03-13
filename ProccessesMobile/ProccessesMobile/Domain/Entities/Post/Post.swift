@@ -13,7 +13,7 @@ struct Post: Equatable, Sendable {
     let content: String?
     let type: PostType
     let deadline: Date?
-    let author: User?
+    let author: User
     let materialsCount: Int
     let commentsCount: Int
     let solutionsCount: Int?
