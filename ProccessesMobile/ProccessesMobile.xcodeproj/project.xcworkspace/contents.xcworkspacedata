@@ -4,4 +4,19 @@
    <FileRef
       location = "self:">
    </FileRef>
+   <FileRef
+      location = "group:main.swift">
+   </FileRef>
+   <FileRef
+      location = "group:MyApp.swift">
+   </FileRef>
+   <FileRef
+      location = "group:MyApp 2.swift">
+   </FileRef>
+   <FileRef
+      location = "group:main.c">
+   </FileRef>
+   <FileRef
+      location = "group:Package.swift">
+   </FileRef>
 </Workspace>
