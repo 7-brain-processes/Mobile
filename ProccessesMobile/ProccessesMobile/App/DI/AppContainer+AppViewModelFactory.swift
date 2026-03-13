@@ -40,7 +40,10 @@ extension AppContainer: ViewModelFactory {
     }
     
     func makeCreateCourseViewModel(coordinator: CoursesCoordinator) -> CreateCourseViewModel {
-        CreateCourseViewModel(navigator: coordinator)
+        CreateCourseViewModel(
+            createCourseUseCase: createCourseUseCase,
+            navigator: coordinator
+        )
     }
     
     func makeJoinByCodeViewModel(coordinator: CoursesCoordinator) -> JoinByCodeViewModel {
@@ -48,9 +51,9 @@ extension AppContainer: ViewModelFactory {
     }
     
     func makeCourseViewModel(courseId: UUID) -> CourseViewModel {
-        
         CourseViewModel(courseId: courseId, role: .teacher)
     }
+
     func makeFeedViewModel(
         courseId: UUID,
         role: CourseRole,
@@ -84,6 +87,7 @@ extension AppContainer: ViewModelFactory {
             role: role
         )
     }
+
     func makeCourseCoordinator(courseId: UUID) -> CourseCoordinator {
         CourseCoordinator(
             courseId: courseId,

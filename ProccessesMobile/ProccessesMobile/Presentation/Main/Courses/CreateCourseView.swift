@@ -25,16 +25,25 @@ struct CreateCourseView: View {
 
                 TextField("Course name", text: $viewModel.courseName)
                     .textFieldStyle(.roundedBorder)
+                    .disabled(viewModel.isLoading)
                     .accessibilityIdentifier(AccessibilityID.CreateCourse.nameField)
 
-                Button("Finish") {
+                if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                }
+
+                Button(viewModel.isLoading ? "Creating..." : "Finish") {
                     viewModel.finishTapped()
                 }
+                .disabled(viewModel.isLoading)
                 .accessibilityIdentifier(AccessibilityID.CreateCourse.finishButton)
 
                 Button("Cancel") {
                     viewModel.cancelTapped()
                 }
+                .disabled(viewModel.isLoading)
                 .accessibilityIdentifier(AccessibilityID.CreateCourse.cancelButton)
             }
             .padding()
