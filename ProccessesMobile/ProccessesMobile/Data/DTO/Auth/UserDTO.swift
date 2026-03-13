@@ -8,5 +8,5 @@
 struct UserDTO: Equatable, Codable, Sendable {
     let id: String
     let username: String
-    let displayName: String?
+    let displayName: String
 }

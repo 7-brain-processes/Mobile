@@ -107,13 +107,9 @@ final class CoursesViewModel: ObservableObject {
     }
 
     private func resolvedDisplayName(from user: User) -> String {
-        if let displayName = user.displayName?
-            .trimmingCharacters(in: .whitespacesAndNewlines),
-           !displayName.isEmpty {
+        let displayName = user.displayName
             return displayName
-        }
-
-        return user.username
+  
     }
 
     private static func mapCourseToCardItem(_ course: Course) -> CourseCardItem {

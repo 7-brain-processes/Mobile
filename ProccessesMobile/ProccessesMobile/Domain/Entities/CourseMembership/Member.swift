@@ -8,7 +8,8 @@
 import Foundation
 
 struct Member: Equatable, Sendable {
-    let user: User?
+    let user: User
     let role: CourseRole
     let joinedAt: Date
+    let id: UUID
 }

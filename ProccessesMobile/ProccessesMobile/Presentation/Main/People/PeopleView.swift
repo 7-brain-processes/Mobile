@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+
 struct PeopleView: View {
     @StateObject private var viewModel: PeopleViewModel
 
@@ -17,12 +18,25 @@ struct PeopleView: View {
 
     var body: some View {
         List {
+            if let errorMessage = viewModel.errorMessage {
+                Section {
+                    Text(errorMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                }
+            }
+
             sectionView(title: "Teachers", people: viewModel.teachers) {
                 viewModel.addTeacherTapped()
             }
 
             sectionView(title: "Students", people: viewModel.students) {
                 viewModel.addStudentTapped()
+            }
+        }
+        .overlay {
+            if viewModel.isLoading && viewModel.teachers.isEmpty && viewModel.students.isEmpty {
+                ProgressView()
             }
         }
         .sheet(isPresented: $viewModel.isInviteSheetPresented) {
@@ -37,6 +51,12 @@ struct PeopleView: View {
             )
         }
         .navigationTitle("People")
+        .task {
+            viewModel.onAppear()
+        }
+        .refreshable {
+            viewModel.refresh()
+        }
     }
 
     @ViewBuilder
@@ -46,33 +66,38 @@ struct PeopleView: View {
         onAdd: @escaping () -> Void
     ) -> some View {
         Section {
-            ForEach(people) { person in
-                HStack(spacing: 12) {
-                    InitialAvatarView(
-                        name: person.name,
-                        size: 40,
-                        backgroundColor: .blue
-                    )
+            if people.isEmpty {
+                Text("No \(title.lowercased())")
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(people) { person in
+                    HStack(spacing: 12) {
+                        InitialAvatarView(
+                            name: person.name,
+                            size: 40,
+                            backgroundColor: .blue
+                        )
 
-                    Text(person.name)
+                        Text(person.name)
 
-                    Spacer()
+                        Spacer()
 
-                    Menu {
-                        if viewModel.canManagePeople {
-                            Button(role: .destructive) {
-                                viewModel.kick(person)
-                            } label: {
-                                Label("Kick", systemImage: "person.fill.xmark")
+                        Menu {
+                            if viewModel.canManagePeople {
+                                Button(role: .destructive) {
+                                    viewModel.kick(person)
+                                } label: {
+                                    Label("Kick", systemImage: "person.fill.xmark")
+                                }
                             }
+                        } label: {
+                            Image(systemName: "ellipsis")
+                                .foregroundStyle(.secondary)
+                                .frame(width: 32, height: 32)
                         }
-                    } label: {
-                        Image(systemName: "ellipsis")
-                            .foregroundStyle(.secondary)
-                            .frame(width: 32, height: 32)
                     }
+                    .padding(.vertical, 4)
                 }
-                .padding(.vertical, 4)
             }
         } header: {
             HStack {

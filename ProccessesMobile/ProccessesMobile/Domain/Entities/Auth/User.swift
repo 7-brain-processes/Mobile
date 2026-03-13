@@ -10,5 +10,5 @@ import Foundation
 struct User: Equatable, Codable, Sendable {
     let id: UUID
     let username: String
-    let displayName: String?
+    let displayName: String
 }

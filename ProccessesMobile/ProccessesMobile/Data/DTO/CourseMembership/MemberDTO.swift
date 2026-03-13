@@ -6,7 +6,7 @@
 //
 
 struct MemberDTO: Equatable, Sendable, Codable {
-    let user: UserDTO?
+    let user: UserDTO
     let role: CourseRoleDTO
     let joinedAt: String
 }

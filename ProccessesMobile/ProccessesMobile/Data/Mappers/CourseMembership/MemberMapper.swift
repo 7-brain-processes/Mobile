@@ -9,10 +9,13 @@ import Foundation
 
 enum MemberMapper {
     static func toDomain(_ dto: MemberDTO) throws -> Member {
-        Member(
-            user: try dto.user.map(UserMapper.toDomain),
+        let user = try UserMapper.toDomain(dto.user)
+
+        return Member(
+            user: user,
             role: CourseRoleMapper.toDomain(dto.role),
-            joinedAt: try parseDate(dto.joinedAt)
+            joinedAt: try parseDate(dto.joinedAt),
+            id: user.id
         )
     }
 }

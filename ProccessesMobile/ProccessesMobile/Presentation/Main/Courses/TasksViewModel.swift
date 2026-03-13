@@ -84,7 +84,7 @@ final class TasksViewModel: ObservableObject {
             createdAt: post.createdAt,
             deadline: post.deadline,
             author: FeedAuthorItem(
-                displayName: post.author.displayName!
+                displayName: post.author.displayName
             ),
             attachments: [],
             commentsCount: post.commentsCount,

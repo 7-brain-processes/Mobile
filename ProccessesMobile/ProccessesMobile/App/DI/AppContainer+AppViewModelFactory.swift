@@ -84,7 +84,10 @@ extension AppContainer: ViewModelFactory {
     ) -> PeopleViewModel {
         PeopleViewModel(
             courseId: courseId,
-            role: role
+            role: role,
+            courseMembersRepository: courseMembersRepository,
+            createInviteUseCase: createInviteUseCase,
+            removeMemberUseCase: removeMemberUseCase
         )
     }
 
