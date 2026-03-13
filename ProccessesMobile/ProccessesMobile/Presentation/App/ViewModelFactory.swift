@@ -1,0 +1,20 @@
+//
+//  ViewModelFactory.swift
+//  ProccessesMobile
+//
+//  Created by dark type on 09.03.2026.
+//
+
+import Foundation
+
+@MainActor
+protocol ViewModelFactory {
+    func makeLoginViewModel(authCoordinator: AuthCoordinator) -> LoginViewModel
+    func makeRegisterViewModel(authCoordinator: AuthCoordinator) -> RegisterViewModel
+
+    func makeCoursesViewModel(coordinator: CoursesCoordinator) -> CoursesViewModel
+    func makeCreateCourseViewModel(coordinator: CoursesCoordinator) -> CreateCourseViewModel
+    func makeJoinByCodeViewModel(coordinator: CoursesCoordinator) -> JoinByCodeViewModel
+
+    func makeCourseViewModel(courseId: UUID) -> CourseViewModel
+}
