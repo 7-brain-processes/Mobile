@@ -9,60 +9,62 @@ import Foundation
 
 struct DefaultAuthRepository: AuthRepository, Sendable {
 
-    private let client: HTTPClient
-    private let baseURL: URL
+    private let apiClient: APIClient
+    private let decoder: JSONDecoder
 
-    init(client: HTTPClient, baseURL: URL) {
-        self.client = client
-        self.baseURL = baseURL
-    }
-
-    private var decoder: JSONDecoder {
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return decoder
+    init(
+        apiClient: APIClient,
+        decoder: JSONDecoder = JSONDecoder()
+    ) {
+        self.apiClient = apiClient
+        self.decoder = decoder
     }
 
     func login(request: LoginCommand) async throws -> AuthResponse {
 
-        let endpoint = AuthEndpoint.login(LoginMapper.toDTO(request), baseURL: baseURL)
-        let urlRequest = try endpoint.makeURLRequest()
+        let endpoint = AuthEndpoint.login(
+            LoginMapper.toDTO(request)
+        )
 
-        let (data, response) = try await client.send(urlRequest)
+        let (data, response) = try await apiClient.send(endpoint)
 
-        if response.statusCode == 401 { throw APIError.unauthorized }
-        try validate(response, success: 200)
+        try ResponseValidator.validate(response, successCodes: [200])
 
-        return try decoder.decode(AuthResponse.self, from: data)
+        let dto = try decoder.decode(AuthResponseDTO.self, from: data)
+
+        return try AuthResponseMapper.toDomain(dto)
     }
 
     func register(request: RegisterCommand) async throws -> AuthResponse {
 
-        let endpoint = AuthEndpoint.register(RegisterMapper.toDTO(request), baseURL: baseURL)
-        let urlRequest = try endpoint.makeURLRequest()
+        let endpoint = AuthEndpoint.register(
+            RegisterMapper.toDTO(request)
+        )
 
-        let (data, response) = try await client.send(urlRequest)
+        let (data, response) = try await apiClient.send(endpoint)
 
-        if response.statusCode == 409 {
-            throw APIError.serverError(code: 409)
-        }
-
-        guard response.statusCode == 201 || response.statusCode == 200 else {
+        guard response.statusCode == 200 || response.statusCode == 201 else {
+            if response.statusCode == 401 {
+                throw APIError.unauthorized
+            }
             throw APIError.serverError(code: response.statusCode)
         }
 
-        return try decoder.decode(AuthResponse.self, from: data)
+        let dto = try decoder.decode(AuthResponseDTO.self, from: data)
+
+        return try AuthResponseMapper.toDomain(dto)
     }
 
     func getMe() async throws -> User {
 
-        let request = try AuthEndpoint.me(baseURL: baseURL).makeURLRequest()
+        let endpoint = AuthEndpoint.me
 
-        let (data, response) = try await client.send(request)
+        let (data, response) = try await apiClient.send(endpoint)
 
-        if response.statusCode == 401 { throw APIError.unauthorized }
-        try validate(response, success: 200)
+        try ResponseValidator.validate(response, successCodes: [200])
 
-        return try decoder.decode(User.self, from: data)
+        let dto = try decoder.decode(UserDTO.self, from: data)
+
+        return try UserMapper.toDomain(dto)
     }
 }

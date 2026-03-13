@@ -1,5 +1,5 @@
 //
-//  DefaultSolutionCommentsRepositoryImpl.swift
+//  DefaultSolutionCommentsRepository.swift
 //  ProccessesMobile
 //
 //  Created by dark type on 06.03.2026.
@@ -7,33 +7,32 @@
 
 import Foundation
 
-struct DefaultSolutionCommentsRepositoryImpl: SolutionCommentsRepository {
-    private let client: HTTPClient
-    private let baseURL: URL
+struct DefaultSolutionCommentsRepository: SolutionCommentsRepository, Sendable {
 
-    init(client: HTTPClient, baseURL: URL) {
-        self.client = client
-        self.baseURL = baseURL
-    }
+    private let apiClient: APIClient
+    private let decoder: JSONDecoder
 
-    private var decoder: JSONDecoder {
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return decoder
+    init(
+        apiClient: APIClient,
+        decoder: JSONDecoder = JSONDecoder()
+    ) {
+        self.apiClient = apiClient
+        self.decoder = decoder
     }
 
     func listComments(_ query: ListSolutionCommentsQuery) async throws -> Page<Comment> {
-        let req = try SolutionCommentsEndpoint.list(
+
+        let endpoint = SolutionCommentsEndpoint.list(
             courseId: query.courseId.uuidString,
             postId: query.postId.uuidString,
             solutionId: query.solutionId.uuidString,
             page: query.page,
-            size: query.size,
-            baseURL: baseURL
-        ).makeURLRequest()
+            size: query.size
+        )
 
-        let (data, res) = try await client.send(req)
-        try validate(res, success: 200)
+        let (data, response) = try await apiClient.send(endpoint)
+
+        try ResponseValidator.validate(response, successCodes: [200])
 
         let dto = try decoder.decode(PageDTO<CommentDTO>.self, from: data)
 
@@ -44,16 +43,17 @@ struct DefaultSolutionCommentsRepositoryImpl: SolutionCommentsRepository {
     }
 
     func createComment(_ command: CreateSolutionCommentCommand) async throws -> Comment {
-        let req = try SolutionCommentsEndpoint.create(
+
+        let endpoint = SolutionCommentsEndpoint.create(
             courseId: command.courseId.uuidString,
             postId: command.postId.uuidString,
             solutionId: command.solutionId.uuidString,
-            request: CreateSolutionCommentMapper.toDTO(command),
-            baseURL: baseURL
-        ).makeURLRequest()
+            request: CreateSolutionCommentMapper.toDTO(command)
+        )
 
-        let (data, res) = try await client.send(req)
-        try validate(res, success: 201)
+        let (data, response) = try await apiClient.send(endpoint)
+
+        try ResponseValidator.validate(response, successCodes: [201])
 
         let dto = try decoder.decode(CommentDTO.self, from: data)
 
@@ -61,17 +61,18 @@ struct DefaultSolutionCommentsRepositoryImpl: SolutionCommentsRepository {
     }
 
     func updateComment(_ command: UpdateSolutionCommentCommand) async throws -> Comment {
-        let req = try SolutionCommentsEndpoint.update(
+
+        let endpoint = SolutionCommentsEndpoint.update(
             courseId: command.courseId.uuidString,
             postId: command.postId.uuidString,
             solutionId: command.solutionId.uuidString,
             commentId: command.commentId.uuidString,
-            request: UpdateSolutionCommentMapper.toDTO(command),
-            baseURL: baseURL
-        ).makeURLRequest()
+            request: UpdateSolutionCommentMapper.toDTO(command)
+        )
 
-        let (data, res) = try await client.send(req)
-        try validate(res, success: 200)
+        let (data, response) = try await apiClient.send(endpoint)
+
+        try ResponseValidator.validate(response, successCodes: [200])
 
         let dto = try decoder.decode(CommentDTO.self, from: data)
 
@@ -79,20 +80,16 @@ struct DefaultSolutionCommentsRepositoryImpl: SolutionCommentsRepository {
     }
 
     func deleteComment(_ command: DeleteSolutionCommentCommand) async throws {
-        let req = try SolutionCommentsEndpoint.delete(
+
+        let endpoint = SolutionCommentsEndpoint.delete(
             courseId: command.courseId.uuidString,
             postId: command.postId.uuidString,
             solutionId: command.solutionId.uuidString,
-            commentId: command.commentId.uuidString,
-            baseURL: baseURL
-        ).makeURLRequest()
+            commentId: command.commentId.uuidString
+        )
 
-        let (_, res) = try await client.send(req)
+        let (_, response) = try await apiClient.send(endpoint)
 
-        if res.statusCode == 200 || res.statusCode == 204 {
-            return
-        }
-
-        try validate(res, success: 200)
+        try ResponseValidator.validate(response, successCodes: [200, 204])
     }
 }
