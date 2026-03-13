@@ -8,4 +8,5 @@
 import Foundation
 
 protocol ListSolutionFilesUseCase: Sendable {
-    func execute(_ query: ListSolutionFilesQuery) async throws -> [AttachedFile] }
+    func execute(_ query: ListSolutionFilesQuery) async throws -> [AttachedFile]
+}
