@@ -15,13 +15,13 @@ enum PostMapper {
             content: dto.content,
             type: PostTypeMapper.toDomain(dto.type),
             deadline: try dto.deadline.map(parseDate),
-            author: try UserMapper.toDomain(dto.author),
+            author: try dto.author.map(UserMapper.toDomain)!,
             materialsCount: dto.materialsCount,
             commentsCount: dto.commentsCount,
             solutionsCount: dto.solutionsCount,
             mySolutionId: try dto.mySolutionId.map(parseUUID),
-            createdAt: try parseDate(dto.createdAt),
-            updatedAt: try parseDate(dto.updatedAt)
+            createdAt: try dto.createdAt.map(parseDate)!,
+            updatedAt: try dto.updatedAt.map(parseDate)!
         )
     }
 }

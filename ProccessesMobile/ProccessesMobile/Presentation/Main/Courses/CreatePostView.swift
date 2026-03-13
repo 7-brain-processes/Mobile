@@ -5,39 +5,29 @@
 //  Created by dark type on 12.03.2026.
 //
 
-
 import SwiftUI
 import UniformTypeIdentifiers
 
 struct CreatePostView: View {
-    let initialType: FeedPostType
+    @StateObject private var viewModel: CreatePostViewModel
 
     @Environment(\.dismiss) private var dismiss
-
-    @State private var title: String = ""
-    @State private var content: String = ""
-    @State private var deadline: Date = .now
-    @State private var selectedFileURLs: [URL] = []
     @State private var isImporterPresented = false
 
-    init(initialType: FeedPostType) {
-        self.initialType = initialType
-    }
-
-    private var canCreate: Bool {
-        !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    init(viewModel: CreatePostViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
 
     var body: some View {
         Form {
             Section("Content") {
-                TextField("Title", text: $title)
+                TextField("Title", text: $viewModel.title)
 
-                TextField("Description", text: $content, axis: .vertical)
+                TextField("Description", text: $viewModel.content, axis: .vertical)
                     .lineLimit(4...8)
 
-                if initialType == .task {
-                    DatePicker("Deadline", selection: $deadline)
+                if viewModel.initialType == .task {
+                    DatePicker("Deadline", selection: $viewModel.deadline)
                 }
             }
 
@@ -45,24 +35,38 @@ struct CreatePostView: View {
                 Button("Attach files") {
                     isImporterPresented = true
                 }
+                .disabled(viewModel.isLoading)
 
-                if selectedFileURLs.isEmpty {
+                if viewModel.selectedFileURLs.isEmpty {
                     Text("No files attached")
                         .foregroundStyle(.secondary)
                 } else {
-                    ForEach(selectedFileURLs, id: \.self) { url in
+                    ForEach(viewModel.selectedFileURLs, id: \.self) { url in
                         Text(url.lastPathComponent)
                     }
                 }
             }
+
+            if let errorMessage = viewModel.errorMessage {
+                Section {
+                    Text(errorMessage)
+                        .foregroundStyle(.red)
+                        .font(.footnote)
+                }
+            }
         }
-        .navigationTitle(initialType == .task ? "Create Task" : "Create Material")
+        .navigationTitle(viewModel.initialType == .task ? "Create Task" : "Create Material")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button(initialType == .task ? "Create" : "Post") {
-                    dismiss()
+                Button(viewModel.initialType == .task ? "Create" : "Post") {
+                    Task {
+                        let success = await viewModel.createTapped()
+                        if success {
+                            dismiss()
+                        }
+                    }
                 }
-                .disabled(!canCreate)
+                .disabled(!viewModel.canCreate)
             }
         }
         .fileImporter(
@@ -71,7 +75,7 @@ struct CreatePostView: View {
             allowsMultipleSelection: true
         ) { result in
             if case let .success(urls) = result {
-                selectedFileURLs = urls
+                viewModel.selectedFileURLs = urls
             }
         }
     }

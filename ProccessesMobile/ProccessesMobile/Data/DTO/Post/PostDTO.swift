@@ -11,11 +11,11 @@ struct PostDTO: Equatable, Sendable, Codable {
     let content: String?
     let type: PostTypeDTO
     let deadline: String?
-    let author: UserDTO
+    let author: UserDTO?
     let materialsCount: Int
     let commentsCount: Int
     let solutionsCount: Int?
     let mySolutionId: String?
-    let createdAt: String
-    let updatedAt: String
+    let createdAt: String?
+    let updatedAt: String?
 }

@@ -132,9 +132,17 @@ extension AppContainer: AppViewFactory {
         )
     }
 
-    func makeCreatePostView(courseId: UUID, postType: FeedPostType) -> AnyView {
+    func makeCreatePostView(
+        courseId: UUID,
+        postType initialType: FeedPostType
+    ) -> AnyView {
         AnyView(
-            CreatePostView(initialType: postType)
+            CreatePostView(
+                viewModel: makeCreatePostViewModel(
+                    courseId: courseId,
+                    initialType: initialType
+                )
+            )
         )
     }
 

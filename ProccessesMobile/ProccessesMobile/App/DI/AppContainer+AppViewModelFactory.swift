@@ -64,7 +64,22 @@ extension AppContainer: ViewModelFactory {
             navigator: navigator
         )
     }
-    
+
+    func makeCreatePostViewModel(
+        courseId: UUID,
+        initialType: FeedPostType
+    ) -> CreatePostViewModel {
+        let useCase = DefaultCreatePostUseCase(
+            repository: postRepository
+        )
+
+        return CreatePostViewModel(
+            courseId: courseId,
+            initialType: initialType,
+            createPostUseCase: useCase
+        )
+    }
+
     func makeTasksViewModel(
         courseId: UUID,
         role: CourseRole,
