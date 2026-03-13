@@ -10,10 +10,9 @@ import Foundation
 
 protocol TokenStorage: AccessTokenProvider {
 
-    func saveTokens(accessToken: String, refreshToken: String) throws
+    func saveToken(_ token: String) throws
 
     func getToken() throws -> String?
-    func getRefreshToken() throws -> String?
 
     func clear() throws
 }
