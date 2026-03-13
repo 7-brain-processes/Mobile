@@ -25,4 +25,8 @@ struct DefaultGradeSolutionUseCase: GradeSolutionUseCase {
 
         return try await repository.gradeSolution(command)
     }
+
+    func execute(_ command: RemoveGradeCommand) async throws -> Solution {
+        try await repository.removeGrade(command)
+    }
 }

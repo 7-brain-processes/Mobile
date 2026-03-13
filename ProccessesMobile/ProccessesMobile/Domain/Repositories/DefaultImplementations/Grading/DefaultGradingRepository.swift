@@ -21,7 +21,6 @@ struct DefaultGradingRepository: GradingRepository, Sendable {
     }
 
     func gradeSolution(_ command: GradeSolutionCommand) async throws -> Solution {
-
         let endpoint = GradingEndpoint.grade(
             courseId: command.courseId.uuidString,
             postId: command.postId.uuidString,
@@ -34,7 +33,21 @@ struct DefaultGradingRepository: GradingRepository, Sendable {
         try ResponseValidator.validate(response, successCodes: [200])
 
         let dto = try decoder.decode(SolutionDTO.self, from: data)
+        return try SolutionMapper.toDomain(dto)
+    }
 
+    func removeGrade(_ command: RemoveGradeCommand) async throws -> Solution {
+        let endpoint = GradingEndpoint.removeGrade(
+            courseId: command.courseId.uuidString,
+            postId: command.postId.uuidString,
+            solutionId: command.solutionId.uuidString
+        )
+
+        let (data, response) = try await apiClient.send(endpoint)
+
+        try ResponseValidator.validate(response, successCodes: [200])
+
+        let dto = try decoder.decode(SolutionDTO.self, from: data)
         return try SolutionMapper.toDomain(dto)
     }
 }

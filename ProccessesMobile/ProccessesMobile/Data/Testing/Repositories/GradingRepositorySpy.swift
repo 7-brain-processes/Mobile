@@ -14,16 +14,24 @@ actor GradingRepositorySpy: GradingRepository {
     private var gradeResult: Result<Solution, Error> =
         .failure(APIError.invalidResponse)
 
+    private var removeGradeResult: Result<Solution, Error> =
+        .failure(APIError.invalidResponse)
+
 
     // MARK: Recorded calls
 
     private var recordedGradeCommands: [GradeSolutionCommand] = []
+    private var recordedRemoveGradeCommands: [RemoveGradeCommand] = []
 
 
     // MARK: Configure
 
     func setGradeResult(_ result: Result<Solution, Error>) {
         gradeResult = result
+    }
+
+    func setRemoveGradeResult(_ result: Result<Solution, Error>) {
+        removeGradeResult = result
     }
 
 
@@ -33,11 +41,20 @@ actor GradingRepositorySpy: GradingRepository {
         recordedGradeCommands
     }
 
+    func getRecordedRemoveGradeCommands() -> [RemoveGradeCommand] {
+        recordedRemoveGradeCommands
+    }
+
 
     // MARK: Repository
 
     func gradeSolution(_ command: GradeSolutionCommand) async throws -> Solution {
         recordedGradeCommands.append(command)
         return try gradeResult.get()
+    }
+
+    func removeGrade(_ command: RemoveGradeCommand) async throws -> Solution {
+        recordedRemoveGradeCommands.append(command)
+        return try removeGradeResult.get()
     }
 }

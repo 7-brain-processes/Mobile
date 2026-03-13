@@ -14,10 +14,16 @@ enum GradingEndpoint: Endpoint {
         solutionId: String,
         request: GradeRequestDTO
     )
+    case removeGrade(
+        courseId: String,
+        postId: String,
+        solutionId: String
+    )
 
     var path: String {
         switch self {
-        case .grade(let courseId, let postId, let solutionId, _):
+        case .grade(let courseId, let postId, let solutionId, _),
+             .removeGrade(let courseId, let postId, let solutionId):
             return "courses/\(courseId)/posts/\(postId)/solutions/\(solutionId)/grade"
         }
     }
@@ -26,6 +32,8 @@ enum GradingEndpoint: Endpoint {
         switch self {
         case .grade:
             return .PUT
+        case .removeGrade:
+            return .DELETE
         }
     }
 
@@ -43,6 +51,8 @@ enum GradingEndpoint: Endpoint {
         switch self {
         case .grade(_, _, _, let request):
             return .json(request)
+        case .removeGrade:
+            return .none
         }
     }
 

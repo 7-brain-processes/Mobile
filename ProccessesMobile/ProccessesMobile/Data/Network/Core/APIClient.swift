@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class APIClient {
+final class APIClient : Sendable {
     private let httpClient: HTTPClient
     private let requestBuilder: RequestBuilder
     private let tokenProvider: AccessTokenProvider?
