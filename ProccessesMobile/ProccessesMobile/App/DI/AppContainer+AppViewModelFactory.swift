@@ -14,70 +14,76 @@ extension AppContainer: ViewModelFactory {
             repository: authRepository,
             tokenStorage: tokenStorage
         )
-
+        
         return LoginViewModel(
             loginUseCase: loginUseCase,
             authNavigator: authCoordinator,
             appRouter: appCoordinator
         )
     }
-
+    
     func makeRegisterViewModel(authCoordinator: AuthCoordinator) -> RegisterViewModel {
-        RegisterViewModel(
+        let registerUseCase = DefaultRegisterUseCase(
+            repository: authRepository,
+            tokenStorage: tokenStorage
+        )
+
+        return RegisterViewModel(
+            registerUseCase: registerUseCase,
             authNavigator: authCoordinator,
             appRouter: appCoordinator
         )
     }
-
+    
     func makeCoursesViewModel(coordinator: CoursesCoordinator) -> CoursesViewModel {
         CoursesViewModel(navigator: coordinator)
     }
-
+    
     func makeCreateCourseViewModel(coordinator: CoursesCoordinator) -> CreateCourseViewModel {
         CreateCourseViewModel(navigator: coordinator)
     }
-
+    
     func makeJoinByCodeViewModel(coordinator: CoursesCoordinator) -> JoinByCodeViewModel {
         JoinByCodeViewModel(navigator: coordinator)
     }
-
+    
     func makeCourseViewModel(courseId: UUID) -> CourseViewModel {
         
         CourseViewModel(courseId: courseId, role: .teacher)
     }
     func makeFeedViewModel(
-           courseId: UUID,
-           role: CourseRole,
-           navigator: any FeedScreenNavigating
-       ) -> FeedViewModel {
-           FeedViewModel(
-               courseId: courseId,
-               role: role,
-               navigator: navigator
-           )
-       }
-
-       func makeTasksViewModel(
-           courseId: UUID,
-           role: CourseRole,
-           navigator: any FeedScreenNavigating
-       ) -> TasksViewModel {
-           TasksViewModel(
-               courseId: courseId,
-               role: role,
-               navigator: navigator
-           )
-       }
-
-       func makePeopleViewModel(
-           courseId: UUID,
-           role: CourseRole
-       ) -> PeopleViewModel {
-           PeopleViewModel(
-               courseId: courseId,
-               role: role
-           )
-       }
+        courseId: UUID,
+        role: CourseRole,
+        navigator: any FeedScreenNavigating
+    ) -> FeedViewModel {
+        FeedViewModel(
+            courseId: courseId,
+            role: role,
+            navigator: navigator
+        )
+    }
+    
+    func makeTasksViewModel(
+        courseId: UUID,
+        role: CourseRole,
+        navigator: any FeedScreenNavigating
+    ) -> TasksViewModel {
+        TasksViewModel(
+            courseId: courseId,
+            role: role,
+            navigator: navigator
+        )
+    }
+    
+    func makePeopleViewModel(
+        courseId: UUID,
+        role: CourseRole
+    ) -> PeopleViewModel {
+        PeopleViewModel(
+            courseId: courseId,
+            role: role
+        )
+    }
     func makeCourseCoordinator(courseId: UUID) -> CourseCoordinator {
         CourseCoordinator(
             courseId: courseId,
@@ -85,50 +91,50 @@ extension AppContainer: ViewModelFactory {
             peopleCoordinator: PeopleCoordinator(courseId: courseId)
         )
     }
-
+    
     func makeTaskDetailViewModel(postId: UUID) -> TaskDetailViewModel {
-           TaskDetailViewModel(
-               role: .teacher,
-               item: TaskDetailItem(
-                   id: postId,
-                   title: "Homework 1",
-                   content: "Solve the first five problems and attach your work.",
-                   createdAt: Date(),
-                   deadline: Calendar.current.date(byAdding: .day, value: 3, to: Date()),
-                   authorDisplayName: "Professor Adams",
-                   attachments: [
-                       FeedAttachmentItem(id: UUID(), type: .image, fileName: "worksheet-1.png", previewURL: nil),
-                       FeedAttachmentItem(id: UUID(), type: .file, fileName: "requirements.pdf", previewURL: nil)
-                   ],
-                   comments: [
-                       PostCommentItem(
-                           id: UUID(),
-                           authorName: "Alice Brown",
-                           text: "Can I submit handwritten work?",
-                           createdAt: Date()
-                       ),
-                       PostCommentItem(
-                           id: UUID(),
-                           authorName: "Professor Adams",
-                           text: "Yes, as long as it is readable.",
-                           createdAt: Date()
-                       )
-                   ]
-               ),
-               studentAttachments: [
-                   FeedAttachmentItem(id: UUID(), type: .image, fileName: "answer-1.jpg", previewURL: nil)
-               ],
-               studentSubmissionText: "I solved all five tasks. Please check my approach in question 4.",
-               studentSubmissionStatus: .draft,
-               studentTeacherComments: [
-                   TeacherReviewCommentItem(
-                       id: UUID(),
-                       authorName: "Professor Adams",
-                       text: "Please revise the last exercise.",
-                       createdAt: Date()
-                   )
-               ],
-               submissions: [
+        TaskDetailViewModel(
+            role: .teacher,
+            item: TaskDetailItem(
+                id: postId,
+                title: "Homework 1",
+                content: "Solve the first five problems and attach your work.",
+                createdAt: Date(),
+                deadline: Calendar.current.date(byAdding: .day, value: 3, to: Date()),
+                authorDisplayName: "Professor Adams",
+                attachments: [
+                    FeedAttachmentItem(id: UUID(), type: .image, fileName: "worksheet-1.png", previewURL: nil),
+                    FeedAttachmentItem(id: UUID(), type: .file, fileName: "requirements.pdf", previewURL: nil)
+                ],
+                comments: [
+                    PostCommentItem(
+                        id: UUID(),
+                        authorName: "Alice Brown",
+                        text: "Can I submit handwritten work?",
+                        createdAt: Date()
+                    ),
+                    PostCommentItem(
+                        id: UUID(),
+                        authorName: "Professor Adams",
+                        text: "Yes, as long as it is readable.",
+                        createdAt: Date()
+                    )
+                ]
+            ),
+            studentAttachments: [
+                FeedAttachmentItem(id: UUID(), type: .image, fileName: "answer-1.jpg", previewURL: nil)
+            ],
+            studentSubmissionText: "I solved all five tasks. Please check my approach in question 4.",
+            studentSubmissionStatus: .draft,
+            studentTeacherComments: [
+                TeacherReviewCommentItem(
+                    id: UUID(),
+                    authorName: "Professor Adams",
+                    text: "Please revise the last exercise.",
+                    createdAt: Date()
+                )
+            ],
+            submissions: [
                 TaskSubmissionItem(
                     id: UUID(),
                     studentName: "Alice Brown",
@@ -170,37 +176,37 @@ extension AppContainer: ViewModelFactory {
                     ],
                     isLate: true
                 )
-               ]
-           )
-       }
-
-       func makeMaterialDetailViewModel(postId: UUID) -> MaterialDetailViewModel {
-           MaterialDetailViewModel(
-               item: MaterialDetailItem(
-                   id: postId,
-                   title: "Lecture slides",
-                   content: "Review these images before the next lesson.",
-                   createdAt: Date(),
-                   authorDisplayName: "Professor Adams",
-                   attachments: [
-                       FeedAttachmentItem(id: UUID(), type: .image, fileName: "slides-1.png", previewURL: nil),
-                       FeedAttachmentItem(id: UUID(), type: .image, fileName: "slides-2.png", previewURL: nil)
-                   ],
-                   comments: [
-                       PostCommentItem(
-                           id: UUID(),
-                           authorName: "Bob Green",
-                           text: "Will this be on the quiz?",
-                           createdAt: Date()
-                       ),
-                       PostCommentItem(
-                           id: UUID(),
-                           authorName: "Professor Adams",
-                           text: "Yes, review these carefully.",
-                           createdAt: Date()
-                       )
-                   ]
-               )
-           )
-       }
+            ]
+        )
+    }
+    
+    func makeMaterialDetailViewModel(postId: UUID) -> MaterialDetailViewModel {
+        MaterialDetailViewModel(
+            item: MaterialDetailItem(
+                id: postId,
+                title: "Lecture slides",
+                content: "Review these images before the next lesson.",
+                createdAt: Date(),
+                authorDisplayName: "Professor Adams",
+                attachments: [
+                    FeedAttachmentItem(id: UUID(), type: .image, fileName: "slides-1.png", previewURL: nil),
+                    FeedAttachmentItem(id: UUID(), type: .image, fileName: "slides-2.png", previewURL: nil)
+                ],
+                comments: [
+                    PostCommentItem(
+                        id: UUID(),
+                        authorName: "Bob Green",
+                        text: "Will this be on the quiz?",
+                        createdAt: Date()
+                    ),
+                    PostCommentItem(
+                        id: UUID(),
+                        authorName: "Professor Adams",
+                        text: "Yes, review these carefully.",
+                        createdAt: Date()
+                    )
+                ]
+            )
+        )
+    }
 }

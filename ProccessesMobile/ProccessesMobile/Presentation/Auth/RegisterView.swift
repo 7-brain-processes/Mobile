@@ -31,6 +31,7 @@ struct RegisterView: View {
 
             VStack(spacing: 16) {
                 TextField("Displayed name", text: $viewModel.displayedName)
+                    .textContentType(.name)
                     .padding()
                     .background(Color(.secondarySystemBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 14))
@@ -39,6 +40,7 @@ struct RegisterView: View {
                 TextField("Login", text: $viewModel.login)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
+                    .textContentType(.username)
                     .padding()
                     .background(Color(.secondarySystemBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 14))
@@ -46,24 +48,43 @@ struct RegisterView: View {
 
                 SecureField("Password", text: $viewModel.password)
                     .textInputAutocapitalization(.never)
+                    .textContentType(.newPassword)
                     .padding()
                     .background(Color(.secondarySystemBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 14))
                     .accessibilityIdentifier(AccessibilityID.Register.passwordField)
             }
 
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier(AccessibilityID.Register.errorMessage)
+            }
+
             VStack(spacing: 12) {
                 Button {
-                    viewModel.simulateRegisterSuccessTapped()
+                    Task {
+                        await viewModel.registerTapped()
+                    }
                 } label: {
-                    Text("Simulate Register + Login")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accentColor)
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                    HStack {
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .tint(.white)
+                        } else {
+                            Text("Register")
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.accentColor)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
-                .accessibilityIdentifier(AccessibilityID.Register.simulateRegisterButton)
+                .disabled(viewModel.isLoading)
+                .accessibilityIdentifier(AccessibilityID.Register.registerButton)
 
                 Button {
                     viewModel.backTapped()
@@ -75,6 +96,7 @@ struct RegisterView: View {
                         .foregroundStyle(.primary)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
+                .disabled(viewModel.isLoading)
                 .accessibilityIdentifier(AccessibilityID.Register.backButton)
             }
 
