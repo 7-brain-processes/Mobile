@@ -47,7 +47,10 @@ extension AppContainer: ViewModelFactory {
     }
     
     func makeJoinByCodeViewModel(coordinator: CoursesCoordinator) -> JoinByCodeViewModel {
-        JoinByCodeViewModel(navigator: coordinator)
+        JoinByCodeViewModel(
+            joinCourseUseCase: joinCourseUseCase,
+            navigator: coordinator
+        )
     }
     
     func makeCourseViewModel(courseId: UUID) -> CourseViewModel {

@@ -25,16 +25,25 @@ struct JoinByCodeView: View {
 
                 TextField("Course code", text: $viewModel.code)
                     .textFieldStyle(.roundedBorder)
+                    .disabled(viewModel.isLoading)
                     .accessibilityIdentifier(AccessibilityID.JoinCourse.codeField)
 
-                Button("Join") {
+                if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                }
+
+                Button(viewModel.isLoading ? "Joining..." : "Join") {
                     viewModel.joinTapped()
                 }
+                .disabled(viewModel.isLoading)
                 .accessibilityIdentifier(AccessibilityID.JoinCourse.joinButton)
 
                 Button("Cancel") {
                     viewModel.cancelTapped()
                 }
+                .disabled(viewModel.isLoading)
                 .accessibilityIdentifier(AccessibilityID.JoinCourse.cancelButton)
             }
             .padding()
