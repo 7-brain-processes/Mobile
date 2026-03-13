@@ -11,11 +11,36 @@ import Security
 
 final class KeychainTokenStorage: TokenStorage {
 
-    private let key = "auth_token"
+    private let accessTokenKey = "auth_access_token"
+    private let refreshTokenKey = "auth_refresh_token"
+
+    func saveTokens(accessToken: String, refreshToken: String) throws {
+        try save(value: accessToken, for: accessTokenKey)
+        try save(value: refreshToken, for: refreshTokenKey)
+    }
 
     func saveToken(_ token: String) throws {
+        try save(value: token, for: accessTokenKey)
+    }
 
-        let data = Data(token.utf8)
+    func getToken() throws -> String? {
+        try getValue(for: accessTokenKey)
+    }
+
+    func getRefreshToken() throws -> String? {
+        try getValue(for: refreshTokenKey)
+    }
+
+    func clear() throws {
+        try deleteValue(for: accessTokenKey)
+        try deleteValue(for: refreshTokenKey)
+    }
+}
+
+private extension KeychainTokenStorage {
+
+    func save(value: String, for key: String) throws {
+        let data = Data(value.utf8)
 
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -32,8 +57,7 @@ final class KeychainTokenStorage: TokenStorage {
         }
     }
 
-    func getToken() throws -> String? {
-
+    func getValue(for key: String) throws -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
@@ -54,21 +78,24 @@ final class KeychainTokenStorage: TokenStorage {
 
         guard
             let data = item as? Data,
-            let token = String(data: data, encoding: .utf8)
+            let value = String(data: data, encoding: .utf8)
         else {
             throw APIError.invalidResponse
         }
 
-        return token
+        return value
     }
 
-    func clear() throws {
-
+    func deleteValue(for key: String) throws {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key
         ]
 
-        SecItemDelete(query as CFDictionary)
+        let status = SecItemDelete(query as CFDictionary)
+
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw APIError.invalidResponse
+        }
     }
 }

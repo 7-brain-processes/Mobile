@@ -10,9 +10,3 @@ import Foundation
 protocol GetMySolutionUseCase: Sendable {
     func execute(_ query: GetMySolutionQuery) async throws -> Solution
 }
-
-// TODO:
-struct GetMySolutionQuery: Equatable, Sendable {
-    let courseId: UUID
-    let postId: UUID
-}

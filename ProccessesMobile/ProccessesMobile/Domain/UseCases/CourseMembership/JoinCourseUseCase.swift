@@ -9,7 +9,3 @@ protocol JoinCourseUseCase: Sendable {
     func execute(_ command: JoinCourseCodeCommand) async throws -> Course
 }
 
-// TODO:
-struct JoinCourseCodeCommand: Equatable, Sendable {
-    let code: String
-}

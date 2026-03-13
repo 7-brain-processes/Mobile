@@ -11,7 +11,3 @@ protocol GetCourseUseCase: Sendable {
     func execute(_ query: CourseQuery) async throws -> Course
 }
 
-// TODO: 
-struct CourseQuery: Equatable, Sendable {
-    let courseId: UUID
-}

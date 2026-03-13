@@ -94,7 +94,4 @@ struct SolutionCommentsUseCasesExecutableTests {
         #expect(args.first?.page == 0)
         #expect(args.first?.size == 100)
     }
-
-    // TODO: - delete
-    // TODO: - get list
 }
