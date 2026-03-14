@@ -5,15 +5,11 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
-public struct Member: Equatable, Sendable, Codable {
-    public let user: User?
-    public let role: CourseRole
-    public let joinedAt: String
-    
-    public init(user: User?, role: CourseRole, joinedAt: String) {
-        self.user = user
-        self.role = role
-        self.joinedAt = joinedAt
-    }
+struct Member: Equatable, Sendable {
+    let user: User
+    let role: CourseRole
+    let joinedAt: Date
+    let id: UUID
 }

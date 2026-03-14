@@ -5,17 +5,10 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
-public nonisolated struct User: Equatable, Codable, Sendable {
-    public let id: String
-    public let username: String
-    public let displayName: String?
-    
-    public init(id: String, username: String, displayName: String?) {
-        self.id = id
-        self.username = username
-        self.displayName = displayName
-    }
+struct User: Equatable, Codable, Sendable {
+    let id: UUID
+    let username: String
+    let displayName: String
 }
-
-

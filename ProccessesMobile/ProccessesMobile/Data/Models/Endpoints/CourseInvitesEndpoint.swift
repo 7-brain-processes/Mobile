@@ -7,30 +7,53 @@
 
 import Foundation
 
-public enum CourseInvitesEndpoint {
-    case list(courseId: String, baseURL: URL)
-    case create(courseId: String, request: CreateInviteRequest, baseURL: URL)
-    case revoke(courseId: String, inviteId: String, baseURL: URL)
-    
-    public func makeURLRequest() throws -> URLRequest {
-        let basePath = "/courses"
+enum CourseInvitesEndpoint: Endpoint {
+    case list(courseId: String)
+    case create(courseId: String, request: CreateInviteRequestDTO)
+    case revoke(courseId: String, inviteId: String)
+
+    var path: String {
         switch self {
-        case let .list(courseId, baseURL):
-            var request = URLRequest(url: baseURL.appendingPathComponent("\(basePath)/\(courseId)/invites"))
-            request.httpMethod = "GET"
-            return request
-            
-        case let .create(courseId, dto, baseURL):
-            var request = URLRequest(url: baseURL.appendingPathComponent("\(basePath)/\(courseId)/invites"))
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = try JSONEncoder().encode(dto)
-            return request
-            
-        case let .revoke(courseId, inviteId, baseURL):
-            var request = URLRequest(url: baseURL.appendingPathComponent("\(basePath)/\(courseId)/invites/\(inviteId)"))
-            request.httpMethod = "DELETE"
-            return request
+        case .list(let courseId),
+             .create(let courseId, _):
+            return "courses/\(courseId)/invites"
+
+        case .revoke(let courseId, let inviteId):
+            return "courses/\(courseId)/invites/\(inviteId)"
         }
+    }
+
+    var method: HTTPMethod {
+        switch self {
+        case .list:
+            return .GET
+        case .create:
+            return .POST
+        case .revoke:
+            return .DELETE
+        }
+    }
+
+    var headers: [String: String] {
+        [
+            "Accept": "application/json"
+        ]
+    }
+
+    var queryItems: [URLQueryItem] {
+        []
+    }
+
+    var body: EndpointBody {
+        switch self {
+        case .list, .revoke:
+            return .none
+        case .create(_, let request):
+            return .json(request)
+        }
+    }
+
+    var requiresAuth: Bool {
+        true
     }
 }

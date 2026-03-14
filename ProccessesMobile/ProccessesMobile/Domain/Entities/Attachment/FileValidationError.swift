@@ -5,10 +5,10 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
-
-public enum FileValidationError: Error, Equatable, Sendable {
-    case emptyId(String)
+enum FileValidationError: Error, Equatable, Sendable {
+    case emptyId(UUID)
     case emptyFileData
     case invalidFileName
 }

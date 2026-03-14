@@ -5,8 +5,9 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
-public enum PostValidationError: Error, Equatable, Sendable {
+enum PostValidationError: Error, Equatable, Sendable {
     case invalidTitleLength(min: Int, max: Int)
     case invalidContentLength(max: Int)
     case emptyCourseId

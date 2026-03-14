@@ -7,54 +7,80 @@
 
 import Foundation
 
-public enum SolutionEndpoint {
-    case list(courseId: String, postId: String, page: Int, size: Int, status: SolutionStatus?, baseURL: URL)
-    case submit(courseId: String, postId: String, request: CreateSolutionRequest, baseURL: URL)
-    case getMy(courseId: String, postId: String, baseURL: URL)
-    case get(courseId: String, postId: String, solutionId: String, baseURL: URL)
-    case update(courseId: String, postId: String, solutionId: String, request: CreateSolutionRequest, baseURL: URL)
-    case delete(courseId: String, postId: String, solutionId: String, baseURL: URL)
-    
-    public func makeURLRequest() throws -> URLRequest {
-        let basePath = "/courses"
+enum SolutionEndpoint: Endpoint {
+    case list(courseId: String, postId: String, page: Int, size: Int, status: SolutionStatusDTO?)
+    case submit(courseId: String, postId: String, request: CreateSolutionRequestDTO)
+    case getMy(courseId: String, postId: String)
+    case get(courseId: String, postId: String, solutionId: String)
+    case update(courseId: String, postId: String, solutionId: String, request: CreateSolutionRequestDTO)
+    case delete(courseId: String, postId: String, solutionId: String)
+
+    var path: String {
         switch self {
-        case let .list(courseId, postId, page, size, status, baseURL):
-            var components = URLComponents(url: baseURL.appendingPathComponent("\(basePath)/\(courseId)/posts/\(postId)/solutions"), resolvingAgainstBaseURL: false)!
-            var items = [URLQueryItem(name: "page", value: String(page)), URLQueryItem(name: "size", value: String(size))]
-            if let status = status { items.append(URLQueryItem(name: "status", value: status.rawValue)) }
-            components.queryItems = items
-            var request = URLRequest(url: components.url!)
-            request.httpMethod = "GET"
-            return request
-            
-        case let .submit(courseId, postId, dto, baseURL):
-            var request = URLRequest(url: baseURL.appendingPathComponent("\(basePath)/\(courseId)/posts/\(postId)/solutions"))
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = try JSONEncoder().encode(dto)
-            return request
-            
-        case let .getMy(courseId, postId, baseURL):
-            var request = URLRequest(url: baseURL.appendingPathComponent("\(basePath)/\(courseId)/posts/\(postId)/solutions/my"))
-            request.httpMethod = "GET"
-            return request
-            
-        case let .get(courseId, postId, solutionId, baseURL):
-            var request = URLRequest(url: baseURL.appendingPathComponent("\(basePath)/\(courseId)/posts/\(postId)/solutions/\(solutionId)"))
-            request.httpMethod = "GET"
-            return request
-            
-        case let .update(courseId, postId, solutionId, dto, baseURL):
-            var request = URLRequest(url: baseURL.appendingPathComponent("\(basePath)/\(courseId)/posts/\(postId)/solutions/\(solutionId)"))
-            request.httpMethod = "PUT"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = try JSONEncoder().encode(dto)
-            return request
-            
-        case let .delete(courseId, postId, solutionId, baseURL):
-            var request = URLRequest(url: baseURL.appendingPathComponent("\(basePath)/\(courseId)/posts/\(postId)/solutions/\(solutionId)"))
-            request.httpMethod = "DELETE"
-            return request
+        case .list(let courseId, let postId, _, _, _),
+             .submit(let courseId, let postId, _):
+            return "courses/\(courseId)/posts/\(postId)/solutions"
+
+        case .getMy(let courseId, let postId):
+            return "courses/\(courseId)/posts/\(postId)/solutions/my"
+
+        case .get(let courseId, let postId, let solutionId),
+             .update(let courseId, let postId, let solutionId, _),
+             .delete(let courseId, let postId, let solutionId):
+            return "courses/\(courseId)/posts/\(postId)/solutions/\(solutionId)"
         }
+    }
+
+    var method: HTTPMethod {
+        switch self {
+        case .list, .getMy, .get:
+            return .GET
+        case .submit:
+            return .POST
+        case .update:
+            return .PUT
+        case .delete:
+            return .DELETE
+        }
+    }
+
+    var headers: [String: String] {
+        [
+            "Accept": "application/json"
+        ]
+    }
+
+    var queryItems: [URLQueryItem] {
+        switch self {
+        case .list(_, _, let page, let size, let status):
+            var items = [
+                URLQueryItem(name: "page", value: String(page)),
+                URLQueryItem(name: "size", value: String(size))
+            ]
+
+            if let status {
+                items.append(URLQueryItem(name: "status", value: status.rawValue))
+            }
+
+            return items
+
+        case .submit, .getMy, .get, .update, .delete:
+            return []
+        }
+    }
+
+    var body: EndpointBody {
+        switch self {
+        case .list, .getMy, .get, .delete:
+            return .none
+
+        case .submit(_, _, let request),
+             .update(_, _, _, let request):
+            return .json(request)
+        }
+    }
+
+    var requiresAuth: Bool {
+        true
     }
 }

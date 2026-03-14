@@ -5,8 +5,9 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
-public enum PostType: String, Codable, Equatable, Sendable {
+enum PostType: String, Codable, Equatable, Sendable {
     case material = "MATERIAL"
     case task = "TASK"
 }

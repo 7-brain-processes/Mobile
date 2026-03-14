@@ -9,25 +9,52 @@ import Foundation
 
 actor CourseRepositorySpy: CourseRepository {
 
-    var getCoursesResult: Result<PageCourse, Error> = .failure(APIError.invalidResponse)
-    var createCourseResult: Result<Course, Error> = .failure(APIError.invalidResponse)
-    
-    struct GetCoursesArgs: Equatable { let page: Int; let size: Int; let role: CourseRole? }
-    var recordedGetCoursesArgs: [GetCoursesArgs] = []
-    
-    struct CreateCourseArgs: Equatable { let request: CreateCourseRequest }
-    var recordedCreateCourseArgs: [CreateCourseArgs] = []
-    
-    func setGetCoursesResult(_ result: Result<PageCourse, Error>) { self.getCoursesResult = result }
-    func setCreateCourseResult(_ result: Result<Course, Error>) { self.createCourseResult = result }
-    
-    func getMyCourses(page: Int, size: Int, role: CourseRole?) async throws -> PageCourse {
-        recordedGetCoursesArgs.append(GetCoursesArgs(page: page, size: size, role: role))
+    // MARK: Results
+
+    private var getCoursesResult: Result<Page<Course>, Error> =
+        .failure(APIError.invalidResponse)
+
+    private var createCourseResult: Result<Course, Error> =
+        .failure(APIError.invalidResponse)
+
+
+    // MARK: Recorded calls
+
+    private var recordedGetCoursesQueries: [GetMyCoursesQuery] = []
+    private var recordedCreateCourseCommands: [CreateCourseCommand] = []
+
+
+    // MARK: Configure results
+
+    func setGetCoursesResult(_ result: Result<Page<Course>, Error>) {
+        getCoursesResult = result
+    }
+
+    func setCreateCourseResult(_ result: Result<Course, Error>) {
+        createCourseResult = result
+    }
+
+
+    // MARK: Inspect
+
+    func getRecordedGetCoursesQueries() -> [GetMyCoursesQuery] {
+        recordedGetCoursesQueries
+    }
+
+    func getRecordedCreateCourseCommands() -> [CreateCourseCommand] {
+        recordedCreateCourseCommands
+    }
+
+
+    // MARK: Repository methods
+
+    func getMyCourses(_ query: GetMyCoursesQuery) async throws -> Page<Course> {
+        recordedGetCoursesQueries.append(query)
         return try getCoursesResult.get()
     }
-    
-    func createCourse(request: CreateCourseRequest) async throws -> Course {
-        recordedCreateCourseArgs.append(CreateCourseArgs(request: request))
+
+    func createCourse(_ command: CreateCourseCommand) async throws -> Course {
+        recordedCreateCourseCommands.append(command)
         return try createCourseResult.get()
     }
 }

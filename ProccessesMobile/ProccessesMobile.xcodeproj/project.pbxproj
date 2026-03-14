@@ -40,11 +40,6 @@
 			path = ProccessesMobileTests;
 			sourceTree = "<group>";
 		};
-		A57B04DD2F5A64F100FF15D5 /* ProccessesMobileUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ProccessesMobileUITests;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,7 +72,6 @@
 			children = (
 				A57B04C52F5A64F000FF15D5 /* ProccessesMobile */,
 				A57B04D32F5A64F100FF15D5 /* ProccessesMobileTests */,
-				A57B04DD2F5A64F100FF15D5 /* ProccessesMobileUITests */,
 				A57B04C42F5A64F000FF15D5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -153,9 +147,6 @@
 			dependencies = (
 				A57B04DC2F5A64F100FF15D5 /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				A57B04DD2F5A64F100FF15D5 /* ProccessesMobileUITests */,
-			);
 			name = ProccessesMobileUITests;
 			packageProductDependencies = (
 			);
@@ -171,7 +162,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2600;
-				LastUpgradeCheck = 2600;
+				LastUpgradeCheck = 2630;
 				TargetAttributes = {
 					A57B04C22F5A64F000FF15D5 = {
 						CreatedOnToolsVersion = 26.0.1;
@@ -328,6 +319,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -385,6 +377,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};

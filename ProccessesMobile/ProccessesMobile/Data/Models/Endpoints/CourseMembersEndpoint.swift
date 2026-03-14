@@ -7,26 +7,61 @@
 
 import Foundation
 
-public enum CourseMembersEndpoint {
-    case list(courseId: String, page: Int, size: Int, role: CourseRole?, baseURL: URL)
-    case remove(courseId: String, userId: String, baseURL: URL)
-    
-    public func makeURLRequest() throws -> URLRequest {
+enum CourseMembersEndpoint: Endpoint {
+    case list(courseId: String, page: Int, size: Int, role: CourseRoleDTO?)
+    case remove(courseId: String, userId: String)
+
+    var path: String {
         switch self {
-        case let .list(courseId, page, size, role, baseURL):
-            var components = URLComponents(url: baseURL.appendingPathComponent("/courses/\(courseId)/members"), resolvingAgainstBaseURL: false)!
-            var items = [URLQueryItem(name: "page", value: String(page)), URLQueryItem(name: "size", value: String(size))]
-            if let role = role { items.append(URLQueryItem(name: "role", value: role.rawValue)) }
-            components.queryItems = items
-            
-            var request = URLRequest(url: components.url!)
-            request.httpMethod = "GET"
-            return request
-            
-        case let .remove(courseId, userId, baseURL):
-            var request = URLRequest(url: baseURL.appendingPathComponent("/courses/\(courseId)/members/\(userId)"))
-            request.httpMethod = "DELETE"
-            return request
+        case .list(let courseId, _, _, _):
+            return "courses/\(courseId)/members"
+        case .remove(let courseId, let userId):
+            return "courses/\(courseId)/members/\(userId)"
         }
+    }
+
+    var method: HTTPMethod {
+        switch self {
+        case .list:
+            return .GET
+        case .remove:
+            return .DELETE
+        }
+    }
+
+    var headers: [String: String] {
+        [
+            "Accept": "application/json"
+        ]
+    }
+
+    var queryItems: [URLQueryItem] {
+        switch self {
+        case .list(_, let page, let size, let role):
+            var items = [
+                URLQueryItem(name: "page", value: String(page)),
+                URLQueryItem(name: "size", value: String(size))
+            ]
+
+            if let role {
+                items.append(URLQueryItem(name: "role", value: role.rawValue))
+            }
+
+            return items
+
+        case .remove:
+            return []
+        }
+    }
+
+    var body: EndpointBody {
+        switch self {
+        case .list, .remove:
+            return .none
+        }
+    }
+
+    var requiresAuth: Bool {
+        true
     }
 }

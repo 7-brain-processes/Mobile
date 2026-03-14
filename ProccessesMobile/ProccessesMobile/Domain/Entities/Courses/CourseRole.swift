@@ -5,8 +5,9 @@
 //  Created by dark type on 06.03.2026.
 //
 
+import Foundation
 
-public enum CourseRole: String, Codable, Equatable, Sendable {
+enum CourseRole: String, Equatable, Sendable {
     case teacher = "TEACHER"
     case student = "STUDENT"
 }
