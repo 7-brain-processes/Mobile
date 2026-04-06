@@ -8,26 +8,53 @@
 import Foundation
 
 actor CourseMembershipRepositorySpy: CourseMembershipRepository {
-    
-    private var joinResult: Result<Course, Error> = .failure(APIError.invalidResponse)
-    private var leaveResult: Result<Void, Error> = .success(())
-    
-    private var recordedJoinArgs: [String] = []
-    private var recordedLeaveArgs: [String] = []
-    
-    func setJoinResult(_ result: Result<Course, Error>) { self.joinResult = result }
-    func setLeaveResult(_ result: Result<Void, Error>) { self.leaveResult = result }
-    
-    func getRecordedJoinArgs() -> [String] { return recordedJoinArgs }
-    func getRecordedLeaveArgs() -> [String] { return recordedLeaveArgs }
-    
-    func joinCourse(code: String) async throws -> Course {
-        recordedJoinArgs.append(code)
+
+    // MARK: Results
+
+    private var joinResult: Result<Course, Error> =
+        .failure(APIError.invalidResponse)
+
+    private var leaveResult: Result<Void, Error> =
+        .success(())
+
+
+    // MARK: Recorded calls
+
+    private var recordedJoinCommands: [JoinCourseCodeCommand] = []
+    private var recordedLeaveCommands: [LeaveCourseCommand] = []
+
+
+    // MARK: Configure results
+
+    func setJoinResult(_ result: Result<Course, Error>) {
+        joinResult = result
+    }
+
+    func setLeaveResult(_ result: Result<Void, Error>) {
+        leaveResult = result
+    }
+
+
+    // MARK: Inspect calls
+
+    func getRecordedJoinCommands() -> [JoinCourseCodeCommand] {
+        recordedJoinCommands
+    }
+
+    func getRecordedLeaveCommands() -> [LeaveCourseCommand] {
+        recordedLeaveCommands
+    }
+
+
+    // MARK: Repository methods
+
+    func joinCourse(_ command: JoinCourseCodeCommand) async throws -> Course {
+        recordedJoinCommands.append(command)
         return try joinResult.get()
     }
-    
-    func leaveCourse(courseId: String) async throws {
-        recordedLeaveArgs.append(courseId)
-        return try leaveResult.get()
+
+    func leaveCourse(_ command: LeaveCourseCommand) async throws {
+        recordedLeaveCommands.append(command)
+        try leaveResult.get()
     }
 }

@@ -8,9 +8,4 @@
 struct AuthResponseDTO: Equatable, Codable, Sendable {
     let token: String
     let user: UserDTO
-    
-    init(token: String, user: UserDTO) {
-        self.token = token
-        self.user = user
-    }
 }

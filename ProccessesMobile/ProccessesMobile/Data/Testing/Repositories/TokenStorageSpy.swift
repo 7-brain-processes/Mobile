@@ -32,7 +32,7 @@ final class TokenStorageSpy: TokenStorage, @unchecked Sendable {
         return getSavedToken()
     }
     
-    func deleteToken() throws {
+    func clear() throws {
         lock.lock(); defer { lock.unlock() }
         _savedToken = nil
     }

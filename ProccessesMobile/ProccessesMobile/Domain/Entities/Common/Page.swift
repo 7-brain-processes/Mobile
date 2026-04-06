@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Page<T: Codable & Equatable & Sendable>: Equatable, Sendable, Codable {
+struct Page<T: Equatable & Sendable>: Equatable, Sendable {
     let content: [T]
     let page: Int
     let size: Int

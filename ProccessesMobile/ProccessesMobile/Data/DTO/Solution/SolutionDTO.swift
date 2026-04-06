@@ -15,16 +15,4 @@ struct SolutionDTO: Equatable, Sendable, Codable {
     let submittedAt: String
     let updatedAt: String
     let gradedAt: String?
-    
-    init(id: String, text: String?, status: SolutionStatusDTO, grade: Int?, filesCount: Int, student: UserDTO?, submittedAt: String, updatedAt: String, gradedAt: String?) {
-        self.id = id
-        self.text = text
-        self.status = status
-        self.grade = grade
-        self.filesCount = filesCount
-        self.student = student
-        self.submittedAt = submittedAt
-        self.updatedAt = updatedAt
-        self.gradedAt = gradedAt
-    }
 }

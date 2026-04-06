@@ -8,19 +8,53 @@
 import Foundation
 
 actor CourseMembersRepositorySpy: CourseMembersRepository {
-    private var removeResult: Result<Void, Error> = .success(())
-    func setRemoveResult(_ result: Result<Void, Error>) { removeResult = result }
-    
-    struct RemoveArgs: Equatable { let courseId: String; let userId: String }
-    private var recordedRemoveArgs: [RemoveArgs] = []
-    func getRecordedRemoveArgs() -> [RemoveArgs] { return recordedRemoveArgs }
-    
-    func listMembers(courseId: String, page: Int, size: Int, role: CourseRole?) async throws -> PageMember {
-        fatalError("Not implemented in this snippet")
+
+    // MARK: Results
+
+    private var listResult: Result<Page<Member>, Error> =
+        .failure(APIError.invalidResponse)
+
+    private var removeResult: Result<Void, Error> =
+        .success(())
+
+
+    // MARK: Recorded calls
+
+    private var recordedListQueries: [ListMembersQuery] = []
+    private var recordedRemoveCommands: [RemoveMemberCommand] = []
+
+
+    // MARK: Configure results
+
+    func setListResult(_ result: Result<Page<Member>, Error>) {
+        listResult = result
     }
-    
-    func removeMember(courseId: String, userId: String) async throws {
-        recordedRemoveArgs.append(RemoveArgs(courseId: courseId, userId: userId))
-        return try removeResult.get()
+
+    func setRemoveResult(_ result: Result<Void, Error>) {
+        removeResult = result
+    }
+
+
+    // MARK: Inspect
+
+    func getRecordedListQueries() -> [ListMembersQuery] {
+        recordedListQueries
+    }
+
+    func getRecordedRemoveCommands() -> [RemoveMemberCommand] {
+        recordedRemoveCommands
+    }
+
+
+    // MARK: Repository methods
+
+    func listMembers(_ query: ListMembersQuery) async throws -> Page<Member> {
+        recordedListQueries.append(query)
+        return try listResult.get()
+    }
+
+    func removeMember(_ command: RemoveMemberCommand) async throws {
+        recordedRemoveCommands.append(command)
+        try removeResult.get()
     }
 }

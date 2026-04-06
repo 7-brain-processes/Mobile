@@ -10,11 +10,4 @@ struct CreatePostRequestDTO: Equatable, Sendable, Codable {
     let content: String?
     let type: PostTypeDTO
     let deadline: String?
-    
-    init(title: String, content: String? = nil, type: PostTypeDTO, deadline: String? = nil) {
-        self.title = title
-        self.content = content
-        self.type = type
-        self.deadline = deadline
-    }
 }

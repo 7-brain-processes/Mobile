@@ -7,18 +7,32 @@
 
 import Foundation
 
-struct AttachedFile: Equatable, Sendable, Codable {
+struct AttachedFile: Equatable, Sendable {
     let id: UUID
     let originalName: String
     let contentType: String
     let sizeBytes: Int64
-    let uploadedAt: String
-    
-    init(id: UUID, originalName: String, contentType: String, sizeBytes: Int64, uploadedAt: String) {
-        self.id = id
-        self.originalName = originalName
-        self.contentType = contentType
-        self.sizeBytes = sizeBytes
-        self.uploadedAt = uploadedAt
+    let uploadedAt: Date
+}
+extension AttachedFile {
+    func toFeedAttachmentItem() -> FeedAttachmentItem {
+        FeedAttachmentItem(
+            id: id,
+            type: FeedAttachmentType.from(mimeType: contentType),
+            fileName: originalName,
+            previewURL: nil
+        )
+    }
+}
+
+extension FeedAttachmentType {
+    static func from(mimeType: String) -> FeedAttachmentType {
+        if mimeType.hasPrefix("image/") {
+            return .image
+        } else if mimeType.hasPrefix("audio/") {
+            return .audio
+        } else {
+            return .file
+        }
     }
 }

@@ -7,23 +7,41 @@
 
 import Foundation
 
-enum CourseMembershipEndpoint {
-    case join(code: String, baseURL: URL)
-    case leave(courseId: String, baseURL: URL)
-    
-    func makeURLRequest() throws -> URLRequest {
+enum CourseMembershipEndpoint: Endpoint {
+    case join(code: String)
+    case leave(courseId: String)
+
+    var path: String {
         switch self {
-        case let .join(code, baseURL):
-            let url = baseURL.appendingPathComponent("/invites/\(code)/join")
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            return request
-            
-        case let .leave(courseId, baseURL):
-            let url = baseURL.appendingPathComponent("/courses/\(courseId)/leave")
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            return request
+        case .join(let code):
+            return "invites/\(code)/join"
+        case .leave(let courseId):
+            return "courses/\(courseId)/leave"
         }
+    }
+
+    var method: HTTPMethod {
+        switch self {
+        case .join, .leave:
+            return .POST
+        }
+    }
+
+    var headers: [String: String] {
+        [
+            "Accept": "application/json"
+        ]
+    }
+
+    var queryItems: [URLQueryItem] {
+        []
+    }
+
+    var body: EndpointBody {
+        .none
+    }
+
+    var requiresAuth: Bool {
+        true
     }
 }

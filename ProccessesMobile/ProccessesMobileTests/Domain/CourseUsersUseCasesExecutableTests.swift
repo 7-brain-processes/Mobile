@@ -12,77 +12,120 @@ import Foundation
 
 @Suite("Course Users Management Domain: Executable Specification")
 struct CourseUsersUseCasesExecutableTests {
-    
-    func makeRemoveSUT(repo: CourseMembersRepository) -> RemoveMemberUseCase { return MockRemoveMemberUseCase(repository: repo) }
-    func makeCreateInviteSUT(repo: CourseInvitesRepository) -> CreateInviteUseCase { return MockCreateInviteUseCase(repository: repo) }
-    func makeRevokeInviteSUT(repo: CourseInvitesRepository) -> RevokeInviteUseCase { return MockRevokeInviteUseCase(repository: repo) }
-    
-    // MARK: - Remove Member (Ban) Tests
-    
+
+    // MARK: - Factories
+
+    private func makeRemoveSUT(repo: CourseMembersRepository) -> RemoveMemberUseCase {
+        DefaultRemoveMemberUseCase(repository: repo)
+    }
+
+    private func makeCreateInviteSUT(repo: CourseInvitesRepository) -> CreateInviteUseCase {
+        DefaultCreateInviteUseCase(repository: repo)
+    }
+
+    private func makeRevokeInviteSUT(repo: CourseInvitesRepository) -> DefaultRevokeInviteUseCase {
+        DefaultRevokeInviteUseCase(repository: repo)
+    }
+
+    // MARK: - Remove Member Tests
+
     @Test("Remove member delegates properly to repository")
     func removeMemberSuccess() async throws {
+
         let repoSpy = CourseMembersRepositorySpy()
         let sut = makeRemoveSUT(repo: repoSpy)
-        
-        try await sut.execute(courseId: "course_1", userId: "user_99")
-        
-        let args = await repoSpy.getRecordedRemoveArgs()
-        #expect(args.count == 1)
-        #expect(args.first?.courseId == "course_1")
-        #expect(args.first?.userId == "user_99")
+
+        let command = RemoveMemberCommand(
+            courseId: UUID(uuidString: "550e8400-e29b-41d4-a716-446655440001")!,
+            userId: UUID(uuidString: "550e8400-e29b-41d4-a716-446655440002")!
+        )
+
+        try await sut.execute(command)
+
+        let commands = await repoSpy.getRecordedRemoveCommands()
+
+        #expect(commands.count == 1)
+        #expect(commands.first?.courseId == command.courseId)
+        #expect(commands.first?.userId == command.userId)
     }
-    
-    @Test("Remove member catches empty ID inputs", arguments: [
-        (" ", "user_99", CourseUsersValidationError.emptyCourseId),
-        ("course_1", "   ", CourseUsersValidationError.emptyUserId)
-    ])
-    func removeMemberValidations(cId: String, uId: String, expectedErr: CourseUsersValidationError) async {
-        let repoSpy = CourseMembersRepositorySpy()
-        let sut = makeRemoveSUT(repo: repoSpy)
-        
-        await #expect(throws: expectedErr) {
-            try await sut.execute(courseId: cId, userId: uId)
-        }
-        
-        let args = await repoSpy.getRecordedRemoveArgs()
-        #expect(args.isEmpty)
-    }
-    
+
     // MARK: - Create Invite Tests
-    
+
     @Test("Create invite delegates and validates maxUses")
     func createInviteSuccess() async throws {
+
         let repoSpy = CourseInvitesRepositorySpy()
-        let expectedInvite = Invite(id: "inv_1", code: "ABCD", role: .student, expiresAt: nil, maxUses: 5, currentUses: 0, createdAt: "2026-03-06")
+
+        let expectedInvite = Invite(
+            id: UUID(uuidString: "550e8400-e29b-41d4-a716-446655440111")!,
+            code: "ABCD",
+            role: .student,
+            expiresAt: nil,
+            maxUses: 5,
+            currentUses: 0,
+            createdAt: Date()
+        )
+
         await repoSpy.setCreateResult(.success(expectedInvite))
-        
+
         let sut = makeCreateInviteSUT(repo: repoSpy)
-        let result = try await sut.execute(courseId: "course_1", request: CreateInviteRequest(role: .student, expiresAt: nil, maxUses: 5))
-        
+
+        let command = CreateInviteCommand(
+            courseId: UUID(uuidString: "550e8400-e29b-41d4-a716-446655440001")!,
+            role: .student,
+            expiresAt: nil,
+            maxUses: 5
+        )
+
+        let result = try await sut.execute(command)
+
         #expect(result == expectedInvite)
-        let args = await repoSpy.getRecordedCreateArgs()
-        #expect(args.first?.request.maxUses == 5)
+
+        let commands = await repoSpy.getRecordedCreateCommands()
+
+        #expect(commands.count == 1)
+        #expect(commands.first?.maxUses == 5)
     }
-    
+
     @Test("Create invite fails on negative or zero maxUses")
     func createInviteInvalidMaxUses() async {
+
         let repoSpy = CourseInvitesRepositorySpy()
         let sut = makeCreateInviteSUT(repo: repoSpy)
-        
+
         await #expect(throws: CourseUsersValidationError.invalidMaxUses(minimum: 1)) {
-            let _ = try await sut.execute(courseId: "course_1", request: CreateInviteRequest(role: .teacher, expiresAt: nil, maxUses: 0))
+            _ = try await sut.execute(
+                CreateInviteCommand(
+                    courseId: UUID(uuidString: "550e8400-e29b-41d4-a716-446655440001")!,
+                    role: .teacher,
+                    expiresAt: nil,
+                    maxUses: 0
+                )
+            )
         }
+
+        let commands = await repoSpy.getRecordedCreateCommands()
+        #expect(commands.isEmpty)
     }
-    
+
     // MARK: - Revoke Invite Tests
-    
-    @Test("Revoke invite catches empty IDs")
-    func revokeInviteValidations() async {
+
+    @Test("Revoke invite delegates properly")
+    func revokeInviteSuccess() async throws {
+
         let repoSpy = CourseInvitesRepositorySpy()
         let sut = makeRevokeInviteSUT(repo: repoSpy)
-        
-        await #expect(throws: CourseUsersValidationError.emptyInviteId) {
-            try await sut.execute(courseId: "course_1", inviteId: "   ")
-        }
+
+        let command = RevokeInviteCommand(
+            courseId: UUID(uuidString: "550e8400-e29b-41d4-a716-446655440001")!,
+            inviteId: UUID(uuidString: "550e8400-e29b-41d4-a716-446655440111")!
+        )
+
+        try await sut.execute(command)
+
+        let commands = await repoSpy.getRecordedRevokeCommands()
+
+        #expect(commands.count == 1)
+        #expect(commands.first?.inviteId == command.inviteId)
     }
 }

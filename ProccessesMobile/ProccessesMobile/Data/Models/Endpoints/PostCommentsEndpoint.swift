@@ -7,43 +7,68 @@
 
 import Foundation
 
-enum PostCommentsEndpoint {
-    case list(courseId: String, postId: String, page: Int, size: Int, baseURL: URL)
-    case create(courseId: String, postId: String, request: CreateCommentRequest, baseURL: URL)
-    case update(courseId: String, postId: String, commentId: String, request: CreateCommentRequest, baseURL: URL)
-    case delete(courseId: String, postId: String, commentId: String, baseURL: URL)
-    
-    func makeURLRequest() throws -> URLRequest {
-        let basePath = "/courses"
+enum PostCommentsEndpoint: Endpoint {
+    case list(courseId: String, postId: String, page: Int, size: Int)
+    case create(courseId: String, postId: String, request: CreateCommentRequestDTO)
+    case update(courseId: String, postId: String, commentId: String, request: CreateCommentRequestDTO)
+    case delete(courseId: String, postId: String, commentId: String)
+
+    var path: String {
         switch self {
-        case let .list(courseId, postId, page, size, baseURL):
-            var components = URLComponents(url: baseURL.appendingPathComponent("\(basePath)/\(courseId)/posts/\(postId)/comments"), resolvingAgainstBaseURL: false)!
-            components.queryItems = [
+        case .list(let courseId, let postId, _, _),
+             .create(let courseId, let postId, _):
+            return "courses/\(courseId)/posts/\(postId)/comments"
+
+        case .update(let courseId, let postId, let commentId, _),
+             .delete(let courseId, let postId, let commentId):
+            return "courses/\(courseId)/posts/\(postId)/comments/\(commentId)"
+        }
+    }
+
+    var method: HTTPMethod {
+        switch self {
+        case .list:
+            return .GET
+        case .create:
+            return .POST
+        case .update:
+            return .PUT
+        case .delete:
+            return .DELETE
+        }
+    }
+
+    var headers: [String: String] {
+        [
+            "Accept": "application/json"
+        ]
+    }
+
+    var queryItems: [URLQueryItem] {
+        switch self {
+        case .list(_, _, let page, let size):
+            return [
                 URLQueryItem(name: "page", value: String(page)),
                 URLQueryItem(name: "size", value: String(size))
             ]
-            var request = URLRequest(url: components.url!)
-            request.httpMethod = "GET"
-            return request
-            
-        case let .create(courseId, postId, dto, baseURL):
-            var request = URLRequest(url: baseURL.appendingPathComponent("\(basePath)/\(courseId)/posts/\(postId)/comments"))
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = try JSONEncoder().encode(dto)
-            return request
-            
-        case let .update(courseId, postId, commentId, dto, baseURL):
-            var request = URLRequest(url: baseURL.appendingPathComponent("\(basePath)/\(courseId)/posts/\(postId)/comments/\(commentId)"))
-            request.httpMethod = "PUT"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = try JSONEncoder().encode(dto)
-            return request
-            
-        case let .delete(courseId, postId, commentId, baseURL):
-            var request = URLRequest(url: baseURL.appendingPathComponent("\(basePath)/\(courseId)/posts/\(postId)/comments/\(commentId)"))
-            request.httpMethod = "DELETE"
-            return request
+
+        case .create, .update, .delete:
+            return []
         }
+    }
+
+    var body: EndpointBody {
+        switch self {
+        case .list, .delete:
+            return .none
+
+        case .create(_, _, let request),
+             .update(_, _, _, let request):
+            return .json(request)
+        }
+    }
+
+    var requiresAuth: Bool {
+        true
     }
 }
