@@ -47,4 +47,8 @@ protocol AppViewFactory {
 
     // MARK: - New
     func makeCourseCategoriesView(courseId: UUID) -> AnyView
+    func makeCreateCourseCategoryView(
+        courseId: UUID,
+        onCreated: @escaping @MainActor () async -> Void
+    ) -> AnyView
 }

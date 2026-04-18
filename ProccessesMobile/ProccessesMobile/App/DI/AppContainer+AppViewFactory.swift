@@ -151,10 +151,36 @@ extension AppContainer: AppViewFactory {
     }
 
     func makeCourseCategoriesView(courseId: UUID) -> AnyView {
-        AnyView(
+        let listViewModel = makeCourseCategoriesViewModel(courseId: courseId)
+
+        return AnyView(
             CourseCategoriesView(
-                viewModel: self.makeCourseCategoriesViewModel(
-                    courseId: courseId
+                viewModel: listViewModel,
+                createViewBuilder: {
+                    AnyView(
+                        CreateCourseCategorySheetView(
+                            viewModel: self.makeCreateCourseCategoryViewModel(
+                                courseId: courseId,
+                                onCreated: {
+                                    await listViewModel.handleCategoryCreated()
+                                }
+                            )
+                        )
+                    )
+                }
+            )
+        )
+    }
+
+    func makeCreateCourseCategoryView(
+        courseId: UUID,
+        onCreated: @escaping @MainActor () async -> Void
+    ) -> AnyView {
+        AnyView(
+            CreateCourseCategorySheetView(
+                viewModel: self.makeCreateCourseCategoryViewModel(
+                    courseId: courseId,
+                    onCreated: onCreated
                 )
             )
         )

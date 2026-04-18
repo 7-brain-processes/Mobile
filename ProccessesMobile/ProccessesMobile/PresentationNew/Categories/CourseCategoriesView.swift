@@ -9,9 +9,14 @@ import SwiftUI
 
 struct CourseCategoriesView: View {
     @StateObject private var viewModel: CourseCategoriesViewModel
+    private let createViewBuilder: () -> AnyView
 
-    init(viewModel: @autoclosure @escaping () -> CourseCategoriesViewModel) {
+    init(
+        viewModel: @autoclosure @escaping () -> CourseCategoriesViewModel,
+        createViewBuilder: @escaping () -> AnyView
+    ) {
         _viewModel = StateObject(wrappedValue: viewModel())
+        self.createViewBuilder = createViewBuilder
     }
 
     var body: some View {
@@ -25,10 +30,23 @@ struct CourseCategoriesView: View {
 
                     Text(errorMessage)
                         .multilineTextAlignment(.center)
+
+                    Button("Повторить") {
+                        Task {
+                            await viewModel.load()
+                        }
+                    }
                 }
                 .padding()
             } else if viewModel.categories.isEmpty {
-                Text("Категорий курса пока нет")
+                VStack(spacing: 16) {
+                    Text("Категорий курса пока нет")
+
+                    Button("Создать категорию") {
+                        viewModel.openCreateSheet()
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
             } else {
                 List(viewModel.categories, id: \.id) { category in
                     VStack(alignment: .leading, spacing: 4) {
@@ -51,6 +69,9 @@ struct CourseCategoriesView: View {
                     .padding(.vertical, 4)
                 }
             }
+        }
+        .sheet(isPresented: $viewModel.isCreateSheetPresented) {
+            createViewBuilder()
         }
         .task {
             await viewModel.load()

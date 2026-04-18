@@ -232,10 +232,22 @@ extension AppContainer: ViewModelFactory {
         )
     }
 
+    // MARK: - NEW
     func makeCourseCategoriesViewModel(courseId: UUID) -> CourseCategoriesViewModel {
         CourseCategoriesViewModel(
             courseId: courseId,
             listCourseCategoriesUseCase: listCourseCategoriesUseCase
+        )
+    }
+
+    func makeCreateCourseCategoryViewModel(
+        courseId: UUID,
+        onCreated: @escaping @MainActor () async -> Void
+    ) -> CreateCourseCategorySheetViewModel {
+        CreateCourseCategorySheetViewModel(
+            courseId: courseId,
+            createCourseCategoryUseCase: createCourseCategoryUseCase,
+            onCreated: onCreated
         )
     }
 }

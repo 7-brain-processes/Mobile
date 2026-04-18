@@ -14,6 +14,7 @@ final class CourseCategoriesViewModel: ObservableObject {
     @Published private(set) var categories: [CourseCategory] = []
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
+    @Published var isCreateSheetPresented = false
 
     private let courseId: UUID
     private let listCourseCategoriesUseCase: ListCourseCategoriesUseCase
@@ -39,5 +40,18 @@ final class CourseCategoriesViewModel: ObservableObject {
         }
 
         isLoading = false
+    }
+
+    func openCreateSheet() {
+        isCreateSheetPresented = true
+    }
+
+    func closeCreateSheet() {
+        isCreateSheetPresented = false
+    }
+
+    func handleCategoryCreated() async {
+        isCreateSheetPresented = false
+        await load()
     }
 }

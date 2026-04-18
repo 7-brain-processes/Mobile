@@ -84,6 +84,8 @@ final class AppContainer: ObservableObject {
     let courseCategoriesRepository: CourseCategoriesRepository
     let listCourseCategoriesUseCase: ListCourseCategoriesUseCase
 
+    let createCourseCategoryUseCase: CreateCourseCategoryUseCase
+
     init(isAuthorized: Bool) {
         self.appCoordinator = AppCoordinator(isAuthorized: isAuthorized)
         self.authCoordinator = AuthCoordinator()
@@ -244,6 +246,10 @@ final class AppContainer: ObservableObject {
         )
 
         self.listCourseCategoriesUseCase = DefaultListCourseCategoriesUseCase(
+            repository: courseCategoriesRepository
+        )
+
+        self.createCourseCategoryUseCase = DefaultCreateCourseCategoryUseCase(
             repository: courseCategoriesRepository
         )
     }

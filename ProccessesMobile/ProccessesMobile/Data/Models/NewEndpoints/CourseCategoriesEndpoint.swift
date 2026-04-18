@@ -10,10 +10,13 @@ import Foundation
 
 enum CourseCategoriesEndpoint: Endpoint {
     case list(courseId: UUID)
+    case create(courseId: UUID, request: CreateCourseCategoryRequestDTO)
 
     var path: String {
         switch self {
         case .list(let courseId):
+            return "courses/\(courseId.uuidString)/categories"
+        case .create(let courseId, _):
             return "courses/\(courseId.uuidString)/categories"
         }
     }
@@ -22,6 +25,8 @@ enum CourseCategoriesEndpoint: Endpoint {
         switch self {
         case .list:
             return .GET
+        case .create:
+            return .POST
         }
     }
 
@@ -31,15 +36,14 @@ enum CourseCategoriesEndpoint: Endpoint {
         ]
     }
 
-    var queryItems: [URLQueryItem] {
-        []
-    }
-
     var body: EndpointBody {
-        .none
+        switch self {
+        case .list:
+            return .none
+        case .create(_, let request):
+            return .json(request)
+        }
     }
 
-    var requiresAuth: Bool {
-        true
-    }
+    var requiresAuth: Bool { true }
 }
