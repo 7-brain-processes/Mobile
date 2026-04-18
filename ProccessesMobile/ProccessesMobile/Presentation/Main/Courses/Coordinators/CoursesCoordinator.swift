@@ -8,26 +8,6 @@
 import Combine
 import Foundation
 
-enum MainRoute: Hashable {
-    case course(courseId: UUID)
-
-    case taskDetails(courseId: UUID, postId: UUID)
-    case materialDetails(courseId: UUID, postId: UUID)
-    case createPost(UUID, FeedPostType)
-}
-
-enum MainSheet: Identifiable, Equatable {
-    case createCourse
-    case joinByCode
-
-    var id: String {
-        switch self {
-        case .createCourse: return "createCourse"
-        case .joinByCode: return "joinByCode"
-        }
-    }
-}
-
 @MainActor
 final class CoursesCoordinator: ObservableObject, CoordinatorProtocol, CoursesNavigating {
     @Published var path: [MainRoute] = []
@@ -81,4 +61,11 @@ extension CoursesCoordinator: FeedScreenNavigating {
        func openCreatePost(courseId: UUID, type: FeedPostType) {
            path.append(.createPost(courseId, type))
        }
+}
+
+@MainActor
+extension CoursesCoordinator {
+    func showCourseCategories(courseId: UUID) {
+        path.append(.courseCategories(courseId: courseId))
+    }
 }

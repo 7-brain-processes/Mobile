@@ -43,6 +43,14 @@ struct CourseFlowView: View {
                 Label("People", systemImage: "person.3")
             }
             .tag(CourseTab.people)
+
+            factory.makeCourseCategoriesView(
+                courseId: coordinator.courseId,
+            )
+            .tabItem {
+                Label("Categories", systemImage: "tag")
+            }
+            .tag(CourseTab.categories)
         }
         .navigationTitle("Course")
         .toolbar {
