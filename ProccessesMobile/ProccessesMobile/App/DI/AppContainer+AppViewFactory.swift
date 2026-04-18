@@ -150,4 +150,13 @@ extension AppContainer: AppViewFactory {
         AnyView(Text("Members View"))
     }
 
+    func makeCourseCategoriesView(courseId: UUID) -> AnyView {
+        AnyView(
+            CourseCategoriesView(
+                viewModel: self.makeCourseCategoriesViewModel(
+                    courseId: courseId
+                )
+            )
+        )
+    }
 }

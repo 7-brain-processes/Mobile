@@ -30,6 +30,9 @@ struct MainFlowView<Factory: AppViewFactory>: View {
 
                     case let .createPost(courseId, postType):
                         factory.makeCreatePostView(courseId: courseId, postType: postType)
+
+                    case let .courseCategories(courseId):
+                        factory.makeCourseCategoriesView(courseId: courseId)
                     }
                 }
                 .sheet(item: $coordinator.sheet) { sheet in

@@ -45,4 +45,6 @@ protocol AppViewFactory {
 
     func makeMembersView(courseId: UUID, coordinator: MembersCoordinator) -> AnyView
 
+    // MARK: - New
+    func makeCourseCategoriesView(courseId: UUID) -> AnyView
 }

@@ -231,4 +231,11 @@ extension AppContainer: ViewModelFactory {
             )
         )
     }
+
+    func makeCourseCategoriesViewModel(courseId: UUID) -> CourseCategoriesViewModel {
+        CourseCategoriesViewModel(
+            courseId: courseId,
+            listCourseCategoriesUseCase: listCourseCategoriesUseCase
+        )
+    }
 }

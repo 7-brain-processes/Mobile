@@ -80,6 +80,10 @@ final class AppContainer: ObservableObject {
     let updateSolutionUseCase: UpdateSolutionUseCase
     let uploadSolutionFileUseCase: UploadSolutionFileUseCase
 
+    // MARK: - NEW
+    let courseCategoriesRepository: CourseCategoriesRepository
+    let listCourseCategoriesUseCase: ListCourseCategoriesUseCase
+
     init(isAuthorized: Bool) {
         self.appCoordinator = AppCoordinator(isAuthorized: isAuthorized)
         self.authCoordinator = AuthCoordinator()
@@ -231,6 +235,16 @@ final class AppContainer: ObservableObject {
         )
         self.uploadSolutionFileUseCase = DefaultUploadSolutionFileUseCase(
             repository: solutionFilesRepository
+        )
+
+        // MARK: - NEW
+
+        self.courseCategoriesRepository = DefaultCourseCategoriesRepository(
+            apiClient: apiClient
+        )
+
+        self.listCourseCategoriesUseCase = DefaultListCourseCategoriesUseCase(
+            repository: courseCategoriesRepository
         )
     }
 }
