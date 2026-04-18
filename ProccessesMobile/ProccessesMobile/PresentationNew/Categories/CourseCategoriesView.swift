@@ -10,13 +10,16 @@ import SwiftUI
 struct CourseCategoriesView: View {
     @StateObject private var viewModel: CourseCategoriesViewModel
     private let createViewBuilder: () -> AnyView
+    private let editViewBuilder: (CourseCategory) -> AnyView
 
     init(
         viewModel: @autoclosure @escaping () -> CourseCategoriesViewModel,
-        createViewBuilder: @escaping () -> AnyView
+        createViewBuilder: @escaping () -> AnyView,
+        editViewBuilder: @escaping (CourseCategory) -> AnyView
     ) {
         _viewModel = StateObject(wrappedValue: viewModel())
         self.createViewBuilder = createViewBuilder
+        self.editViewBuilder = editViewBuilder
     }
 
     var body: some View {
@@ -32,9 +35,7 @@ struct CourseCategoriesView: View {
                         .multilineTextAlignment(.center)
 
                     Button("Повторить") {
-                        Task {
-                            await viewModel.load()
-                        }
+                        Task { await viewModel.load() }
                     }
                 }
                 .padding()
@@ -67,11 +68,27 @@ struct CourseCategoriesView: View {
                         }
                     }
                     .padding(.vertical, 4)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        viewModel.openEditSheet(category: category)
+                    }
+                    .swipeActions {
+                        Button(role: .destructive) {
+                            Task {
+                                await viewModel.delete(category: category)
+                            }
+                        } label: {
+                            Label("Удалить", systemImage: "trash")
+                        }
+                    }
                 }
             }
         }
         .sheet(isPresented: $viewModel.isCreateSheetPresented) {
             createViewBuilder()
+        }
+        .sheet(item: $viewModel.editingCategory) { category in
+            editViewBuilder(category)
         }
         .task {
             await viewModel.load()

@@ -167,6 +167,19 @@ extension AppContainer: AppViewFactory {
                             )
                         )
                     )
+                },
+                editViewBuilder: { category in
+                    AnyView(
+                        EditCourseCategorySheetView(
+                            viewModel: self.makeEditCourseCategorySheetViewModel(
+                                courseId: courseId,
+                                category: category,
+                                onUpdated: {
+                                    await listViewModel.handleCategoryUpdated()
+                                }
+                            )
+                        )
+                    )
                 }
             )
         )

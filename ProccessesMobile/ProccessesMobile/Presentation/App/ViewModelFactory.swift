@@ -20,8 +20,15 @@ protocol ViewModelFactory {
     
     // MARK: - NEW
     func makeCourseCategoriesViewModel(courseId: UUID) -> CourseCategoriesViewModel
+
     func makeCreateCourseCategoryViewModel(
         courseId: UUID,
         onCreated: @escaping @MainActor () async -> Void
     ) -> CreateCourseCategorySheetViewModel
+
+    func makeEditCourseCategorySheetViewModel(
+        courseId: UUID,
+        category: CourseCategory,
+        onUpdated: @escaping @MainActor () async -> Void
+    ) -> EditCourseCategorySheetViewModel
 }

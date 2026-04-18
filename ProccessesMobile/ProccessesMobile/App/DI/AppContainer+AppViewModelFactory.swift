@@ -236,7 +236,8 @@ extension AppContainer: ViewModelFactory {
     func makeCourseCategoriesViewModel(courseId: UUID) -> CourseCategoriesViewModel {
         CourseCategoriesViewModel(
             courseId: courseId,
-            listCourseCategoriesUseCase: listCourseCategoriesUseCase
+            listCourseCategoriesUseCase: listCourseCategoriesUseCase,
+            deleteCourseCategoryUseCase: deleteCourseCategoryUseCase
         )
     }
 
@@ -248,6 +249,19 @@ extension AppContainer: ViewModelFactory {
             courseId: courseId,
             createCourseCategoryUseCase: createCourseCategoryUseCase,
             onCreated: onCreated
+        )
+    }
+
+    func makeEditCourseCategorySheetViewModel(
+        courseId: UUID,
+        category: CourseCategory,
+        onUpdated: @escaping @MainActor () async -> Void
+    ) -> EditCourseCategorySheetViewModel {
+        EditCourseCategorySheetViewModel(
+            courseId: courseId,
+            category: category,
+            updateCourseCategoryUseCase: updateCourseCategoryUseCase,
+            onUpdated: onUpdated
         )
     }
 }

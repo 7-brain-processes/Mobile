@@ -82,9 +82,11 @@ final class AppContainer: ObservableObject {
 
     // MARK: - NEW
     let courseCategoriesRepository: CourseCategoriesRepository
-    let listCourseCategoriesUseCase: ListCourseCategoriesUseCase
 
     let createCourseCategoryUseCase: CreateCourseCategoryUseCase
+    let listCourseCategoriesUseCase: ListCourseCategoriesUseCase
+    let updateCourseCategoryUseCase: UpdateCourseCategoryUseCase
+    let deleteCourseCategoryUseCase: DeleteCourseCategoryUseCase
 
     init(isAuthorized: Bool) {
         self.appCoordinator = AppCoordinator(isAuthorized: isAuthorized)
@@ -250,6 +252,14 @@ final class AppContainer: ObservableObject {
         )
 
         self.createCourseCategoryUseCase = DefaultCreateCourseCategoryUseCase(
+            repository: courseCategoriesRepository
+        )
+
+        self.updateCourseCategoryUseCase = DefaultUpdateCourseCategoryUseCase(
+            repository: courseCategoriesRepository
+        )
+
+        self.deleteCourseCategoryUseCase = DefaultDeleteCourseCategoryUseCase(
             repository: courseCategoriesRepository
         )
     }
