@@ -32,8 +32,8 @@ final class CoursesCoordinator: ObservableObject, CoordinatorProtocol, CoursesNa
         sheet = nil
     }
 
-    func openCourse(id: UUID) {
-        path.append(.course(courseId: id))
+    func openCourse(id: UUID, role: CourseRole) {
+        path.append(.course(courseId: id, role: role))
     }
 
     func coordinator(
@@ -61,11 +61,4 @@ extension CoursesCoordinator: FeedScreenNavigating {
        func openCreatePost(courseId: UUID, type: FeedPostType) {
            path.append(.createPost(courseId, type))
        }
-}
-
-@MainActor
-extension CoursesCoordinator {
-    func showCourseCategories(courseId: UUID) {
-        path.append(.courseCategories(courseId: courseId))
-    }
 }

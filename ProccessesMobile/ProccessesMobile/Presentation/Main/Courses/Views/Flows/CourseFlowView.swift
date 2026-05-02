@@ -46,6 +46,7 @@ struct CourseFlowView: View {
 
             factory.makeCourseCategoriesView(
                 courseId: coordinator.courseId,
+                role: role
             )
             .tabItem {
                 Label("Categories", systemImage: "tag")

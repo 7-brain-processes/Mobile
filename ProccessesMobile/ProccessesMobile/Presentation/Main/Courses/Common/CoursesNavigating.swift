@@ -12,5 +12,5 @@ protocol CoursesNavigating: AnyObject {
     func openCreateCourse()
     func openJoinByCode()
     func dismissSheet()
-    func openCourse(id: UUID)
+    func openCourse(id: UUID, role: CourseRole)
 }

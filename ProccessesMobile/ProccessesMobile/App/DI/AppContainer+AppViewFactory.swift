@@ -52,13 +52,12 @@ extension AppContainer: AppViewFactory {
 
     func makeCourseFlowView(
         coursesCoordinator: CoursesCoordinator,
-        courseId: UUID
+        courseId: UUID,
+        role: CourseRole
     ) -> AnyView {
         let coordinator = coursesCoordinator.coordinator(for: courseId) { id in
             makeCourseCoordinator(courseId: id)
         }
-
-        let role: CourseRole = .teacher
 
         return AnyView(
             CourseFlowView(
@@ -69,7 +68,6 @@ extension AppContainer: AppViewFactory {
             )
         )
     }
-
     func makeFeedView(
         courseId: UUID,
         role: CourseRole,
@@ -150,12 +148,13 @@ extension AppContainer: AppViewFactory {
         AnyView(Text("Members View"))
     }
 
-    func makeCourseCategoriesView(courseId: UUID) -> AnyView {
+    func makeCourseCategoriesView(courseId: UUID, role: CourseRole) -> AnyView {
         let listViewModel = makeCourseCategoriesViewModel(courseId: courseId)
 
         return AnyView(
             CourseCategoriesView(
                 viewModel: listViewModel,
+                role: role,
                 createViewBuilder: {
                     AnyView(
                         CreateCourseCategorySheetView(

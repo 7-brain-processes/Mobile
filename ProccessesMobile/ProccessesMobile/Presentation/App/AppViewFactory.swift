@@ -19,7 +19,8 @@ protocol AppViewFactory {
 
     func makeCourseFlowView(
         coursesCoordinator: CoursesCoordinator,
-        courseId: UUID
+        courseId: UUID,
+        role: CourseRole
     ) -> AnyView
 
     func makeFeedView(
@@ -46,7 +47,7 @@ protocol AppViewFactory {
     func makeMembersView(courseId: UUID, coordinator: MembersCoordinator) -> AnyView
 
     // MARK: - New
-    func makeCourseCategoriesView(courseId: UUID) -> AnyView
+    func makeCourseCategoriesView(courseId: UUID, role: CourseRole) -> AnyView
     func makeCreateCourseCategoryView(
         courseId: UUID,
         onCreated: @escaping @MainActor () async -> Void

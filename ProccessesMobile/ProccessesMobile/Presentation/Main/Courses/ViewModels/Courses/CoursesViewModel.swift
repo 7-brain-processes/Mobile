@@ -98,8 +98,11 @@ final class CoursesViewModel: ObservableObject {
         navigator?.openJoinByCode()
     }
 
-    func courseTapped(id: UUID) {
-        navigator?.openCourse(id: id)
+    func courseTapped(course: CourseCardItem) {
+        navigator?.openCourse(
+            id: course.id,
+            role: course.role
+        )
     }
 
     func logoutTapped() {
@@ -117,7 +120,7 @@ final class CoursesViewModel: ObservableObject {
             id: course.id,
             name: course.name,
             description: course.description ?? "",
-            isTeacher: course.currentUserRole == .teacher,
+            role: course.currentUserRole ?? .student,
             teacherCount: course.teacherCount,
             studentCount: course.studentCount
         )

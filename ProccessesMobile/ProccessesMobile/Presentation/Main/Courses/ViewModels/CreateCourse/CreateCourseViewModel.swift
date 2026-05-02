@@ -52,7 +52,10 @@ final class CreateCourseViewModel: ObservableObject {
                 )
 
                 navigator?.dismissSheet()
-                navigator?.openCourse(id: course.id)
+                navigator?.openCourse(
+                    id: course.id,
+                    role: course.currentUserRole ?? .teacher
+                )
             } catch {
                 errorMessage = error.localizedDescription
             }

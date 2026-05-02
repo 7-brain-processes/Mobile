@@ -9,13 +9,11 @@ import Combine
 import Foundation
 
 enum MainRoute: Hashable {
-    case course(courseId: UUID)
+    case course(courseId: UUID, role: CourseRole)
 
     case taskDetails(courseId: UUID, postId: UUID)
     case materialDetails(courseId: UUID, postId: UUID)
     case createPost(UUID, FeedPostType)
-
-    case courseCategories(courseId: UUID)
 }
 
 enum MainSheet: Identifiable, Equatable {

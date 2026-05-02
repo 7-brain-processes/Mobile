@@ -11,17 +11,19 @@ struct CourseCategoriesView: View {
     @StateObject private var viewModel: CourseCategoriesViewModel
     private let createViewBuilder: () -> AnyView
     private let editViewBuilder: (CourseCategory) -> AnyView
+    private let role: CourseRole
 
     init(
         viewModel: @autoclosure @escaping () -> CourseCategoriesViewModel,
+        role: CourseRole,
         createViewBuilder: @escaping () -> AnyView,
         editViewBuilder: @escaping (CourseCategory) -> AnyView
     ) {
         _viewModel = StateObject(wrappedValue: viewModel())
+        self.role = role
         self.createViewBuilder = createViewBuilder
         self.editViewBuilder = editViewBuilder
     }
-
     var body: some View {
         Group {
             if viewModel.isLoading {
@@ -43,10 +45,12 @@ struct CourseCategoriesView: View {
                 VStack(spacing: 16) {
                     Text("Категорий курса пока нет")
 
-                    Button("Создать категорию") {
-                        viewModel.openCreateSheet()
+                    if role == .teacher {
+                        Button("Создать категорию") {
+                            viewModel.openCreateSheet()
+                        }
+                        .buttonStyle(.borderedProminent)
                     }
-                    .buttonStyle(.borderedProminent)
                 }
             } else {
                 List(viewModel.categories, id: \.id) { category in
@@ -70,25 +74,32 @@ struct CourseCategoriesView: View {
                     .padding(.vertical, 4)
                     .contentShape(Rectangle())
                     .onTapGesture {
+                        guard role == .teacher else { return }
                         viewModel.openEditSheet(category: category)
                     }
                     .swipeActions {
-                        Button(role: .destructive) {
-                            Task {
-                                await viewModel.delete(category: category)
+                        if role == .teacher {
+                            Button(role: .destructive) {
+                                Task {
+                                    await viewModel.delete(category: category)
+                                }
+                            } label: {
+                                Label("Удалить", systemImage: "trash")
                             }
-                        } label: {
-                            Label("Удалить", systemImage: "trash")
                         }
                     }
                 }
             }
         }
         .sheet(isPresented: $viewModel.isCreateSheetPresented) {
-            createViewBuilder()
+            if role == .teacher {
+                createViewBuilder()
+            }
         }
         .sheet(item: $viewModel.editingCategory) { category in
-            editViewBuilder(category)
+            if role == .teacher {
+                editViewBuilder(category)
+            }
         }
         .task {
             await viewModel.load()
