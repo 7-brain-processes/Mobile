@@ -120,4 +120,44 @@ final class DefaultCourseCategoriesRepository: CourseCategoriesRepository, Senda
             throw AppError.serverError(statusCode: response.statusCode)
         }
     }
+
+    func getMyCategory(courseId: UUID) async throws -> CourseCategory? {
+        let endpoint = CourseCategoriesEndpoint.getMyCategory(courseId: courseId)
+        let (data, response) = try await apiClient.send(endpoint)
+
+        switch response.statusCode {
+        case 200:
+            if data.isEmpty {
+                return nil
+            }
+            let dto = try decoder.decode(CourseCategoryDTO.self, from: data)
+            return try CourseCategoryMapper.toDomain(dto)
+
+        case 404:
+            return nil
+
+        default:
+            throw AppError.serverError(statusCode: response.statusCode)
+        }
+    }
+
+    func setMyCategory(courseId: UUID, categoryId: UUID?) async throws {
+        let request = SetMyCourseCategoryRequest(categoryId: categoryId)
+        let dto = SetMyCourseCategoryRequestMapper.toDTO(request)
+
+        let endpoint = CourseCategoriesEndpoint.setMyCategory(
+            courseId: courseId,
+            request: dto
+        )
+
+        let (_, response) = try await apiClient.send(endpoint)
+
+        switch response.statusCode {
+        case 200:
+            return
+
+        default:
+            throw AppError.serverError(statusCode: response.statusCode)
+        }
+    }
 }

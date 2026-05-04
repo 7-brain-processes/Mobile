@@ -17,19 +17,26 @@ final class CourseCategoriesViewModel: ObservableObject {
     @Published var isCreateSheetPresented = false
     @Published var editingCategory: CourseCategory?
     @Published private(set) var deletingCategoryId: UUID?
+    @Published private(set) var selectedCategoryId: UUID?
 
     private let courseId: UUID
     private let listCourseCategoriesUseCase: ListCourseCategoriesUseCase
     private let deleteCourseCategoryUseCase: DeleteCourseCategoryUseCase
+    private let getMyCourseCategoryUseCase: GetMyCourseCategoryUseCase
+    private let setMyCourseCategoryUseCase: SetMyCourseCategoryUseCase
 
     init(
         courseId: UUID,
         listCourseCategoriesUseCase: ListCourseCategoriesUseCase,
-        deleteCourseCategoryUseCase: DeleteCourseCategoryUseCase
+        deleteCourseCategoryUseCase: DeleteCourseCategoryUseCase,
+        getMyCourseCategoryUseCase: GetMyCourseCategoryUseCase,
+        setMyCourseCategoryUseCase: SetMyCourseCategoryUseCase
     ) {
         self.courseId = courseId
         self.listCourseCategoriesUseCase = listCourseCategoriesUseCase
         self.deleteCourseCategoryUseCase = deleteCourseCategoryUseCase
+        self.getMyCourseCategoryUseCase = getMyCourseCategoryUseCase
+        self.setMyCourseCategoryUseCase = setMyCourseCategoryUseCase
     }
 
     func load() async {
@@ -40,6 +47,14 @@ final class CourseCategoriesViewModel: ObservableObject {
 
         do {
             categories = try await listCourseCategoriesUseCase.execute(courseId: courseId)
+
+            async let categoriesTask = listCourseCategoriesUseCase.execute(courseId: courseId)
+            async let myCategoryTask = getMyCourseCategoryUseCase.execute(courseId: courseId)
+
+            categories = try await categoriesTask
+            let myCategory = try await myCategoryTask
+            selectedCategoryId = myCategory?.id
+
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -88,5 +103,29 @@ final class CourseCategoriesViewModel: ObservableObject {
         }
 
         deletingCategoryId = nil
+    }
+
+    func selectCategory(_ category: CourseCategory) async {
+        do {
+            try await setMyCourseCategoryUseCase.execute(
+                courseId: courseId,
+                categoryId: category.id
+            )
+            selectedCategoryId = category.id
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func clearSelection() async {
+        do {
+            try await setMyCourseCategoryUseCase.execute(
+                courseId: courseId,
+                categoryId: nil
+            )
+            selectedCategoryId = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 }

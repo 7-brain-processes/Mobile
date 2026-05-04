@@ -88,6 +88,9 @@ final class AppContainer: ObservableObject {
     let updateCourseCategoryUseCase: UpdateCourseCategoryUseCase
     let deleteCourseCategoryUseCase: DeleteCourseCategoryUseCase
 
+    let getMyCourseCategoryUseCase: GetMyCourseCategoryUseCase
+    let setMyCourseCategoryUseCase: SetMyCourseCategoryUseCase
+
     init(isAuthorized: Bool) {
         self.appCoordinator = AppCoordinator(isAuthorized: isAuthorized)
         self.authCoordinator = AuthCoordinator()
@@ -260,6 +263,14 @@ final class AppContainer: ObservableObject {
         )
 
         self.deleteCourseCategoryUseCase = DefaultDeleteCourseCategoryUseCase(
+            repository: courseCategoriesRepository
+        )
+
+        self.getMyCourseCategoryUseCase = DefaultGetMyCourseCategoryUseCase(
+            repository: courseCategoriesRepository
+        )
+
+        self.setMyCourseCategoryUseCase = DefaultSetMyCourseCategoryUseCase(
             repository: courseCategoriesRepository
         )
     }

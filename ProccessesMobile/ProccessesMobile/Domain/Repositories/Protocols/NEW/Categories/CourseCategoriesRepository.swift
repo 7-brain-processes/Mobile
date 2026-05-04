@@ -26,4 +26,10 @@ protocol CourseCategoriesRepository: Sendable {
         courseId: UUID,
         categoryId: UUID
     ) async throws
+
+    func getMyCategory(courseId: UUID) async throws -> CourseCategory?
+    func setMyCategory(
+        courseId: UUID,
+        categoryId: UUID?
+    ) async throws
 }

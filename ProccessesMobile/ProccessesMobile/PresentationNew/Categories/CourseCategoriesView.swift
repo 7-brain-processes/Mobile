@@ -53,38 +53,73 @@ struct CourseCategoriesView: View {
                     }
                 }
             } else {
-                List(viewModel.categories, id: \.id) { category in
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 8) {
-                            Text(category.title)
-                                .font(.headline)
-
-                            if !category.isActive {
-                                Text("inactive")
-                                    .font(.caption)
+                List {
+                    if role == .student && viewModel.selectedCategoryId != nil {
+                        Button("Clear selection") {
+                            Task {
+                                await viewModel.clearSelection()
                             }
                         }
+                    }
 
-                        if !category.description.isEmpty {
-                            Text(category.description)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .padding(.vertical, 4)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        guard role == .teacher else { return }
-                        viewModel.openEditSheet(category: category)
-                    }
-                    .swipeActions {
-                        if role == .teacher {
-                            Button(role: .destructive) {
-                                Task {
-                                    await viewModel.delete(category: category)
+                    ForEach(viewModel.categories, id: \.id) { category in
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack(spacing: 8) {
+                                    Text(category.title)
+                                        .font(.headline)
+
+                                    if !category.isActive {
+                                        Text("inactive")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
-                            } label: {
-                                Label("Удалить", systemImage: "trash")
+
+                                if !category.description.isEmpty {
+                                    Text(category.description)
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+
+                            Spacer()
+
+                            if role == .student {
+                                Image(
+                                    systemName: viewModel.selectedCategoryId == category.id
+                                    ? "checkmark.circle.fill"
+                                    : "circle"
+                                )
+                                .foregroundStyle(
+                                    viewModel.selectedCategoryId == category.id
+                                    ? .blue
+                                    : .secondary
+                                )
+                            }
+                        }
+                        .padding(.vertical, 4)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            switch role {
+                            case .teacher:
+                                viewModel.openEditSheet(category: category)
+
+                            case .student:
+                                Task {
+                                    await viewModel.selectCategory(category)
+                                }
+                            }
+                        }
+                        .swipeActions {
+                            if role == .teacher {
+                                Button(role: .destructive) {
+                                    Task {
+                                        await viewModel.delete(category: category)
+                                    }
+                                } label: {
+                                    Label("Удалить", systemImage: "trash")
+                                }
                             }
                         }
                     }

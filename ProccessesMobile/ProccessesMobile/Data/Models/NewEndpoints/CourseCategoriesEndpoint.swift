@@ -13,6 +13,8 @@ enum CourseCategoriesEndpoint: Endpoint {
     case create(courseId: UUID, request: CreateCourseCategoryRequestDTO)
     case update(courseId: UUID, categoryId: UUID, request: UpdateCourseCategoryRequestDTO)
     case delete(courseId: UUID, categoryId: UUID)
+    case getMyCategory(courseId: UUID)
+    case setMyCategory(courseId: UUID, request: SetMyCourseCategoryRequestDTO)
 
     var path: String {
         switch self {
@@ -27,6 +29,11 @@ enum CourseCategoriesEndpoint: Endpoint {
 
         case .delete(let courseId, let categoryId):
             return "courses/\(courseId.uuidString)/categories/\(categoryId.uuidString)"
+
+        case .getMyCategory(let courseId):
+            return "courses/\(courseId.uuidString)/members/me/category"
+        case .setMyCategory(let courseId, _):
+            return "courses/\(courseId.uuidString)/members/me/category"
         }
     }
 
@@ -40,6 +47,10 @@ enum CourseCategoriesEndpoint: Endpoint {
             return .PUT
         case .delete:
             return .DELETE
+        case .getMyCategory:
+            return .GET
+        case .setMyCategory:
+            return .PUT
         }
     }
 
@@ -54,6 +65,10 @@ enum CourseCategoriesEndpoint: Endpoint {
         case .create(_, let request):
             return .json(request)
         case .update(_, _, let request):
+            return .json(request)
+        case .getMyCategory:
+            return .none
+        case .setMyCategory(_, let request):
             return .json(request)
         }
     }

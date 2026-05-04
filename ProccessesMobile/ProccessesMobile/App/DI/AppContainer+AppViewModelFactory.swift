@@ -237,7 +237,9 @@ extension AppContainer: ViewModelFactory {
         CourseCategoriesViewModel(
             courseId: courseId,
             listCourseCategoriesUseCase: listCourseCategoriesUseCase,
-            deleteCourseCategoryUseCase: deleteCourseCategoryUseCase
+            deleteCourseCategoryUseCase: deleteCourseCategoryUseCase,
+            getMyCourseCategoryUseCase: getMyCourseCategoryUseCase,
+            setMyCourseCategoryUseCase: setMyCourseCategoryUseCase
         )
     }
 
