@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct CourseCategoryDTO: Decodable, Equatable, Identifiable, Sendable {
+struct CourseCategoryDTO: Codable, Equatable, Identifiable, Sendable {
     let id: String
     let title: String
     let description: String

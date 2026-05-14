@@ -91,6 +91,11 @@ final class AppContainer: ObservableObject {
     let getMyCourseCategoryUseCase: GetMyCourseCategoryUseCase
     let setMyCourseCategoryUseCase: SetMyCourseCategoryUseCase
 
+    let teamRequirementTemplateRepository: TeamRequirementTemplateRepository
+
+    let listTeamRequirementTemplatesUseCase: ListTeamRequirementTemplatesUseCase
+    let createTeamRequirementTemplateUseCase: CreateTeamRequirementTemplateUseCase
+
     init(isAuthorized: Bool) {
         self.appCoordinator = AppCoordinator(isAuthorized: isAuthorized)
         self.authCoordinator = AuthCoordinator()
@@ -121,6 +126,16 @@ final class AppContainer: ObservableObject {
         self.solutionCommentsRepository = DefaultSolutionCommentsRepository(apiClient: apiClient)
         self.solutionFilesRepository = DefaultSolutionFilesRepository(apiClient: apiClient)
         self.solutionRepository = DefaultSolutionRepository(apiClient: apiClient)
+
+        // MARK: NEW REPOSITORIES
+        self.courseCategoriesRepository = DefaultCourseCategoriesRepository(
+            apiClient: apiClient
+        )
+
+        self.teamRequirementTemplateRepository = DefaultTeamRequirementTemplateRepository(
+            apiClient: apiClient
+        )
+        
 
         self.deletePostMaterialUseCase = DefaultDeletePostMaterialUseCase(
             repository: postMaterialsRepository
@@ -244,11 +259,7 @@ final class AppContainer: ObservableObject {
             repository: solutionFilesRepository
         )
 
-        // MARK: - NEW
-
-        self.courseCategoriesRepository = DefaultCourseCategoriesRepository(
-            apiClient: apiClient
-        )
+        // MARK: - NEW USE-CASES
 
         self.listCourseCategoriesUseCase = DefaultListCourseCategoriesUseCase(
             repository: courseCategoriesRepository
@@ -272,6 +283,14 @@ final class AppContainer: ObservableObject {
 
         self.setMyCourseCategoryUseCase = DefaultSetMyCourseCategoryUseCase(
             repository: courseCategoriesRepository
+        )
+
+        self.listTeamRequirementTemplatesUseCase = DefaultListTeamRequirementTemplatesUseCase(
+            repository: teamRequirementTemplateRepository
+        )
+
+        self.createTeamRequirementTemplateUseCase = DefaultCreateTeamRequirementTemplateUseCase(
+            repository: teamRequirementTemplateRepository
         )
     }
 }
