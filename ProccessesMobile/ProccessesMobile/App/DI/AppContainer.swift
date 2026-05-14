@@ -80,6 +80,17 @@ final class AppContainer: ObservableObject {
     let updateSolutionUseCase: UpdateSolutionUseCase
     let uploadSolutionFileUseCase: UploadSolutionFileUseCase
 
+    // MARK: - NEW
+    let courseCategoriesRepository: CourseCategoriesRepository
+
+    let createCourseCategoryUseCase: CreateCourseCategoryUseCase
+    let listCourseCategoriesUseCase: ListCourseCategoriesUseCase
+    let updateCourseCategoryUseCase: UpdateCourseCategoryUseCase
+    let deleteCourseCategoryUseCase: DeleteCourseCategoryUseCase
+
+    let getMyCourseCategoryUseCase: GetMyCourseCategoryUseCase
+    let setMyCourseCategoryUseCase: SetMyCourseCategoryUseCase
+
     init(isAuthorized: Bool) {
         self.appCoordinator = AppCoordinator(isAuthorized: isAuthorized)
         self.authCoordinator = AuthCoordinator()
@@ -231,6 +242,36 @@ final class AppContainer: ObservableObject {
         )
         self.uploadSolutionFileUseCase = DefaultUploadSolutionFileUseCase(
             repository: solutionFilesRepository
+        )
+
+        // MARK: - NEW
+
+        self.courseCategoriesRepository = DefaultCourseCategoriesRepository(
+            apiClient: apiClient
+        )
+
+        self.listCourseCategoriesUseCase = DefaultListCourseCategoriesUseCase(
+            repository: courseCategoriesRepository
+        )
+
+        self.createCourseCategoryUseCase = DefaultCreateCourseCategoryUseCase(
+            repository: courseCategoriesRepository
+        )
+
+        self.updateCourseCategoryUseCase = DefaultUpdateCourseCategoryUseCase(
+            repository: courseCategoriesRepository
+        )
+
+        self.deleteCourseCategoryUseCase = DefaultDeleteCourseCategoryUseCase(
+            repository: courseCategoriesRepository
+        )
+
+        self.getMyCourseCategoryUseCase = DefaultGetMyCourseCategoryUseCase(
+            repository: courseCategoriesRepository
+        )
+
+        self.setMyCourseCategoryUseCase = DefaultSetMyCourseCategoryUseCase(
+            repository: courseCategoriesRepository
         )
     }
 }

@@ -16,10 +16,11 @@ struct MainFlowView<Factory: AppViewFactory>: View {
             factory.makeCoursesView(coordinator: coordinator)
                 .navigationDestination(for: MainRoute.self) { route in
                     switch route {
-                    case let .course(courseId):
+                    case let .course(courseId, role):
                         factory.makeCourseFlowView(
                             coursesCoordinator: coordinator,
-                            courseId: courseId
+                            courseId: courseId,
+                            role: role
                         )
 
                     case let .taskDetails(courseId, postId):

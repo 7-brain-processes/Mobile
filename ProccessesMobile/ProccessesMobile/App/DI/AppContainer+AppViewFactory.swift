@@ -52,13 +52,12 @@ extension AppContainer: AppViewFactory {
 
     func makeCourseFlowView(
         coursesCoordinator: CoursesCoordinator,
-        courseId: UUID
+        courseId: UUID,
+        role: CourseRole
     ) -> AnyView {
         let coordinator = coursesCoordinator.coordinator(for: courseId) { id in
             makeCourseCoordinator(courseId: id)
         }
-
-        let role: CourseRole = .teacher
 
         return AnyView(
             CourseFlowView(
@@ -69,7 +68,6 @@ extension AppContainer: AppViewFactory {
             )
         )
     }
-
     func makeFeedView(
         courseId: UUID,
         role: CourseRole,
@@ -150,4 +148,53 @@ extension AppContainer: AppViewFactory {
         AnyView(Text("Members View"))
     }
 
+    func makeCourseCategoriesView(courseId: UUID, role: CourseRole) -> AnyView {
+        let listViewModel = makeCourseCategoriesViewModel(courseId: courseId)
+
+        return AnyView(
+            CourseCategoriesView(
+                viewModel: listViewModel,
+                role: role,
+                createViewBuilder: {
+                    AnyView(
+                        CreateCourseCategorySheetView(
+                            viewModel: self.makeCreateCourseCategoryViewModel(
+                                courseId: courseId,
+                                onCreated: {
+                                    await listViewModel.handleCategoryCreated()
+                                }
+                            )
+                        )
+                    )
+                },
+                editViewBuilder: { category in
+                    AnyView(
+                        EditCourseCategorySheetView(
+                            viewModel: self.makeEditCourseCategorySheetViewModel(
+                                courseId: courseId,
+                                category: category,
+                                onUpdated: {
+                                    await listViewModel.handleCategoryUpdated()
+                                }
+                            )
+                        )
+                    )
+                }
+            )
+        )
+    }
+
+    func makeCreateCourseCategoryView(
+        courseId: UUID,
+        onCreated: @escaping @MainActor () async -> Void
+    ) -> AnyView {
+        AnyView(
+            CreateCourseCategorySheetView(
+                viewModel: self.makeCreateCourseCategoryViewModel(
+                    courseId: courseId,
+                    onCreated: onCreated
+                )
+            )
+        )
+    }
 }

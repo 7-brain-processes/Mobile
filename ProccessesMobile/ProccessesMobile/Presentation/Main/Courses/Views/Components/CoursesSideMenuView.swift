@@ -14,7 +14,7 @@ struct CoursesSideMenuView: View {
     let currentUserDisplayName: String
     let teachingCourses: [CourseCardItem]
     let attendingCourses: [CourseCardItem]
-    let onCourseTap: (UUID) -> Void
+    let onCourseTap: (CourseCardItem) -> Void
     let onLogout: () -> Void
 
     var body: some View {
@@ -103,7 +103,7 @@ struct CoursesSideMenuView: View {
 
             ForEach(courses) { course in
                 Button {
-                    onCourseTap(course.id)
+                    onCourseTap(course)
                 } label: {
                     HStack(spacing: 12) {
                         ZStack {

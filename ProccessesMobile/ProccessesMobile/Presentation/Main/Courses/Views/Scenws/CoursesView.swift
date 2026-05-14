@@ -49,9 +49,11 @@ struct CoursesView: View {
                 LazyVStack(spacing: 16) {
                     ForEach(viewModel.courses) { course in
                         CourseCardView(course: course) {
-                            viewModel.courseTapped(id: course.id)
+                            viewModel.courseTapped(course: course)
                         }
-                        .accessibilityIdentifier(AccessibilityID.Courses.courseCard(course.id))
+                        .accessibilityIdentifier(
+                            AccessibilityID.Courses.courseCard(course.id)
+                        )
                     }
                 }
                 .padding(.horizontal, 16)
@@ -127,12 +129,12 @@ struct CoursesView: View {
                 currentUserDisplayName: viewModel.currentUserDisplayName,
                 teachingCourses: viewModel.teachingCourses,
                 attendingCourses: viewModel.attendingCourses,
-                onCourseTap: { courseId in
+                onCourseTap: { course in
                     withAnimation(.easeInOut(duration: 0.22)) {
                         isSideMenuPresented = false
                     }
                     DispatchQueue.main.async {
-                        viewModel.courseTapped(id: courseId)
+                        viewModel.courseTapped(course: course)
                     }
                 },
                 onLogout: {

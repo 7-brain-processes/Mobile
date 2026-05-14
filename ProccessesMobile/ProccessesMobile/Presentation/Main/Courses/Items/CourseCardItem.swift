@@ -11,9 +11,13 @@ struct CourseCardItem: Identifiable, Equatable {
     let id: UUID
     let name: String
     let description: String
-    let isTeacher: Bool
+    let role: CourseRole
     let teacherCount: Int
     let studentCount: Int
+
+    var isTeacher: Bool {
+        role == .teacher
+    }
 
     var roleText: String {
         isTeacher ? "Teacher" : "Student"

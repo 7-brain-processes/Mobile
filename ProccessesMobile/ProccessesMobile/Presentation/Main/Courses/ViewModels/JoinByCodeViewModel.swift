@@ -51,7 +51,10 @@ final class JoinByCodeViewModel: ObservableObject {
                 )
 
                 navigator?.dismissSheet()
-                navigator?.openCourse(id: course.id)
+                navigator?.openCourse(
+                    id: course.id,
+                    role: course.currentUserRole ?? .student
+                )
             } catch {
                 errorMessage = error.localizedDescription
             }
