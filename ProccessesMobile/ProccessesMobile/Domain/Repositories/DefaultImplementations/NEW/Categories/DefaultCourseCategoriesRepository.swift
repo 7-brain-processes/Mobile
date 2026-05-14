@@ -132,16 +132,16 @@ final class DefaultCourseCategoriesRepository: CourseCategoriesRepository, Senda
             }
             let dto = try decoder.decode(CourseCategoryDTO.self, from: data)
             return try CourseCategoryMapper.toDomain(dto)
-
         case 404:
             return nil
-
+        case 403:
+            throw AppError.forbidden
         default:
             throw AppError.serverError(statusCode: response.statusCode)
         }
     }
 
-    func setMyCategory(courseId: UUID, categoryId: UUID?) async throws {
+    func setMyCategory(courseId: UUID, categoryId: UUID?) async throws -> CourseCategory? {
         let request = SetMyCourseCategoryRequest(categoryId: categoryId)
         let dto = SetMyCourseCategoryRequestMapper.toDTO(request)
 
@@ -150,11 +150,22 @@ final class DefaultCourseCategoriesRepository: CourseCategoriesRepository, Senda
             request: dto
         )
 
-        let (_, response) = try await apiClient.send(endpoint)
+        let (data, response) = try await apiClient.send(endpoint)
 
         switch response.statusCode {
         case 200:
-            return
+            if data.isEmpty {
+                return nil
+            }
+
+            let dto = try decoder.decode(CourseCategoryDTO.self, from: data)
+            return try CourseCategoryMapper.toDomain(dto)
+
+        case 403:
+            throw AppError.forbidden
+
+        case 404:
+            return nil
 
         default:
             throw AppError.serverError(statusCode: response.statusCode)

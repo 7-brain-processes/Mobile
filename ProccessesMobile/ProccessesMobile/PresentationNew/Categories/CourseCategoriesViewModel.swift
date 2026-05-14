@@ -18,6 +18,7 @@ final class CourseCategoriesViewModel: ObservableObject {
     @Published var editingCategory: CourseCategory?
     @Published private(set) var deletingCategoryId: UUID?
     @Published private(set) var selectedCategoryId: UUID?
+    @Published private(set) var isSelectionUpdating = false
 
     private let courseId: UUID
     private let listCourseCategoriesUseCase: ListCourseCategoriesUseCase
@@ -58,7 +59,7 @@ final class CourseCategoriesViewModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
         }
-
+        
         isLoading = false
     }
 
@@ -106,26 +107,42 @@ final class CourseCategoriesViewModel: ObservableObject {
     }
 
     func selectCategory(_ category: CourseCategory) async {
+        guard !isSelectionUpdating else { return }
+
+        isSelectionUpdating = true
+        errorMessage = nil
+
         do {
-            try await setMyCourseCategoryUseCase.execute(
+            let selected = try await setMyCourseCategoryUseCase.execute(
                 courseId: courseId,
                 categoryId: category.id
             )
-            selectedCategoryId = category.id
+            
+            selectedCategoryId = selected?.id ?? category.id
         } catch {
             errorMessage = error.localizedDescription
         }
+        
+        isSelectionUpdating = false
     }
 
     func clearSelection() async {
+        guard !isSelectionUpdating else { return }
+
+        isSelectionUpdating = true
+        errorMessage = nil
+
         do {
-            try await setMyCourseCategoryUseCase.execute(
+            _ = try await setMyCourseCategoryUseCase.execute(
                 courseId: courseId,
                 categoryId: nil
             )
+
             selectedCategoryId = nil
         } catch {
             errorMessage = error.localizedDescription
         }
+
+        isSelectionUpdating = false
     }
 }

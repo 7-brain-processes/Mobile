@@ -18,21 +18,16 @@ enum CourseCategoriesEndpoint: Endpoint {
 
     var path: String {
         switch self {
-        case .list(let courseId):
+        case .list(let courseId),
+             .create(let courseId, _):
             return "courses/\(courseId.uuidString)/categories"
 
-        case .create(let courseId, _):
-            return "courses/\(courseId.uuidString)/categories"
-
-        case .update(let courseId, let categoryId, _):
+        case .update(let courseId, let categoryId, _),
+             .delete(let courseId, let categoryId):
             return "courses/\(courseId.uuidString)/categories/\(categoryId.uuidString)"
 
-        case .delete(let courseId, let categoryId):
-            return "courses/\(courseId.uuidString)/categories/\(categoryId.uuidString)"
-
-        case .getMyCategory(let courseId):
-            return "courses/\(courseId.uuidString)/members/me/category"
-        case .setMyCategory(let courseId, _):
+        case .getMyCategory(let courseId),
+             .setMyCategory(let courseId, _):
             return "courses/\(courseId.uuidString)/members/me/category"
         }
     }

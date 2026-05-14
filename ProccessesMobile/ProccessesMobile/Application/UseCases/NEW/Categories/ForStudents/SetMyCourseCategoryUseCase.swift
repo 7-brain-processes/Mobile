@@ -7,6 +7,6 @@
 
 import Foundation
 
-protocol SetMyCourseCategoryUseCase {
-    func execute(courseId: UUID, categoryId: UUID?) async throws
+protocol SetMyCourseCategoryUseCase: Sendable {
+    func execute(courseId: UUID, categoryId: UUID?) async throws -> CourseCategory?
 }

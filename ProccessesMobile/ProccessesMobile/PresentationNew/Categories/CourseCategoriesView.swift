@@ -55,11 +55,14 @@ struct CourseCategoriesView: View {
             } else {
                 List {
                     if role == .student && viewModel.selectedCategoryId != nil {
-                        Button("Clear selection") {
+                        Button {
                             Task {
                                 await viewModel.clearSelection()
                             }
+                        } label: {
+                            Label("Сбросить выбор", systemImage: "xmark.circle")
                         }
+                        .disabled(viewModel.isSelectionUpdating)
                     }
 
                     ForEach(viewModel.categories, id: \.id) { category in
@@ -86,16 +89,21 @@ struct CourseCategoriesView: View {
                             Spacer()
 
                             if role == .student {
-                                Image(
-                                    systemName: viewModel.selectedCategoryId == category.id
-                                    ? "checkmark.circle.fill"
-                                    : "circle"
-                                )
-                                .foregroundStyle(
-                                    viewModel.selectedCategoryId == category.id
-                                    ? .blue
-                                    : .secondary
-                                )
+                                if viewModel.isSelectionUpdating &&
+                                    viewModel.selectedCategoryId == category.id {
+                                    ProgressView()
+                                } else {
+                                    Image(
+                                        systemName: viewModel.selectedCategoryId == category.id
+                                        ? "checkmark.circle.fill"
+                                        : "circle"
+                                    )
+                                    .foregroundStyle(
+                                        viewModel.selectedCategoryId == category.id
+                                        ? .blue
+                                        : .secondary
+                                    )
+                                }
                             }
                         }
                         .padding(.vertical, 4)
@@ -106,6 +114,7 @@ struct CourseCategoriesView: View {
                                 viewModel.openEditSheet(category: category)
 
                             case .student:
+                                guard category.isActive else { return }
                                 Task {
                                     await viewModel.selectCategory(category)
                                 }

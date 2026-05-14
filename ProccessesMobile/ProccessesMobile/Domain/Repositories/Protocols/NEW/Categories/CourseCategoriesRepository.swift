@@ -22,14 +22,8 @@ protocol CourseCategoriesRepository: Sendable {
         request: UpdateCourseCategoryRequest
     ) async throws -> CourseCategory
 
-    func deleteCourseCategory(
-        courseId: UUID,
-        categoryId: UUID
-    ) async throws
+    func deleteCourseCategory(courseId: UUID, categoryId: UUID) async throws
 
     func getMyCategory(courseId: UUID) async throws -> CourseCategory?
-    func setMyCategory(
-        courseId: UUID,
-        categoryId: UUID?
-    ) async throws
+    func setMyCategory(courseId: UUID, categoryId: UUID?) async throws -> CourseCategory?
 }
