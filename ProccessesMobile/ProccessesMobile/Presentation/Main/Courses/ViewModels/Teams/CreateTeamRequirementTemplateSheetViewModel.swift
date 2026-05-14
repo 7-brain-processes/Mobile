@@ -24,6 +24,11 @@ final class CreateTeamRequirementTemplateSheetViewModel: ObservableObject {
     @Published private(set) var isSubmitting = false
     @Published private(set) var errorMessage: String?
 
+    private enum TeamSizeField {
+        case min
+        case max
+    }
+
     private let courseId: UUID
     private let listCourseCategoriesUseCase: ListCourseCategoriesUseCase
     private let createTeamRequirementTemplateUseCase: CreateTeamRequirementTemplateUseCase
@@ -75,8 +80,14 @@ final class CreateTeamRequirementTemplateSheetViewModel: ObservableObject {
                 courseId: courseId,
                 name: name.trimmingCharacters(in: .whitespacesAndNewlines),
                 description: normalizedDescription(),
-                minTeamSize: try parseOptionalInt(minTeamSize),
-                maxTeamSize: try parseOptionalInt(maxTeamSize),
+                minTeamSize: try parseOptionalInt(
+                    minTeamSize,
+                    field: .min
+                ),
+                maxTeamSize: try parseOptionalInt(
+                    maxTeamSize,
+                    field: .max
+                ),
                 requiredCategoryId: selectedCategoryId,
                 requireAudio: requireAudio,
                 requireVideo: requireVideo
@@ -96,12 +107,23 @@ final class CreateTeamRequirementTemplateSheetViewModel: ObservableObject {
         return trimmed.isEmpty ? nil : trimmed
     }
 
-    private func parseOptionalInt(_ value: String) throws -> Int? {
+    private func parseOptionalInt(
+        _ value: String,
+        field: TeamSizeField
+    ) throws -> Int? {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return nil }
+
+        guard !trimmed.isEmpty else {
+            return nil
+        }
 
         guard let intValue = Int(trimmed) else {
-            throw TeamRequirementTemplateValidationError.invalidMinTeamSize
+            switch field {
+            case .min:
+                throw TeamRequirementTemplateValidationError.invalidMinTeamSize
+            case .max:
+                throw TeamRequirementTemplateValidationError.invalidMaxTeamSize
+            }
         }
 
         return intValue
