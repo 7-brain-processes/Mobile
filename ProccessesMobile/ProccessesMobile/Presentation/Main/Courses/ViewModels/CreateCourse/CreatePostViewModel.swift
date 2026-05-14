@@ -27,6 +27,8 @@ final class CreatePostViewModel: ObservableObject {
     @Published var selectedTeamRequirementTemplateId: UUID?
     @Published private(set) var teamRequirementTemplates: [TeamRequirementTemplate] = []
 
+    @Published var isCreateTemplateSheetPresented = false
+
     let initialType: FeedPostType
 
     init(
@@ -99,6 +101,16 @@ final class CreatePostViewModel: ObservableObject {
             errorMessage = "Unexpected error"
             return false
         }
+    }
+
+    func openCreateTemplateSheet() {
+        isCreateTemplateSheetPresented = true
+    }
+
+    func handleTemplateCreated(_ template: TeamRequirementTemplate) async {
+        isCreateTemplateSheetPresented = false
+        await loadTeamRequirementTemplates()
+        selectedTeamRequirementTemplateId = template.id
     }
 
     private func normalizedContent() -> String? {

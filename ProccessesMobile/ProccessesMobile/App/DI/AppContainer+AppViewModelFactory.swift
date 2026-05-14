@@ -267,4 +267,16 @@ extension AppContainer: ViewModelFactory {
             onUpdated: onUpdated
         )
     }
+
+    func makeCreateTeamRequirementTemplateViewModel(
+        courseId: UUID,
+        onCreated: @escaping @MainActor (TeamRequirementTemplate) async -> Void
+    ) -> CreateTeamRequirementTemplateSheetViewModel {
+        CreateTeamRequirementTemplateSheetViewModel(
+            courseId: courseId,
+            listCourseCategoriesUseCase: listCourseCategoriesUseCase,
+            createTeamRequirementTemplateUseCase: createTeamRequirementTemplateUseCase,
+            onCreated: onCreated
+        )
+    }
 }

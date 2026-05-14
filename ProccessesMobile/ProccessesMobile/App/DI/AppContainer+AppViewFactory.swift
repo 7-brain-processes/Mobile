@@ -134,12 +134,26 @@ extension AppContainer: AppViewFactory {
         courseId: UUID,
         postType initialType: FeedPostType
     ) -> AnyView {
-        AnyView(
+        let viewModel = makeCreatePostViewModel(
+            courseId: courseId,
+            initialType: initialType
+        )
+
+        return AnyView(
             CreatePostView(
-                viewModel: makeCreatePostViewModel(
-                    courseId: courseId,
-                    initialType: initialType
-                )
+                viewModel: viewModel,
+                createTemplateViewBuilder: {
+                    AnyView(
+                        CreateTeamRequirementTemplateSheetView(
+                            viewModel: self.makeCreateTeamRequirementTemplateViewModel(
+                                courseId: courseId,
+                                onCreated: { template in
+                                    await viewModel.handleTemplateCreated(template)
+                                }
+                            )
+                        )
+                    )
+                }
             )
         )
     }
@@ -191,6 +205,20 @@ extension AppContainer: AppViewFactory {
         AnyView(
             CreateCourseCategorySheetView(
                 viewModel: self.makeCreateCourseCategoryViewModel(
+                    courseId: courseId,
+                    onCreated: onCreated
+                )
+            )
+        )
+    }
+
+    func makeCreateTeamRequirementTemplateView(
+        courseId: UUID,
+        onCreated: @escaping @MainActor (TeamRequirementTemplate) async -> Void
+    ) -> AnyView {
+        AnyView(
+            CreateTeamRequirementTemplateSheetView(
+                viewModel: self.makeCreateTeamRequirementTemplateViewModel(
                     courseId: courseId,
                     onCreated: onCreated
                 )

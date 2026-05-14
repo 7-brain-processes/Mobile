@@ -52,4 +52,9 @@ protocol AppViewFactory {
         courseId: UUID,
         onCreated: @escaping @MainActor () async -> Void
     ) -> AnyView
+
+    func makeCreateTeamRequirementTemplateView(
+        courseId: UUID,
+        onCreated: @escaping @MainActor (TeamRequirementTemplate) async -> Void
+    ) -> AnyView
 }

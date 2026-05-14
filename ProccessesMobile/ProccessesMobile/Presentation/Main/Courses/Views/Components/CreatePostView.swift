@@ -13,9 +13,14 @@ struct CreatePostView: View {
 
     @Environment(\.dismiss) private var dismiss
     @State private var isImporterPresented = false
+    private let createTemplateViewBuilder: () -> AnyView
 
-    init(viewModel: CreatePostViewModel) {
+    init(
+        viewModel: CreatePostViewModel,
+        createTemplateViewBuilder: @escaping () -> AnyView
+    ) {
         _viewModel = StateObject(wrappedValue: viewModel)
+        self.createTemplateViewBuilder = createTemplateViewBuilder
     }
 
     var body: some View {
@@ -55,6 +60,10 @@ struct CreatePostView: View {
                                     .tag(Optional(template.id))
                             }
                         }
+                    }
+
+                    Button("Create a requirements template") {
+                        viewModel.openCreateTemplateSheet()
                     }
 
                     if let selectedTemplate = viewModel.teamRequirementTemplates.first(
@@ -140,6 +149,9 @@ struct CreatePostView: View {
             if case let .success(urls) = result {
                 viewModel.selectedFileURLs = urls
             }
+        }
+        .sheet(isPresented: $viewModel.isCreateTemplateSheetPresented) {
+            createTemplateViewBuilder()
         }
     }
 }
