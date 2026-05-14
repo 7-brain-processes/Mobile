@@ -23,11 +23,19 @@ struct MainFlowView<Factory: AppViewFactory>: View {
                             role: role
                         )
 
-                    case let .taskDetails(courseId, postId):
-                        factory.makeTaskDetailView(courseId: courseId, postId: postId)
+                    case let .taskDetails(courseId, postId, role):
+                        factory.makeTaskDetailView(
+                            courseId: courseId,
+                            postId: postId,
+                            role: role
+                        )
 
-                    case let .materialDetails(courseId, postId):
-                        factory.makeMaterialDetailView(courseId: courseId, postId: postId)
+                    case let .materialDetails(courseId, postId, role):
+                        factory.makeMaterialDetailView(
+                            courseId: courseId,
+                            postId: postId,
+                            role: role
+                        )
 
                     case let .createPost(courseId, postType):
                         factory.makeCreatePostView(courseId: courseId, postType: postType)

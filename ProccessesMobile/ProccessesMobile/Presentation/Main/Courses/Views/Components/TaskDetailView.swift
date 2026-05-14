@@ -116,6 +116,9 @@ struct TaskDetailView: View {
             )
         }
         .accessibilityIdentifier(AccessibilityID.TaskDetail.screen)
+        .task {
+            viewModel.onAppear()
+        }
     }
 
     private var contentMode: TaskDetailViewModel.TeacherTab {
@@ -123,40 +126,81 @@ struct TaskDetailView: View {
     }
 
     private var taskContent: some View {
-        VStack(spacing: 16) {
-            PostDetailHeaderCard(
-                iconName: "checklist",
-                iconColor: .orange,
-                title: viewModel.item.title,
-                author: viewModel.item.authorDisplayName,
-                createdAt: viewModel.item.createdAt,
-                deadline: viewModel.item.deadline,
-                description: viewModel.item.content,
-                titleIdentifier: AccessibilityID.TaskDetail.title,
-                authorIdentifier: AccessibilityID.TaskDetail.author,
-                dateIdentifier: AccessibilityID.TaskDetail.date,
-                deadlineIdentifier: AccessibilityID.TaskDetail.deadline,
-                descriptionIdentifier: AccessibilityID.TaskDetail.description
-            )
-            .padding(.horizontal, 16)
+        Group {
+            if let item = viewModel.item {
+                VStack(spacing: 16) {
+                    PostDetailHeaderCard(
+                        iconName: "checklist",
+                        iconColor: .orange,
+                        title: item.title,
+                        author: item.authorDisplayName,
+                        createdAt: item.createdAt,
+                        deadline: item.deadline,
+                        description: item.content,
+                        titleIdentifier: AccessibilityID.TaskDetail.title,
+                        authorIdentifier: AccessibilityID.TaskDetail.author,
+                        dateIdentifier: AccessibilityID.TaskDetail.date,
+                        deadlineIdentifier: AccessibilityID.TaskDetail.deadline,
+                        descriptionIdentifier: AccessibilityID.TaskDetail.description
+                    )
+                    .padding(.horizontal, 16)
 
-            PostAttachmentsSectionView(
-                title: "Materials",
-                attachments: viewModel.item.attachments,
-                onAttachmentTap: { attachment in
-                    viewModel.openTaskMaterial(attachment)
-                }
-            )
-            .padding(.horizontal, 16)
+                    if item.teamFormationMode != nil || item.teamRequirementTemplateId != nil {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Team settings")
+                                .font(.headline)
 
-            PostCommentsSectionView(
-                comments: viewModel.item.comments,
-                draftComment: $viewModel.draftComment,
-                onSendComment: {
-                    viewModel.addPostComment()
+                            if let mode = item.teamFormationMode {
+                                Text("Team mode: \(mode.title)")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            if item.teamRequirementTemplateId != nil {
+                                Text("Requirements template selected")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(16)
+                        .background(Color(.systemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .padding(.horizontal, 16)
+                    }
+
+                    PostAttachmentsSectionView(
+                        title: "Materials",
+                        attachments: item.attachments,
+                        onAttachmentTap: { attachment in
+                            viewModel.openTaskMaterial(attachment)
+                        }
+                    )
+                    .padding(.horizontal, 16)
+
+                    PostCommentsSectionView(
+                        comments: item.comments,
+                        draftComment: $viewModel.draftComment,
+                        onSendComment: {
+                            viewModel.addPostComment()
+                        }
+                    )
+                    .padding(.horizontal, 16)
                 }
-            )
-            .padding(.horizontal, 16)
+            } else if viewModel.isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+                    .padding()
+            } else {
+                ContentUnavailableView(
+                    "Task not loaded",
+                    systemImage: "exclamationmark.triangle"
+                )
+            }
         }
     }
 

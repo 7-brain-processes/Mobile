@@ -53,6 +53,9 @@ struct FeedPostItem: Identifiable, Equatable {
     let commentsCount: Int
     let solutionsCount: Int?
     let mySolutionId: UUID?
+
+    let teamFormationMode: TeamFormationMode?
+    let teamRequirementTemplateId: UUID?
 }
 
 struct TaskDetailItem: Equatable {
@@ -64,7 +67,11 @@ struct TaskDetailItem: Equatable {
     let authorDisplayName: String
     let attachments: [FeedAttachmentItem]
     let comments: [PostCommentItem]
+
+    let teamFormationMode: TeamFormationMode?
+    let teamRequirementTemplateId: UUID?
 }
+
 struct MaterialDetailItem: Equatable {
     let id: UUID
     let title: String

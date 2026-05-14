@@ -50,15 +50,16 @@ final class CoursesCoordinator: ObservableObject, CoordinatorProtocol, CoursesNa
     }
 }
 extension CoursesCoordinator: FeedScreenNavigating {
-    func openTaskDetail(courseId: UUID, postId: UUID) {
-        path.append(.taskDetails(courseId: courseId, postId: postId))
-       }
+    
+    func openTaskDetail(courseId: UUID, postId: UUID, role: CourseRole) {
+        path.append(.taskDetails(courseId: courseId, postId: postId, role: role))
+    }
 
-       func openMaterialDetail(courseId: UUID, postId: UUID) {
-           path.append(.materialDetails(courseId: courseId, postId: postId))
-       }
+    func openMaterialDetail(courseId: UUID, postId: UUID, role: CourseRole) {
+        path.append(.materialDetails(courseId: courseId, postId: postId, role: role))
+    }
 
-       func openCreatePost(courseId: UUID, type: FeedPostType) {
-           path.append(.createPost(courseId, type))
-       }
+    func openCreatePost(courseId: UUID, type: FeedPostType) {
+        path.append(.createPost(courseId, type))
+    }
 }

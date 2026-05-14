@@ -40,8 +40,16 @@ protocol AppViewFactory {
         role: CourseRole
     ) -> AnyView
 
-    func makeTaskDetailView(courseId: UUID, postId: UUID) -> AnyView
-    func makeMaterialDetailView(courseId: UUID, postId: UUID) -> AnyView
+    func makeTaskDetailView(
+        courseId: UUID,
+        postId: UUID,
+        role: CourseRole
+    ) -> AnyView
+    func makeMaterialDetailView(
+        courseId: UUID,
+        postId: UUID,
+        role: CourseRole
+    ) -> AnyView
     func makeCreatePostView(courseId: UUID, postType: FeedPostType) -> AnyView
 
     func makeMembersView(courseId: UUID, coordinator: MembersCoordinator) -> AnyView

@@ -17,7 +17,12 @@ protocol ViewModelFactory {
     func makeJoinByCodeViewModel(coordinator: CoursesCoordinator) -> JoinByCodeViewModel
 
     func makeCourseViewModel(courseId: UUID) -> CourseViewModel
-    
+    func makeTaskDetailViewModel(
+        courseId: UUID,
+        postId: UUID,
+        role: CourseRole
+    ) -> TaskDetailViewModel
+
     // MARK: - NEW
     func makeCourseCategoriesViewModel(courseId: UUID) -> CourseCategoriesViewModel
 

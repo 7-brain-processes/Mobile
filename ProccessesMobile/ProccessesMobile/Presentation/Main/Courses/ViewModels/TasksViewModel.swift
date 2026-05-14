@@ -48,7 +48,11 @@ final class TasksViewModel: ObservableObject {
     }
 
     func taskTapped(_ task: FeedPostItem) {
-        navigator?.openTaskDetail(courseId: courseId, postId: task.id)
+        navigator?.openTaskDetail(
+            courseId: courseId,
+            postId: task.id,
+            role: role
+        )
     }
 
     private func loadTasks() {
@@ -89,7 +93,9 @@ final class TasksViewModel: ObservableObject {
             attachments: [],
             commentsCount: post.commentsCount,
             solutionsCount: post.solutionsCount,
-            mySolutionId: post.mySolutionId
+            mySolutionId: post.mySolutionId,
+            teamFormationMode: post.teamFormationMode,
+            teamRequirementTemplateId: post.teamRequirementTemplateId
         )
     }
 }

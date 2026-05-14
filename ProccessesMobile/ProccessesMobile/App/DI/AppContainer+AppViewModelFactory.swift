@@ -115,91 +115,16 @@ extension AppContainer: ViewModelFactory {
         )
     }
     
-    func makeTaskDetailViewModel(postId: UUID) -> TaskDetailViewModel {
+    func makeTaskDetailViewModel(
+        courseId: UUID,
+        postId: UUID,
+        role: CourseRole
+    ) -> TaskDetailViewModel {
         TaskDetailViewModel(
-            role: .teacher,
-            item: TaskDetailItem(
-                id: postId,
-                title: "Homework 1",
-                content: "Solve the first five problems and attach your work.",
-                createdAt: Date(),
-                deadline: Calendar.current.date(byAdding: .day, value: 3, to: Date()),
-                authorDisplayName: "Professor Adams",
-                attachments: [
-                    FeedAttachmentItem(id: UUID(), type: .image, fileName: "worksheet-1.png", previewURL: nil),
-                    FeedAttachmentItem(id: UUID(), type: .file, fileName: "requirements.pdf", previewURL: nil)
-                ],
-                comments: [
-                    PostCommentItem(
-                        id: UUID(),
-                        authorName: "Alice Brown",
-                        text: "Can I submit handwritten work?",
-                        createdAt: Date()
-                    ),
-                    PostCommentItem(
-                        id: UUID(),
-                        authorName: "Professor Adams",
-                        text: "Yes, as long as it is readable.",
-                        createdAt: Date()
-                    )
-                ]
-            ),
-            studentAttachments: [
-                FeedAttachmentItem(id: UUID(), type: .image, fileName: "answer-1.jpg", previewURL: nil)
-            ],
-            studentSubmissionText: "I solved all five tasks. Please check my approach in question 4.",
-            studentSubmissionStatus: .draft,
-            studentTeacherComments: [
-                TeacherReviewCommentItem(
-                    id: UUID(),
-                    authorName: "Professor Adams",
-                    text: "Please revise the last exercise.",
-                    createdAt: Date()
-                )
-            ],
-            submissions: [
-                TaskSubmissionItem(
-                    id: UUID(),
-                    studentName: "Alice Brown",
-                    submittedAt: Date(),
-                    status: .submitted,
-                    text: "Please see attached work. I was unsure about task 2.",
-                    grade: 85,
-                    teacherComments: [
-                        TeacherReviewCommentItem(
-                            id: UUID(),
-                            authorName: "Professor Adams",
-                            text: "Good structure, but improve problem 2.",
-                            createdAt: Date()
-                        )
-                    ],
-                    attachments: [
-                        FeedAttachmentItem(id: UUID(), type: .image, fileName: "alice-1.jpg", previewURL: nil),
-                        FeedAttachmentItem(id: UUID(), type: .file, fileName: "alice-notes.pdf", previewURL: nil)
-                    ],
-                    isLate: false
-                ),
-                TaskSubmissionItem(
-                    id: UUID(),
-                    studentName: "Bob Green",
-                    submittedAt: Date(),
-                    status: .submitted,
-                    text: "I had difficulty with the final question.",
-                    grade: nil,
-                    teacherComments: [
-                        TeacherReviewCommentItem(
-                            id: UUID(),
-                            authorName: "Professor Adams",
-                            text: "Please expand your reasoning in task 5.",
-                            createdAt: Date()
-                        )
-                    ],
-                    attachments: [
-                        FeedAttachmentItem(id: UUID(), type: .image, fileName: "bob-1.jpg", previewURL: nil)
-                    ],
-                    isLate: true
-                )
-            ]
+            courseId: courseId,
+            postId: postId,
+            role: role,
+            getPostUseCase: getPostUseCase
         )
     }
     
