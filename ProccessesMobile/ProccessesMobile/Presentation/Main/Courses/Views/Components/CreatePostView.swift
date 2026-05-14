@@ -31,6 +31,66 @@ struct CreatePostView: View {
                 }
             }
 
+            if viewModel.initialType == .task {
+                Section("Team formation") {
+                    Picker("Mode", selection: $viewModel.teamFormationMode) {
+                        ForEach(TeamFormationMode.allCases) { mode in
+                            Text(mode.title).tag(mode)
+                        }
+                    }
+
+                    if viewModel.isTemplatesLoading {
+                        HStack {
+                            ProgressView()
+                            Text("Loading templates...")
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        Picker("Requirements", selection: $viewModel.selectedTeamRequirementTemplateId) {
+                            Text("No template")
+                                .tag(UUID?.none)
+
+                            ForEach(viewModel.teamRequirementTemplates) { template in
+                                Text(template.name)
+                                    .tag(Optional(template.id))
+                            }
+                        }
+                    }
+
+                    if let selectedTemplate = viewModel.teamRequirementTemplates.first(
+                        where: { $0.id == viewModel.selectedTeamRequirementTemplateId }
+                    ) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Selected template")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+
+                            Text(selectedTemplate.name)
+                                .font(.subheadline)
+
+                            if let min = selectedTemplate.minTeamSize {
+                                Text("Min team size: \(min)")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            if let max = selectedTemplate.maxTeamSize {
+                                Text("Max team size: \(max)")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            if let category = selectedTemplate.requiredCategory {
+                                Text("Required category: \(category.title)")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+            }
+
             Section("Attachments") {
                 Button("Attach files") {
                     isImporterPresented = true
@@ -68,6 +128,9 @@ struct CreatePostView: View {
                 }
                 .disabled(!viewModel.canCreate)
             }
+        }
+        .task {
+            await viewModel.onAppear()
         }
         .fileImporter(
             isPresented: $isImporterPresented,

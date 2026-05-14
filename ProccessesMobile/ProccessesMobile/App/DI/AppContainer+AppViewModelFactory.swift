@@ -76,7 +76,8 @@ extension AppContainer: ViewModelFactory {
         return CreatePostViewModel(
             courseId: courseId,
             initialType: initialType,
-            createPostUseCase: useCase
+            createPostUseCase: useCase,
+            listTeamRequirementTemplatesUseCase: listTeamRequirementTemplatesUseCase
         )
     }
 
