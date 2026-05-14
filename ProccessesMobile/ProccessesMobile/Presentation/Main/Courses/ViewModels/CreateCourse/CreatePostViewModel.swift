@@ -21,6 +21,9 @@ final class CreatePostViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
 
+    @Published var teamFormationMode: TeamFormationMode = .free
+    @Published var selectedTeamRequirementTemplateId: UUID?
+
     let initialType: FeedPostType
 
     init(
@@ -51,6 +54,8 @@ final class CreatePostViewModel: ObservableObject {
                     title: title,
                     content: normalizedContent(),
                     type: mapFeedPostType(initialType),
+                    teamFormationMode: initialType == .task ? teamFormationMode : nil,
+                    teamRequirementTemplateId: initialType == .task ? selectedTeamRequirementTemplateId : nil,
                     deadline: initialType == .task ? deadline : nil
                 )
             )
