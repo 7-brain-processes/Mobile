@@ -8,6 +8,7 @@
 
 import Combine
 import Foundation
+import UniformTypeIdentifiers
 
 @MainActor
 final class TaskDetailViewModel: ObservableObject {
@@ -23,6 +24,8 @@ final class TaskDetailViewModel: ObservableObject {
     private let courseId: UUID
     private let postId: UUID
     private let getPostUseCase: GetPostUseCase
+    private let listPostMaterialsUseCase: ListPostMaterialsUseCase
+    private let uploadPostMaterialUseCase: UploadPostMaterialUseCase
 
     @Published var item: TaskDetailItem?
     @Published var isLoading = false
@@ -37,7 +40,6 @@ final class TaskDetailViewModel: ObservableObject {
 
     @Published var submissions: [TaskSubmissionItem] = []
     @Published var selectedTeacherTab: TeacherTab = .task
-
     @Published var isStudentWorkSheetPresented = false
     @Published var selectedSubmissionForSheet: TaskSubmissionItem?
     @Published var previewAttachment: FeedAttachmentItem?
@@ -46,12 +48,16 @@ final class TaskDetailViewModel: ObservableObject {
         courseId: UUID,
         postId: UUID,
         role: CourseRole,
-        getPostUseCase: GetPostUseCase
+        getPostUseCase: GetPostUseCase,
+        listPostMaterialsUseCase: ListPostMaterialsUseCase,
+        uploadPostMaterialUseCase: UploadPostMaterialUseCase
     ) {
         self.courseId = courseId
         self.postId = postId
         self.role = role
         self.getPostUseCase = getPostUseCase
+        self.listPostMaterialsUseCase = listPostMaterialsUseCase
+        self.uploadPostMaterialUseCase = uploadPostMaterialUseCase
     }
 
     var isTeacher: Bool { role == .teacher }
@@ -79,12 +85,25 @@ final class TaskDetailViewModel: ObservableObject {
             defer { isLoading = false }
 
             do {
-                let post = try await getPostUseCase.execute(
+                async let postTask = getPostUseCase.execute(
                     courseId: courseId,
                     postId: postId
                 )
 
-                item = Self.mapPostToTaskDetailItem(post)
+                async let materialsTask = listPostMaterialsUseCase.execute(
+                    ListPostMaterialsQuery(
+                        courseId: courseId,
+                        postId: postId
+                    )
+                )
+
+                let post = try await postTask
+                let materials = try await materialsTask
+
+                item = Self.mapPostToTaskDetailItem(
+                    post,
+                    materials: materials
+                )
             } catch {
                 errorMessage = error.localizedDescription
             }
@@ -251,12 +270,65 @@ final class TaskDetailViewModel: ObservableObject {
         print("Share attachment: \(attachment.fileName)")
     }
 
+    func uploadMaterial(from url: URL) async {
+        guard isTeacher else { return }
+        guard let item else { return }
+
+        do {
+            let didStartAccessing = url.startAccessingSecurityScopedResource()
+            defer {
+                if didStartAccessing {
+                    url.stopAccessingSecurityScopedResource()
+                }
+            }
+
+            let data = try Data(contentsOf: url)
+
+            let uploaded = try await uploadPostMaterialUseCase.execute(
+                UploadPostMaterialCommand(
+                    courseId: courseId,
+                    postId: postId,
+                    fileName: url.lastPathComponent,
+                    mimeType: contentType(for: url),
+                    data: data
+                )
+            )
+
+            self.item = TaskDetailItem(
+                id: item.id,
+                title: item.title,
+                content: item.content,
+                createdAt: item.createdAt,
+                deadline: item.deadline,
+                authorDisplayName: item.authorDisplayName,
+                attachments: item.attachments + [uploaded.toFeedAttachmentItem()],
+                comments: item.comments,
+                teamFormationMode: item.teamFormationMode,
+                teamRequirementTemplateId: item.teamRequirementTemplateId
+            )
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     private func refreshSelectedSubmission(submissionId: UUID) {
         guard selectedSubmissionForSheet?.id == submissionId else { return }
         selectedSubmissionForSheet = submissions.first(where: { $0.id == submissionId })
     }
 
-    private static func mapPostToTaskDetailItem(_ post: Post) -> TaskDetailItem {
+    private func contentType(for url: URL) -> String {
+        if let typeIdentifier = try? url.resourceValues(forKeys: [.contentTypeKey]).contentType,
+           let mimeType = typeIdentifier.preferredMIMEType {
+            return mimeType
+        }
+
+        return "application/octet-stream"
+    }
+
+    private static func mapPostToTaskDetailItem(
+        _ post: Post,
+        materials: [AttachedFile]
+    ) -> TaskDetailItem {
         TaskDetailItem(
             id: post.id,
             title: post.title,
@@ -264,7 +336,7 @@ final class TaskDetailViewModel: ObservableObject {
             createdAt: post.createdAt,
             deadline: post.deadline,
             authorDisplayName: post.author.displayName,
-            attachments: [],
+            attachments: materials.map { $0.toFeedAttachmentItem() },
             comments: [],
             teamFormationMode: post.teamFormationMode,
             teamRequirementTemplateId: post.teamRequirementTemplateId

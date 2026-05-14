@@ -124,7 +124,9 @@ extension AppContainer: ViewModelFactory {
             courseId: courseId,
             postId: postId,
             role: role,
-            getPostUseCase: getPostUseCase
+            getPostUseCase: getPostUseCase,
+            listPostMaterialsUseCase: listPostMaterialsUseCase,
+            uploadPostMaterialUseCase: uploadPostMaterialUseCase
         )
     }
     

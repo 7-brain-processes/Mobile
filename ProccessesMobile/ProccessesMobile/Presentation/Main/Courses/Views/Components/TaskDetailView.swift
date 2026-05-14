@@ -6,10 +6,12 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct TaskDetailView: View {
     @StateObject private var viewModel: TaskDetailViewModel
     @State private var teacherDraftComments: [UUID: String] = [:]
+    @State private var isMaterialImporterPresented = false
 
     init(viewModel: TaskDetailViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -119,6 +121,18 @@ struct TaskDetailView: View {
         .task {
             viewModel.onAppear()
         }
+        .fileImporter(
+            isPresented: $isMaterialImporterPresented,
+            allowedContentTypes: [.data, .content, .item, .image, .audio],
+            allowsMultipleSelection: false
+        ) { result in
+            if case let .success(urls) = result,
+               let url = urls.first {
+                Task {
+                    await viewModel.uploadMaterial(from: url)
+                }
+            }
+        }
     }
 
     private var contentMode: TaskDetailViewModel.TeacherTab {
@@ -177,6 +191,17 @@ struct TaskDetailView: View {
                         }
                     )
                     .padding(.horizontal, 16)
+
+                    if viewModel.isTeacher {
+                        Button {
+                            isMaterialImporterPresented = true
+                        } label: {
+                            Label("Attach material", systemImage: "paperclip")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .padding(.horizontal, 16)
+                    }
 
                     PostCommentsSectionView(
                         comments: item.comments,
