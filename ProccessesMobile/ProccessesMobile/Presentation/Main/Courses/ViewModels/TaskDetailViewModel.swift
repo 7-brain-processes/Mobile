@@ -27,6 +27,9 @@ final class TaskDetailViewModel: ObservableObject {
     private let listPostMaterialsUseCase: ListPostMaterialsUseCase
     private let uploadPostMaterialUseCase: UploadPostMaterialUseCase
 
+    private let listPostCommentsUseCase: ListPostCommentsUseCase
+    private let createPostCommentUseCase: CreatePostCommentUseCase
+
     @Published var item: TaskDetailItem?
     @Published var isLoading = false
     @Published var errorMessage: String?
@@ -43,6 +46,7 @@ final class TaskDetailViewModel: ObservableObject {
     @Published var isStudentWorkSheetPresented = false
     @Published var selectedSubmissionForSheet: TaskSubmissionItem?
     @Published var previewAttachment: FeedAttachmentItem?
+    @Published private(set) var isPostingComment = false
 
     init(
         courseId: UUID,
@@ -50,7 +54,9 @@ final class TaskDetailViewModel: ObservableObject {
         role: CourseRole,
         getPostUseCase: GetPostUseCase,
         listPostMaterialsUseCase: ListPostMaterialsUseCase,
-        uploadPostMaterialUseCase: UploadPostMaterialUseCase
+        uploadPostMaterialUseCase: UploadPostMaterialUseCase,
+        listPostCommentsUseCase: ListPostCommentsUseCase,
+        createPostCommentUseCase: CreatePostCommentUseCase
     ) {
         self.courseId = courseId
         self.postId = postId
@@ -58,6 +64,8 @@ final class TaskDetailViewModel: ObservableObject {
         self.getPostUseCase = getPostUseCase
         self.listPostMaterialsUseCase = listPostMaterialsUseCase
         self.uploadPostMaterialUseCase = uploadPostMaterialUseCase
+        self.listPostCommentsUseCase = listPostCommentsUseCase
+        self.createPostCommentUseCase = createPostCommentUseCase
     }
 
     var isTeacher: Bool { role == .teacher }
@@ -97,12 +105,23 @@ final class TaskDetailViewModel: ObservableObject {
                     )
                 )
 
+                async let commentsTask = listPostCommentsUseCase.execute(
+                    ListPostCommentsQuery(
+                        courseId: courseId,
+                        postId: postId,
+                        page: 0,
+                        size: 50
+                    )
+                )
+
                 let post = try await postTask
                 let materials = try await materialsTask
+                let commentsPage = try await commentsTask
 
                 item = Self.mapPostToTaskDetailItem(
                     post,
-                    materials: materials
+                    materials: materials,
+                    comments: commentsPage.content
                 )
             } catch {
                 errorMessage = error.localizedDescription
@@ -150,31 +169,45 @@ final class TaskDetailViewModel: ObservableObject {
 
     func addPostComment(as authorName: String = "You") {
         guard let item else { return }
+        guard !isPostingComment else { return }
 
         let trimmed = draftComment.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
-        let newComment = PostCommentItem(
-            id: UUID(),
-            authorName: authorName,
-            text: trimmed,
-            createdAt: Date()
-        )
+        isPostingComment = true
 
-        self.item = TaskDetailItem(
-            id: item.id,
-            title: item.title,
-            content: item.content,
-            createdAt: item.createdAt,
-            deadline: item.deadline,
-            authorDisplayName: item.authorDisplayName,
-            attachments: item.attachments,
-            comments: item.comments + [newComment],
-            teamFormationMode: item.teamFormationMode,
-            teamRequirementTemplateId: item.teamRequirementTemplateId
-        )
+        Task {
+            defer {
+                isPostingComment = false
+            }
 
-        draftComment = ""
+            do {
+                let comment = try await createPostCommentUseCase.execute(
+                    CreatePostCommentCommand(
+                        courseId: courseId,
+                        postId: postId,
+                        text: trimmed
+                    )
+                )
+
+                self.item = TaskDetailItem(
+                    id: item.id,
+                    title: item.title,
+                    content: item.content,
+                    createdAt: item.createdAt,
+                    deadline: item.deadline,
+                    authorDisplayName: item.authorDisplayName,
+                    attachments: item.attachments,
+                    comments: item.comments + [PostCommentItemMapper.toItem(comment)],
+                    teamFormationMode: item.teamFormationMode,
+                    teamRequirementTemplateId: item.teamRequirementTemplateId
+                )
+
+                draftComment = ""
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
     }
 
     func normalizedGradeInput(_ value: String) -> String {
@@ -327,7 +360,8 @@ final class TaskDetailViewModel: ObservableObject {
 
     private static func mapPostToTaskDetailItem(
         _ post: Post,
-        materials: [AttachedFile]
+        materials: [AttachedFile],
+        comments: [Comment]
     ) -> TaskDetailItem {
         TaskDetailItem(
             id: post.id,
@@ -337,10 +371,9 @@ final class TaskDetailViewModel: ObservableObject {
             deadline: post.deadline,
             authorDisplayName: post.author.displayName,
             attachments: materials.map { $0.toFeedAttachmentItem() },
-            comments: [],
+            comments: comments.map(PostCommentItemMapper.toItem),
             teamFormationMode: post.teamFormationMode,
             teamRequirementTemplateId: post.teamRequirementTemplateId
         )
     }
-
 }

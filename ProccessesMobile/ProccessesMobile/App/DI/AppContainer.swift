@@ -30,6 +30,7 @@ final class AppContainer: ObservableObject {
     let courseMembershipRepository: CourseMembershipRepository
     let courseMembersRepository: CourseMembersRepository
     let postCommentsRepository: PostCommentsRepository
+    let listPostCommentsUseCase: ListPostCommentsUseCase
     let postMaterialsRepository: PostMaterialsRepository
     let postRepository: PostRepository
     let solutionCommentsRepository: SolutionCommentsRepository
@@ -291,6 +292,10 @@ final class AppContainer: ObservableObject {
 
         self.createTeamRequirementTemplateUseCase = DefaultCreateTeamRequirementTemplateUseCase(
             repository: teamRequirementTemplateRepository
+        )
+
+        self.listPostCommentsUseCase = DefaultListPostCommentsUseCase(
+            repository: postCommentsRepository
         )
     }
 }

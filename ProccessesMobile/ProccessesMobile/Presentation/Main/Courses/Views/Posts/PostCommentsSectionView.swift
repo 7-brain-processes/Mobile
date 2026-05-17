@@ -11,6 +11,7 @@ struct PostCommentsSectionView: View {
     let comments: [PostCommentItem]
     @Binding var draftComment: String
     let onSendComment: () -> Void
+    let isSendingComment: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -20,6 +21,7 @@ struct PostCommentsSectionView: View {
             PostCommentComposerView(
                 text: $draftComment,
                 placeholder: "Add class comment",
+                isSending: isSendingComment,
                 onSend: onSendComment
             )
 

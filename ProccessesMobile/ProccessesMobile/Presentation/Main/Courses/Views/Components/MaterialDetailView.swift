@@ -48,7 +48,7 @@ struct MaterialDetailView: View {
                     draftComment: $viewModel.draftComment,
                     onSendComment: {
                         viewModel.addComment()
-                    }
+                    }, isSendingComment: false
                 )
                 .padding(.horizontal, 16)
             }

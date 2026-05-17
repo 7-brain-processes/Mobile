@@ -126,7 +126,9 @@ extension AppContainer: ViewModelFactory {
             role: role,
             getPostUseCase: getPostUseCase,
             listPostMaterialsUseCase: listPostMaterialsUseCase,
-            uploadPostMaterialUseCase: uploadPostMaterialUseCase
+            uploadPostMaterialUseCase: uploadPostMaterialUseCase,
+            listPostCommentsUseCase: listPostCommentsUseCase,
+            createPostCommentUseCase: createPostCommentUseCase
         )
     }
     

@@ -208,7 +208,7 @@ struct TaskDetailView: View {
                         draftComment: $viewModel.draftComment,
                         onSendComment: {
                             viewModel.addPostComment()
-                        }
+                        }, isSendingComment: viewModel.isPostingComment
                     )
                     .padding(.horizontal, 16)
                 }
