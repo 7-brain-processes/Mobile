@@ -30,6 +30,7 @@ final class MaterialDetailViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published private(set) var isPostingComment = false
+    @Published var fileToShare: ShareFileItem?
 
     var isTeacher: Bool {
         role == .teacher
@@ -202,7 +203,12 @@ final class MaterialDetailViewModel: ObservableObject {
                     )
                 )
 
-                print("Downloaded \(attachment.fileName): \(data.count) bytes")
+                let url = FileManager.default.temporaryDirectory
+                    .appendingPathComponent(attachment.fileName)
+
+                try data.write(to: url, options: [.atomic])
+
+                fileToShare = ShareFileItem(url: url)
             } catch {
                 errorMessage = error.localizedDescription
             }
@@ -210,7 +216,7 @@ final class MaterialDetailViewModel: ObservableObject {
     }
 
     func shareAttachment(_ attachment: FeedAttachmentItem) {
-        print("Share attachment: \(attachment.fileName)")
+        downloadAttachment(attachment)
     }
 
     private func contentType(for url: URL) -> String {

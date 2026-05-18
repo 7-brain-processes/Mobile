@@ -101,6 +101,9 @@ struct TaskDetailView: View {
                     viewModel.shareAttachment(attachment)
                 }
             )
+            .sheet(item: $viewModel.fileToShare) { item in
+                ShareSheet(items: [item.url])
+            }
             .presentationDetents([.medium, .large])
         }
         .navigationDestination(item: Binding(

@@ -69,6 +69,9 @@ struct MaterialDetailView: View {
             )
         }
         .accessibilityIdentifier(AccessibilityID.MaterialDetail.screen)
+        .sheet(item: $viewModel.fileToShare) { item in
+            ShareSheet(items: [item.url])
+        }
     }
 
     private func content(_ item: MaterialDetailItem) -> some View {

@@ -49,6 +49,7 @@ final class TaskDetailViewModel: ObservableObject {
     @Published var selectedSubmissionForSheet: TaskSubmissionItem?
     @Published var previewAttachment: FeedAttachmentItem?
     @Published private(set) var isPostingComment = false
+    @Published var fileToShare: ShareFileItem?
 
     init(
         courseId: UUID,
@@ -306,7 +307,12 @@ final class TaskDetailViewModel: ObservableObject {
                     )
                 )
 
-                print("Downloaded \(attachment.fileName): \(data.count) bytes")
+                let url = FileManager.default.temporaryDirectory
+                    .appendingPathComponent(attachment.fileName)
+
+                try data.write(to: url, options: [.atomic])
+
+                fileToShare = ShareFileItem(url: url)
             } catch {
                 errorMessage = error.localizedDescription
             }
@@ -314,7 +320,7 @@ final class TaskDetailViewModel: ObservableObject {
     }
 
     func shareAttachment(_ attachment: FeedAttachmentItem) {
-        print("Share attachment: \(attachment.fileName)")
+        downloadAttachment(attachment)
     }
 
     func uploadMaterial(from url: URL) async {
