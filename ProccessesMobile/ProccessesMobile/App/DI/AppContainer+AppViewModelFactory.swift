@@ -128,37 +128,28 @@ extension AppContainer: ViewModelFactory {
             listPostMaterialsUseCase: listPostMaterialsUseCase,
             uploadPostMaterialUseCase: uploadPostMaterialUseCase,
             listPostCommentsUseCase: listPostCommentsUseCase,
-            createPostCommentUseCase: createPostCommentUseCase
+            createPostCommentUseCase: createPostCommentUseCase,
+            downloadPostMaterialUseCase: downloadPostMaterialUseCase,
+            deletePostMaterialUseCase: deletePostMaterialUseCase
         )
     }
-    
-    func makeMaterialDetailViewModel(postId: UUID) -> MaterialDetailViewModel {
+
+    func makeMaterialDetailViewModel(
+        courseId: UUID,
+        postId: UUID,
+        role: CourseRole
+    ) -> MaterialDetailViewModel {
         MaterialDetailViewModel(
-            item: MaterialDetailItem(
-                id: postId,
-                title: "Lecture slides",
-                content: "Review these images before the next lesson.",
-                createdAt: Date(),
-                authorDisplayName: "Professor Adams",
-                attachments: [
-                    FeedAttachmentItem(id: UUID(), type: .image, fileName: "slides-1.png", previewURL: nil),
-                    FeedAttachmentItem(id: UUID(), type: .image, fileName: "slides-2.png", previewURL: nil)
-                ],
-                comments: [
-                    PostCommentItem(
-                        id: UUID(),
-                        authorName: "Bob Green",
-                        text: "Will this be on the quiz?",
-                        createdAt: Date()
-                    ),
-                    PostCommentItem(
-                        id: UUID(),
-                        authorName: "Professor Adams",
-                        text: "Yes, review these carefully.",
-                        createdAt: Date()
-                    )
-                ]
-            )
+            courseId: courseId,
+            postId: postId,
+            role: role,
+            getPostUseCase: getPostUseCase,
+            listPostMaterialsUseCase: listPostMaterialsUseCase,
+            uploadPostMaterialUseCase: uploadPostMaterialUseCase,
+            downloadPostMaterialUseCase: downloadPostMaterialUseCase,
+            deletePostMaterialUseCase: deletePostMaterialUseCase,
+            listPostCommentsUseCase: listPostCommentsUseCase,
+            createPostCommentUseCase: createPostCommentUseCase
         )
     }
 

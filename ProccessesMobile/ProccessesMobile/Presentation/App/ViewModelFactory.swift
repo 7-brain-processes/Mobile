@@ -41,4 +41,10 @@ protocol ViewModelFactory {
         courseId: UUID,
         onCreated: @escaping @MainActor (TeamRequirementTemplate) async -> Void
     ) -> CreateTeamRequirementTemplateSheetViewModel
+
+    func makeMaterialDetailViewModel(
+        courseId: UUID,
+        postId: UUID,
+        role: CourseRole
+    ) -> MaterialDetailViewModel
 }

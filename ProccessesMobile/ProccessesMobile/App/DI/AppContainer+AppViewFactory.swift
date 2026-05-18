@@ -130,10 +130,18 @@ extension AppContainer: AppViewFactory {
         )
     }
 
-    func makeMaterialDetailView(courseId: UUID, postId: UUID, role: CourseRole) -> AnyView {
+    func makeMaterialDetailView(
+        courseId: UUID,
+        postId: UUID,
+        role: CourseRole
+    ) -> AnyView {
         AnyView(
             MaterialDetailView(
-                viewModel: makeMaterialDetailViewModel(postId: postId)
+                viewModel: makeMaterialDetailViewModel(
+                    courseId: courseId,
+                    postId: postId,
+                    role: role
+                )
             )
         )
     }

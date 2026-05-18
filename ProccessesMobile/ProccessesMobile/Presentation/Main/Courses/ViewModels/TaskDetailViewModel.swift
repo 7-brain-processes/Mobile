@@ -29,6 +29,8 @@ final class TaskDetailViewModel: ObservableObject {
 
     private let listPostCommentsUseCase: ListPostCommentsUseCase
     private let createPostCommentUseCase: CreatePostCommentUseCase
+    private let downloadPostMaterialUseCase: DownloadPostMaterialUseCase
+    private let deletePostMaterialUseCase: DeletePostMaterialUseCase
 
     @Published var item: TaskDetailItem?
     @Published var isLoading = false
@@ -56,7 +58,9 @@ final class TaskDetailViewModel: ObservableObject {
         listPostMaterialsUseCase: ListPostMaterialsUseCase,
         uploadPostMaterialUseCase: UploadPostMaterialUseCase,
         listPostCommentsUseCase: ListPostCommentsUseCase,
-        createPostCommentUseCase: CreatePostCommentUseCase
+        createPostCommentUseCase: CreatePostCommentUseCase,
+        downloadPostMaterialUseCase: DownloadPostMaterialUseCase,
+        deletePostMaterialUseCase: DeletePostMaterialUseCase
     ) {
         self.courseId = courseId
         self.postId = postId
@@ -66,6 +70,8 @@ final class TaskDetailViewModel: ObservableObject {
         self.uploadPostMaterialUseCase = uploadPostMaterialUseCase
         self.listPostCommentsUseCase = listPostCommentsUseCase
         self.createPostCommentUseCase = createPostCommentUseCase
+        self.downloadPostMaterialUseCase = downloadPostMaterialUseCase
+        self.deletePostMaterialUseCase = deletePostMaterialUseCase
     }
 
     var isTeacher: Bool { role == .teacher }
@@ -290,7 +296,21 @@ final class TaskDetailViewModel: ObservableObject {
     }
 
     func downloadAttachment(_ attachment: FeedAttachmentItem) {
-        print("Download attachment: \(attachment.fileName)")
+        Task {
+            do {
+                let data = try await downloadPostMaterialUseCase.execute(
+                    DownloadPostMaterialQuery(
+                        courseId: courseId,
+                        postId: postId,
+                        fileId: attachment.id
+                    )
+                )
+
+                print("Downloaded \(attachment.fileName): \(data.count) bytes")
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
     }
 
     func shareAttachment(_ attachment: FeedAttachmentItem) {
@@ -369,5 +389,35 @@ final class TaskDetailViewModel: ObservableObject {
             teamFormationMode: post.teamFormationMode,
             teamRequirementTemplateId: post.teamRequirementTemplateId
         )
+    }
+
+    func deleteMaterial(_ attachment: FeedAttachmentItem) async {
+        guard isTeacher else { return }
+        guard let item else { return }
+
+        do {
+            try await deletePostMaterialUseCase.execute(
+                DeletePostMaterialCommand(
+                    courseId: courseId,
+                    postId: postId,
+                    fileId: attachment.id
+                )
+            )
+
+            self.item = TaskDetailItem(
+                id: item.id,
+                title: item.title,
+                content: item.content,
+                createdAt: item.createdAt,
+                deadline: item.deadline,
+                authorDisplayName: item.authorDisplayName,
+                attachments: item.attachments.filter { $0.id != attachment.id },
+                comments: item.comments,
+                teamFormationMode: item.teamFormationMode,
+                teamRequirementTemplateId: item.teamRequirementTemplateId
+            )
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 }

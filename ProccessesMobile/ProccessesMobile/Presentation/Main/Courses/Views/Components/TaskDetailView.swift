@@ -188,6 +188,12 @@ struct TaskDetailView: View {
                         attachments: item.attachments,
                         onAttachmentTap: { attachment in
                             viewModel.openTaskMaterial(attachment)
+                        },
+                        canDelete: viewModel.isTeacher,
+                        onDelete: { attachment in
+                            Task {
+                                await viewModel.deleteMaterial(attachment)
+                            }
                         }
                     )
                     .padding(.horizontal, 16)
