@@ -12,6 +12,8 @@ struct PostAttachmentsSectionView: View {
     let title: String
     let attachments: [FeedAttachmentItem]
     let onAttachmentTap: (FeedAttachmentItem) -> Void
+    let canDelete: Bool
+    let onDelete: (FeedAttachmentItem) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -30,7 +32,15 @@ struct PostAttachmentsSectionView: View {
                             onAttachmentTap(attachment)
                         }
                     )
-                }
+                    .swipeActions {
+                        if canDelete {
+                            Button(role: .destructive) {
+                                onDelete(attachment)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                    }                }
             }
         }
         .padding(20)

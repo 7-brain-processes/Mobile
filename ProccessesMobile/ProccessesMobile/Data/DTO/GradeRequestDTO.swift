@@ -1,9 +1,11 @@
 //
-//  GradeRequest.swift
+//  GradeRequestDTO.swift
 //  ProccessesMobile
 //
-//  Created by Tark Wight on 07.03.2026.
+//  Created by Tark Wight on 18.05.2026.
 //
+
+import Foundation
 
 struct GradeRequestDTO: Equatable, Sendable, Codable {
     let grade: Int

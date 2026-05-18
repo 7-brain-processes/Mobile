@@ -12,6 +12,8 @@ struct Post: Equatable, Sendable {
     let title: String
     let content: String?
     let type: PostType
+    let teamFormationMode: TeamFormationMode?
+    let teamRequirementTemplateId: UUID?
     let deadline: Date?
     let author: User
     let materialsCount: Int

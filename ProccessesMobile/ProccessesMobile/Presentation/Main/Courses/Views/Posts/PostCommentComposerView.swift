@@ -10,10 +10,11 @@ import SwiftUI
 struct PostCommentComposerView: View {
     @Binding var text: String
     let placeholder: String
+    let isSending: Bool
     let onSend: () -> Void
 
     private var canSend: Bool {
-        !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isSending
     }
 
     var body: some View {
@@ -25,13 +26,19 @@ struct PostCommentComposerView: View {
                 .padding(.vertical, 12)
                 .background(Color(.secondarySystemBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 20))
+                .disabled(isSending)
 
             Button {
                 onSend()
             } label: {
-                Image(systemName: "arrow.up.circle.fill")
-                    .font(.system(size: 28))
-                    .foregroundStyle(canSend ? Color.blue : Color.gray.opacity(0.5))
+                if isSending {
+                    ProgressView()
+                        .frame(width: 28, height: 28)
+                } else {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .font(.system(size: 28))
+                        .foregroundStyle(canSend ? Color.blue : Color.gray.opacity(0.5))
+                }
             }
             .buttonStyle(.plain)
             .disabled(!canSend)

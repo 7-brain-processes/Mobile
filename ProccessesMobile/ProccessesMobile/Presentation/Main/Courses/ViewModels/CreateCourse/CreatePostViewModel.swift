@@ -11,6 +11,7 @@ import Combine
 @MainActor
 final class CreatePostViewModel: ObservableObject {
     private let createPostUseCase: CreatePostUseCase
+    private let listTeamRequirementTemplatesUseCase: ListTeamRequirementTemplatesUseCase
     private let courseId: UUID
 
     @Published var title: String = ""
@@ -19,22 +20,54 @@ final class CreatePostViewModel: ObservableObject {
     @Published var selectedFileURLs: [URL] = []
 
     @Published var isLoading: Bool = false
+    @Published var isTemplatesLoading: Bool = false
     @Published var errorMessage: String?
+
+    @Published var teamFormationMode: TeamFormationMode = .free
+    @Published var selectedTeamRequirementTemplateId: UUID?
+    @Published private(set) var teamRequirementTemplates: [TeamRequirementTemplate] = []
+
+    @Published var isCreateTemplateSheetPresented = false
 
     let initialType: FeedPostType
 
     init(
         courseId: UUID,
         initialType: FeedPostType,
-        createPostUseCase: CreatePostUseCase
+        createPostUseCase: CreatePostUseCase,
+        listTeamRequirementTemplatesUseCase: ListTeamRequirementTemplatesUseCase
     ) {
         self.courseId = courseId
         self.initialType = initialType
         self.createPostUseCase = createPostUseCase
+        self.listTeamRequirementTemplatesUseCase = listTeamRequirementTemplatesUseCase
     }
 
     var canCreate: Bool {
         !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isLoading
+    }
+
+    func onAppear() async {
+        guard initialType == .task else { return }
+        await loadTeamRequirementTemplates()
+    }
+
+    func loadTeamRequirementTemplates() async {
+        guard !isTemplatesLoading else { return }
+
+        isTemplatesLoading = true
+        errorMessage = nil
+        defer { isTemplatesLoading = false }
+
+        do {
+            teamRequirementTemplates = try await listTeamRequirementTemplatesUseCase.execute(
+                courseId: courseId
+            )
+        } catch let error as APIError {
+            errorMessage = mapAPIError(error)
+        } catch {
+            errorMessage = "Не удалось загрузить шаблоны требований"
+        }
     }
 
     func createTapped() async -> Bool {
@@ -51,6 +84,8 @@ final class CreatePostViewModel: ObservableObject {
                     title: title,
                     content: normalizedContent(),
                     type: mapFeedPostType(initialType),
+                    teamFormationMode: initialType == .task ? teamFormationMode : nil,
+                    teamRequirementTemplateId: initialType == .task ? selectedTeamRequirementTemplateId : nil,
                     deadline: initialType == .task ? deadline : nil
                 )
             )
@@ -66,6 +101,16 @@ final class CreatePostViewModel: ObservableObject {
             errorMessage = "Unexpected error"
             return false
         }
+    }
+
+    func openCreateTemplateSheet() {
+        isCreateTemplateSheetPresented = true
+    }
+
+    func handleTemplateCreated(_ template: TeamRequirementTemplate) async {
+        isCreateTemplateSheetPresented = false
+        await loadTeamRequirementTemplates()
+        selectedTeamRequirementTemplateId = template.id
     }
 
     private func normalizedContent() -> String? {

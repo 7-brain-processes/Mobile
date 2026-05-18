@@ -54,6 +54,14 @@ struct CourseCategoriesView: View {
                 }
             } else {
                 List {
+                    if role == .teacher {
+                        Button {
+                            viewModel.openCreateSheet()
+                        } label: {
+                            Label("Create a category", systemImage: "plus")
+                        }
+                    }
+
                     if role == .student && viewModel.selectedCategoryId != nil {
                         Button {
                             Task {

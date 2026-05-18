@@ -63,9 +63,9 @@ final class LoginViewModel: ObservableObject {
         switch error {
         case .emptyCredentials:
             return "Введите логин и пароль"
-        case .usernameInvalidLength(min: let min, max: let max):
+        case .usernameInvalidLength(min: _, max: _):
             return "Некорректная длина имени"
-        case .passwordInvalidLength(min: let min, max: let max):
+        case .passwordInvalidLength(min: _, max: _):
             return "Слишкои короткий пароль"
         }
     }

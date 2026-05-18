@@ -12,5 +12,7 @@ struct CreatePostCommand: Equatable, Sendable, Codable {
     let title: String
     let content: String?
     let type: PostType
+    let teamFormationMode: TeamFormationMode?
+    let teamRequirementTemplateId: UUID?
     let deadline: Date?
 }

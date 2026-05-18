@@ -13,9 +13,14 @@ struct CreatePostView: View {
 
     @Environment(\.dismiss) private var dismiss
     @State private var isImporterPresented = false
+    private let createTemplateViewBuilder: () -> AnyView
 
-    init(viewModel: CreatePostViewModel) {
+    init(
+        viewModel: CreatePostViewModel,
+        createTemplateViewBuilder: @escaping () -> AnyView
+    ) {
         _viewModel = StateObject(wrappedValue: viewModel)
+        self.createTemplateViewBuilder = createTemplateViewBuilder
     }
 
     var body: some View {
@@ -28,6 +33,70 @@ struct CreatePostView: View {
 
                 if viewModel.initialType == .task {
                     DatePicker("Deadline", selection: $viewModel.deadline)
+                }
+            }
+
+            if viewModel.initialType == .task {
+                Section("Team formation") {
+                    Picker("Mode", selection: $viewModel.teamFormationMode) {
+                        ForEach(TeamFormationMode.allCases) { mode in
+                            Text(mode.title).tag(mode)
+                        }
+                    }
+
+                    if viewModel.isTemplatesLoading {
+                        HStack {
+                            ProgressView()
+                            Text("Loading templates...")
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        Picker("Requirements", selection: $viewModel.selectedTeamRequirementTemplateId) {
+                            Text("No template")
+                                .tag(UUID?.none)
+
+                            ForEach(viewModel.teamRequirementTemplates) { template in
+                                Text(template.name)
+                                    .tag(Optional(template.id))
+                            }
+                        }
+                    }
+
+                    Button("Create a requirements template") {
+                        viewModel.openCreateTemplateSheet()
+                    }
+
+                    if let selectedTemplate = viewModel.teamRequirementTemplates.first(
+                        where: { $0.id == viewModel.selectedTeamRequirementTemplateId }
+                    ) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Selected template")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+
+                            Text(selectedTemplate.name)
+                                .font(.subheadline)
+
+                            if let min = selectedTemplate.minTeamSize {
+                                Text("Min team size: \(min)")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            if let max = selectedTemplate.maxTeamSize {
+                                Text("Max team size: \(max)")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            if let category = selectedTemplate.requiredCategory {
+                                Text("Required category: \(category.title)")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
                 }
             }
 
@@ -69,6 +138,9 @@ struct CreatePostView: View {
                 .disabled(!viewModel.canCreate)
             }
         }
+        .task {
+            await viewModel.onAppear()
+        }
         .fileImporter(
             isPresented: $isImporterPresented,
             allowedContentTypes: [.data, .content, .item, .image, .audio],
@@ -77,6 +149,9 @@ struct CreatePostView: View {
             if case let .success(urls) = result {
                 viewModel.selectedFileURLs = urls
             }
+        }
+        .sheet(isPresented: $viewModel.isCreateTemplateSheetPresented) {
+            createTemplateViewBuilder()
         }
     }
 }

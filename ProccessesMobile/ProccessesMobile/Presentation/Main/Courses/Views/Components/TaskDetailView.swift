@@ -6,10 +6,12 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct TaskDetailView: View {
     @StateObject private var viewModel: TaskDetailViewModel
     @State private var teacherDraftComments: [UUID: String] = [:]
+    @State private var isMaterialImporterPresented = false
 
     init(viewModel: TaskDetailViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -52,20 +54,24 @@ struct TaskDetailView: View {
                 teacherComments: viewModel.studentTeacherComments,
                 canSubmit: viewModel.canSubmitStudentWork,
                 canUnsubmit: viewModel.canUnsubmitStudentWork,
-                onAttach: {
-                    viewModel.attachMockImage()
+                onAttachFile: { url in
+                    Task {
+                        await viewModel.uploadStudentAttachment(from: url)
+                    }
                 },
                 onSubmit: {
-                    viewModel.submitStudentWork()
+                    Task {
+                        await viewModel.submitStudentWork()
+                    }
                 },
                 onUnsubmit: {
                     viewModel.unsubmitStudentWork()
                 },
                 onAttachmentDownload: { attachment in
-                    viewModel.downloadAttachment(attachment)
+                    viewModel.downloadStudentAttachment(attachment)
                 },
                 onAttachmentShare: { attachment in
-                    viewModel.shareAttachment(attachment)
+                    viewModel.downloadStudentAttachment(attachment)
                 }
             )
             .presentationDetents([.medium, .large])
@@ -93,10 +99,16 @@ struct TaskDetailView: View {
                     )
                 },
                 onAttachmentDownload: { attachment in
-                    viewModel.downloadAttachment(attachment)
+                    viewModel.downloadSubmissionAttachment(
+                        attachment,
+                        solutionId: submission.id
+                    )
                 },
                 onAttachmentShare: { attachment in
-                    viewModel.shareAttachment(attachment)
+                    viewModel.downloadSubmissionAttachment(
+                        attachment,
+                        solutionId: submission.id
+                    )
                 }
             )
             .presentationDetents([.medium, .large])
@@ -116,6 +128,24 @@ struct TaskDetailView: View {
             )
         }
         .accessibilityIdentifier(AccessibilityID.TaskDetail.screen)
+        .task {
+            viewModel.onAppear()
+        }
+        .fileImporter(
+            isPresented: $isMaterialImporterPresented,
+            allowedContentTypes: [.data, .content, .item, .image, .audio],
+            allowsMultipleSelection: false
+        ) { result in
+            if case let .success(urls) = result,
+               let url = urls.first {
+                Task {
+                    await viewModel.uploadMaterial(from: url)
+                }
+            }
+        }
+        .sheet(item: $viewModel.fileToShare) { item in
+            ShareSheet(items: [item.url])
+        }
     }
 
     private var contentMode: TaskDetailViewModel.TeacherTab {
@@ -123,40 +153,101 @@ struct TaskDetailView: View {
     }
 
     private var taskContent: some View {
-        VStack(spacing: 16) {
-            PostDetailHeaderCard(
-                iconName: "checklist",
-                iconColor: .orange,
-                title: viewModel.item.title,
-                author: viewModel.item.authorDisplayName,
-                createdAt: viewModel.item.createdAt,
-                deadline: viewModel.item.deadline,
-                description: viewModel.item.content,
-                titleIdentifier: AccessibilityID.TaskDetail.title,
-                authorIdentifier: AccessibilityID.TaskDetail.author,
-                dateIdentifier: AccessibilityID.TaskDetail.date,
-                deadlineIdentifier: AccessibilityID.TaskDetail.deadline,
-                descriptionIdentifier: AccessibilityID.TaskDetail.description
-            )
-            .padding(.horizontal, 16)
+        Group {
+            if let item = viewModel.item {
+                VStack(spacing: 16) {
+                    PostDetailHeaderCard(
+                        iconName: "checklist",
+                        iconColor: .orange,
+                        title: item.title,
+                        author: item.authorDisplayName,
+                        createdAt: item.createdAt,
+                        deadline: item.deadline,
+                        description: item.content,
+                        titleIdentifier: AccessibilityID.TaskDetail.title,
+                        authorIdentifier: AccessibilityID.TaskDetail.author,
+                        dateIdentifier: AccessibilityID.TaskDetail.date,
+                        deadlineIdentifier: AccessibilityID.TaskDetail.deadline,
+                        descriptionIdentifier: AccessibilityID.TaskDetail.description
+                    )
+                    .padding(.horizontal, 16)
 
-            PostAttachmentsSectionView(
-                title: "Materials",
-                attachments: viewModel.item.attachments,
-                onAttachmentTap: { attachment in
-                    viewModel.openTaskMaterial(attachment)
-                }
-            )
-            .padding(.horizontal, 16)
+                    if item.teamFormationMode != nil || item.teamRequirementTemplateId != nil {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Team settings")
+                                .font(.headline)
 
-            PostCommentsSectionView(
-                comments: viewModel.item.comments,
-                draftComment: $viewModel.draftComment,
-                onSendComment: {
-                    viewModel.addPostComment()
+                            if let mode = item.teamFormationMode {
+                                Text("Team mode: \(mode.title)")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            if item.teamRequirementTemplateId != nil {
+                                Text("Requirements template selected")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(16)
+                        .background(Color(.systemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .padding(.horizontal, 16)
+                    }
+
+                    PostAttachmentsSectionView(
+                        title: "Materials",
+                        attachments: item.attachments,
+                        onAttachmentTap: { attachment in
+                            viewModel.openTaskMaterial(attachment)
+                        },
+                        canDelete: viewModel.isTeacher,
+                        onDelete: { attachment in
+                            Task {
+                                await viewModel.deleteMaterial(attachment)
+                            }
+                        }
+                    )
+                    .padding(.horizontal, 16)
+
+                    if viewModel.isTeacher {
+                        Button {
+                            isMaterialImporterPresented = true
+                        } label: {
+                            Label("Attach material", systemImage: "paperclip")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .padding(.horizontal, 16)
+                    }
+
+                    PostCommentsSectionView(
+                        comments: item.comments,
+                        draftComment: $viewModel.draftComment,
+                        onSendComment: {
+                            Task {
+                                await viewModel.addPostComment()
+                            }
+                        },
+                        isSendingComment: viewModel.isPostingComment
+                    )
+                    .padding(.horizontal, 16)
                 }
-            )
-            .padding(.horizontal, 16)
+            } else if viewModel.isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+                    .padding()
+            } else {
+                ContentUnavailableView(
+                    "Task not loaded",
+                    systemImage: "exclamationmark.triangle"
+                )
+            }
         }
     }
 

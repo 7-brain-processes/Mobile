@@ -11,8 +11,8 @@ import Foundation
 enum MainRoute: Hashable {
     case course(courseId: UUID, role: CourseRole)
 
-    case taskDetails(courseId: UUID, postId: UUID)
-    case materialDetails(courseId: UUID, postId: UUID)
+    case taskDetails(courseId: UUID, postId: UUID, role: CourseRole)
+    case materialDetails(courseId: UUID, postId: UUID, role: CourseRole)
     case createPost(UUID, FeedPostType)
 }
 

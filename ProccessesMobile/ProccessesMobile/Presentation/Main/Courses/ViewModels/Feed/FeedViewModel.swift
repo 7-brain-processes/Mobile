@@ -53,9 +53,17 @@ final class FeedViewModel: ObservableObject {
     func postTapped(_ post: FeedPostItem) {
         switch post.type {
         case .task:
-            navigator?.openTaskDetail(courseId: courseId, postId: post.id)
+            navigator?.openTaskDetail(
+                courseId: courseId,
+                postId: post.id,
+                role: role
+            )
         case .material:
-            navigator?.openMaterialDetail(courseId: courseId, postId: post.id)
+            navigator?.openMaterialDetail(
+                courseId: courseId,
+                postId: post.id,
+                role: role
+            )
         }
     }
 
@@ -105,7 +113,9 @@ final class FeedViewModel: ObservableObject {
             attachments: [],
             commentsCount: post.commentsCount,
             solutionsCount: mapSolutionsCount(for: post),
-            mySolutionId: post.mySolutionId
+            mySolutionId: post.mySolutionId,
+            teamFormationMode: post.teamFormationMode,
+            teamRequirementTemplateId: post.teamRequirementTemplateId
         )
     }
 

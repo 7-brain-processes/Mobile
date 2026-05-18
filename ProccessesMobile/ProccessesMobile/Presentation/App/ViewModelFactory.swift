@@ -17,7 +17,12 @@ protocol ViewModelFactory {
     func makeJoinByCodeViewModel(coordinator: CoursesCoordinator) -> JoinByCodeViewModel
 
     func makeCourseViewModel(courseId: UUID) -> CourseViewModel
-    
+    func makeTaskDetailViewModel(
+        courseId: UUID,
+        postId: UUID,
+        role: CourseRole
+    ) -> TaskDetailViewModel
+
     // MARK: - NEW
     func makeCourseCategoriesViewModel(courseId: UUID) -> CourseCategoriesViewModel
 
@@ -31,4 +36,15 @@ protocol ViewModelFactory {
         category: CourseCategory,
         onUpdated: @escaping @MainActor () async -> Void
     ) -> EditCourseCategorySheetViewModel
+
+    func makeCreateTeamRequirementTemplateViewModel(
+        courseId: UUID,
+        onCreated: @escaping @MainActor (TeamRequirementTemplate) async -> Void
+    ) -> CreateTeamRequirementTemplateSheetViewModel
+
+    func makeMaterialDetailViewModel(
+        courseId: UUID,
+        postId: UUID,
+        role: CourseRole
+    ) -> MaterialDetailViewModel
 }

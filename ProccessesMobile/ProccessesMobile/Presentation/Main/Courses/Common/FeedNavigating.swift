@@ -9,6 +9,6 @@ import Foundation
 
 @MainActor
 protocol FeedNavigating: AnyObject {
-    func openTaskDetail(courseId: UUID, postId: UUID)
+    func openTaskDetail(courseId: UUID, postId: UUID, role: CourseRole)
     func openMaterialDetail(courseId: UUID, postId: UUID)
 }

@@ -259,6 +259,7 @@ struct TeacherSubmissionSheetView: View {
                     set: onDraftCommentChange
                 ),
                 placeholder: "Add teacher comment",
+                isSending: false,
                 onSend: onAddComment
             )
 
