@@ -127,10 +127,18 @@ extension AppContainer: ViewModelFactory {
             getPostUseCase: getPostUseCase,
             listPostMaterialsUseCase: listPostMaterialsUseCase,
             uploadPostMaterialUseCase: uploadPostMaterialUseCase,
+            downloadPostMaterialUseCase: downloadPostMaterialUseCase,
+            deletePostMaterialUseCase: deletePostMaterialUseCase,
             listPostCommentsUseCase: listPostCommentsUseCase,
             createPostCommentUseCase: createPostCommentUseCase,
-            downloadPostMaterialUseCase: downloadPostMaterialUseCase,
-            deletePostMaterialUseCase: deletePostMaterialUseCase
+            getMySolutionUseCase: getMySolutionUseCase,
+            submitSolutionUseCase: submitSolutionUseCase,
+            listSolutionsUseCase: listSolutionsUseCase,
+            gradeSolutionUseCase: gradeSolutionUseCase,
+            listSolutionFilesUseCase: listSolutionFilesUseCase,
+            uploadSolutionFileUseCase: uploadSolutionFileUseCase,
+            deleteSolutionFileUseCase: deleteSolutionFileUseCase,
+            downloadSolutionFileUseCase: downloadSolutionFileUseCase,
         )
     }
 

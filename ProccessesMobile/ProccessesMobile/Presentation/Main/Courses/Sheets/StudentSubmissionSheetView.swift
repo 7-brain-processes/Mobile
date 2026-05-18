@@ -7,6 +7,7 @@
 
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct StudentSubmissionSheetView: View {
     let status: SubmissionStatus
@@ -15,13 +16,14 @@ struct StudentSubmissionSheetView: View {
     let teacherComments: [TeacherReviewCommentItem]
     let canSubmit: Bool
     let canUnsubmit: Bool
-    let onAttach: () -> Void
+    let onAttachFile: (URL) -> Void
     let onSubmit: () -> Void
     let onUnsubmit: () -> Void
     let onAttachmentDownload: (FeedAttachmentItem) -> Void
     let onAttachmentShare: (FeedAttachmentItem) -> Void
 
     @State private var selectedAttachment: FeedAttachmentItem?
+    @State private var isImporterPresented = false
 
     var body: some View {
         NavigationStack {
@@ -48,8 +50,10 @@ struct StudentSubmissionSheetView: View {
                             .lineLimit(4...8)
                             .textFieldStyle(.roundedBorder)
 
-                        Button("Attach image", action: onAttach)
-                            .buttonStyle(.borderedProminent)
+                        Button("Attach file") {
+                            isImporterPresented = true
+                        }
+                        .buttonStyle(.borderedProminent)
 
                         if !attachments.isEmpty {
                             VStack(alignment: .leading, spacing: 10) {
@@ -83,44 +87,6 @@ struct StudentSubmissionSheetView: View {
                     .padding(20)
                     .background(Color(.systemBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 20))
-
-                    if !teacherComments.isEmpty {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Teacher feedback")
-                                .font(.headline)
-
-                            ForEach(teacherComments) { comment in
-                                HStack(alignment: .top, spacing: 12) {
-                                    InitialAvatarView(
-                                        name: comment.authorName,
-                                        size: 32,
-                                        backgroundColor: .orange
-                                    )
-
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(comment.authorName)
-                                            .font(.subheadline)
-                                            .fontWeight(.semibold)
-
-                                        Text(comment.createdAt.formatted(date: .abbreviated, time: .shortened))
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-
-                                        Text(comment.text)
-                                            .font(.body)
-                                    }
-
-                                    Spacer()
-                                }
-                                .padding(12)
-                                .background(Color(.systemBackground))
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                            }
-                        }
-                        .padding(20)
-                        .background(Color(.systemBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                    }
                 }
                 .padding(16)
             }
@@ -137,6 +103,16 @@ struct StudentSubmissionSheetView: View {
                         onAttachmentShare(attachment)
                     }
                 )
+            }
+            .fileImporter(
+                isPresented: $isImporterPresented,
+                allowedContentTypes: [.data, .content, .item, .image, .audio],
+                allowsMultipleSelection: false
+            ) { result in
+                if case let .success(urls) = result,
+                   let url = urls.first {
+                    onAttachFile(url)
+                }
             }
         }
     }

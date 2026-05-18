@@ -31,6 +31,14 @@ final class TaskDetailViewModel: ObservableObject {
     private let createPostCommentUseCase: CreatePostCommentUseCase
     private let downloadPostMaterialUseCase: DownloadPostMaterialUseCase
     private let deletePostMaterialUseCase: DeletePostMaterialUseCase
+    private let getMySolutionUseCase: GetMySolutionUseCase
+    private let submitSolutionUseCase: SubmitSolutionUseCase
+    private let listSolutionsUseCase: ListSolutionsUseCase
+    private let gradeSolutionUseCase: GradeSolutionUseCase
+    private let listSolutionFilesUseCase: ListSolutionFilesUseCase
+    private let uploadSolutionFileUseCase: UploadSolutionFileUseCase
+    private let deleteSolutionFileUseCase: DeleteSolutionFileUseCase
+    private let downloadSolutionFileUseCase: DownloadSolutionFileUseCase
 
     @Published var item: TaskDetailItem?
     @Published var isLoading = false
@@ -51,6 +59,11 @@ final class TaskDetailViewModel: ObservableObject {
     @Published private(set) var isPostingComment = false
     @Published var fileToShare: ShareFileItem?
 
+    @Published private(set) var mySolutionId: UUID?
+    @Published private(set) var isLoadingMySolution = false
+    @Published private(set) var isSubmittingSolution = false
+    @Published private(set) var isGradingSolution = false
+
     init(
         courseId: UUID,
         postId: UUID,
@@ -58,10 +71,18 @@ final class TaskDetailViewModel: ObservableObject {
         getPostUseCase: GetPostUseCase,
         listPostMaterialsUseCase: ListPostMaterialsUseCase,
         uploadPostMaterialUseCase: UploadPostMaterialUseCase,
+        downloadPostMaterialUseCase: DownloadPostMaterialUseCase,
+        deletePostMaterialUseCase: DeletePostMaterialUseCase,
         listPostCommentsUseCase: ListPostCommentsUseCase,
         createPostCommentUseCase: CreatePostCommentUseCase,
-        downloadPostMaterialUseCase: DownloadPostMaterialUseCase,
-        deletePostMaterialUseCase: DeletePostMaterialUseCase
+        getMySolutionUseCase: GetMySolutionUseCase,
+        submitSolutionUseCase: SubmitSolutionUseCase,
+        listSolutionsUseCase: ListSolutionsUseCase,
+        gradeSolutionUseCase: GradeSolutionUseCase,
+        listSolutionFilesUseCase: ListSolutionFilesUseCase,
+        uploadSolutionFileUseCase: UploadSolutionFileUseCase,
+        deleteSolutionFileUseCase: DeleteSolutionFileUseCase,
+        downloadSolutionFileUseCase: DownloadSolutionFileUseCase
     ) {
         self.courseId = courseId
         self.postId = postId
@@ -69,10 +90,18 @@ final class TaskDetailViewModel: ObservableObject {
         self.getPostUseCase = getPostUseCase
         self.listPostMaterialsUseCase = listPostMaterialsUseCase
         self.uploadPostMaterialUseCase = uploadPostMaterialUseCase
-        self.listPostCommentsUseCase = listPostCommentsUseCase
-        self.createPostCommentUseCase = createPostCommentUseCase
         self.downloadPostMaterialUseCase = downloadPostMaterialUseCase
         self.deletePostMaterialUseCase = deletePostMaterialUseCase
+        self.listPostCommentsUseCase = listPostCommentsUseCase
+        self.createPostCommentUseCase = createPostCommentUseCase
+        self.getMySolutionUseCase = getMySolutionUseCase
+        self.submitSolutionUseCase = submitSolutionUseCase
+        self.listSolutionsUseCase = listSolutionsUseCase
+        self.gradeSolutionUseCase = gradeSolutionUseCase
+        self.listSolutionFilesUseCase = listSolutionFilesUseCase
+        self.uploadSolutionFileUseCase = uploadSolutionFileUseCase
+        self.deleteSolutionFileUseCase = deleteSolutionFileUseCase
+        self.downloadSolutionFileUseCase = downloadSolutionFileUseCase
     }
 
     var isTeacher: Bool { role == .teacher }
@@ -80,10 +109,11 @@ final class TaskDetailViewModel: ObservableObject {
 
     var canSubmitStudentWork: Bool {
         isStudent &&
+        !isSubmittingSolution &&
         (!studentSubmissionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !studentAttachments.isEmpty) &&
-        studentSubmissionStatus != .submitted
+        studentSubmissionStatus != .submitted &&
+        studentSubmissionStatus != .accepted
     }
-
     var canUnsubmitStudentWork: Bool {
         isStudent && (studentSubmissionStatus == .submitted || studentSubmissionStatus == .rejected)
     }
@@ -138,25 +168,203 @@ final class TaskDetailViewModel: ObservableObject {
                 materials: materials,
                 comments: commentsPage.content
             )
+
+            if isStudent {
+                await loadMySolution()
+            }
+
+            if isTeacher {
+                await loadSubmissions()
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
-    func attachMockImage() {
-        studentAttachments.append(
-            FeedAttachmentItem(
-                id: UUID(),
-                type: .image,
-                fileName: "submission-\(studentAttachments.count + 1).jpg",
-                previewURL: nil
-            )
+    private static func mapSolutionToSubmissionItem(_ solution: Solution) -> TaskSubmissionItem {
+        TaskSubmissionItem(
+            id: solution.id,
+            studentName: solution.student?.displayName ?? solution.student?.username ?? "Unknown student",
+            submittedAt: solution.submittedAt,
+            status: mapSolutionStatusToSubmissionStatus(solution.status),
+            text: solution.text ?? "",
+            grade: solution.grade,
+            teacherComments: [],
+            attachments: [],
+            isLate: false
         )
     }
 
-    func submitStudentWork() {
-        guard canSubmitStudentWork else { return }
-        studentSubmissionStatus = .submitted
+    private static func mapSolutionStatusToSubmissionStatus(
+        _ status: SolutionStatus
+    ) -> SubmissionStatus {
+        switch status {
+        case .submitted:
+            return .submitted
+        case .graded:
+            return .accepted
+        }
+    }
+
+    private func loadSubmissions() async {
+        guard isTeacher else { return }
+
+        do {
+            let page = try await listSolutionsUseCase.execute(
+                ListSolutionsQuery(
+                    courseId: courseId,
+                    postId: postId,
+                    page: 0,
+                    size: 100,
+                    status: nil
+                )
+            )
+
+            submissions = page.content.map(Self.mapSolutionToSubmissionItem)
+        } catch let error as APIError {
+            errorMessage = mapAPIError(error)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func uploadStudentAttachment(from url: URL) async {
+        guard isStudent else { return }
+
+        let solutionId: UUID
+
+        if let existingSolutionId = mySolutionId {
+            solutionId = existingSolutionId
+        } else {
+            let trimmed = studentSubmissionText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+            do {
+                let solution = try await submitSolutionUseCase.execute(
+                    SubmitSolutionCommand(
+                        courseId: courseId,
+                        postId: postId,
+                        text: trimmed.isEmpty ? nil : trimmed
+                    )
+                )
+
+                applyMySolution(solution)
+                solutionId = solution.id
+            } catch {
+                errorMessage = error.localizedDescription
+                return
+            }
+        }
+
+        do {
+            let didStartAccessing = url.startAccessingSecurityScopedResource()
+            defer {
+                if didStartAccessing {
+                    url.stopAccessingSecurityScopedResource()
+                }
+            }
+
+            let data = try Data(contentsOf: url)
+
+            let uploaded = try await uploadSolutionFileUseCase.execute(
+                UploadSolutionFileCommand(
+                    courseId: courseId,
+                    postId: postId,
+                    solutionId: solutionId,
+                    fileName: url.lastPathComponent,
+                    mimeType: contentType(for: url),
+                    data: data
+                )
+            )
+
+            studentAttachments.append(uploaded.toFeedAttachmentItem())
+        } catch let error as APIError {
+            errorMessage = mapAPIError(error)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    // TODO: deleteStudentAttachment юзается?
+    func deleteStudentAttachment(_ attachment: FeedAttachmentItem) async {
+        guard isStudent else { return }
+        guard let solutionId = mySolutionId else { return }
+
+        do {
+            try await deleteSolutionFileUseCase.execute(
+                DeleteSolutionFileCommand(
+                    courseId: courseId,
+                    postId: postId,
+                    solutionId: solutionId,
+                    fileId: attachment.id
+                )
+            )
+
+            studentAttachments.removeAll { $0.id == attachment.id }
+        } catch let error as APIError {
+            errorMessage = mapAPIError(error)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func downloadStudentAttachment(_ attachment: FeedAttachmentItem) {
+        guard let solutionId = mySolutionId else { return }
+
+        Task {
+            do {
+                let data = try await downloadSolutionFileUseCase.execute(
+                    DownloadSolutionFileQuery(
+                        courseId: courseId,
+                        postId: postId,
+                        solutionId: solutionId,
+                        fileId: attachment.id
+                    )
+                )
+
+                let url = FileManager.default.temporaryDirectory
+                    .appendingPathComponent(attachment.fileName)
+
+                try data.write(to: url, options: [.atomic])
+
+                fileToShare = ShareFileItem(url: url)
+            } catch let error as APIError {
+                errorMessage = mapAPIError(error)
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    func submitStudentWork() async {
+        guard isStudent else { return }
+        guard !isSubmittingSolution else { return }
+
+        let trimmed = studentSubmissionText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmed.isEmpty || !studentAttachments.isEmpty else {
+            return
+        }
+
+        isSubmittingSolution = true
+        errorMessage = nil
+
+        defer {
+            isSubmittingSolution = false
+        }
+
+        do {
+            let solution = try await submitSolutionUseCase.execute(
+                SubmitSolutionCommand(
+                    courseId: courseId,
+                    postId: postId,
+                    text: trimmed.isEmpty ? nil : trimmed
+                )
+            )
+
+            applyMySolution(solution)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     func unsubmitStudentWork() {
@@ -165,20 +373,51 @@ final class TaskDetailViewModel: ObservableObject {
     }
 
     func removeGrade(for submissionId: UUID) {
-        guard let index = submissions.firstIndex(where: { $0.id == submissionId }) else { return }
+        Task {
+            await removeSubmissionGrade(submissionId: submissionId)
+        }
+    }
 
-        submissions[index] = TaskSubmissionItem(
-            id: submissions[index].id,
-            studentName: submissions[index].studentName,
-            submittedAt: submissions[index].submittedAt,
-            status: submissions[index].status,
-            text: submissions[index].text,
-            grade: nil,
-            teacherComments: submissions[index].teacherComments,
-            attachments: submissions[index].attachments,
-            isLate: submissions[index].isLate
-        )
-        refreshSelectedSubmission(submissionId: submissionId)
+    private func removeSubmissionGrade(submissionId: UUID) async {
+        guard isTeacher else { return }
+        guard !isGradingSolution else { return }
+
+        isGradingSolution = true
+        errorMessage = nil
+
+        defer {
+            isGradingSolution = false
+        }
+
+        do {
+            let solution = try await gradeSolutionUseCase.execute(
+                RemoveGradeCommand(
+                    courseId: courseId,
+                    postId: postId,
+                    solutionId: submissionId
+                )
+            )
+
+            updateSubmission(with: solution)
+        } catch let error as APIError {
+            errorMessage = mapAPIError(error)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func updateSubmission(with solution: Solution) {
+        let updated = Self.mapSolutionToSubmissionItem(solution)
+
+        if let index = submissions.firstIndex(where: { $0.id == solution.id }) {
+            submissions[index] = updated
+        } else {
+            submissions.append(updated)
+        }
+
+        if selectedSubmissionForSheet?.id == solution.id {
+            selectedSubmissionForSheet = updated
+        }
     }
 
     func addPostComment(as authorName: String = "You") async {
@@ -211,6 +450,37 @@ final class TaskDetailViewModel: ObservableObject {
         }
     }
 
+    private func loadMySolution() async {
+        guard isStudent else { return }
+        guard !isLoadingMySolution else { return }
+
+        isLoadingMySolution = true
+        defer { isLoadingMySolution = false }
+
+        do {
+            let solution = try await getMySolutionUseCase.execute(
+                GetMySolutionQuery(
+                    courseId: courseId,
+                    postId: postId
+                )
+            )
+
+            applyMySolution(solution)
+        } catch let error as APIError {
+            switch error {
+            case .serverError(let code) where code == 404:
+                mySolutionId = nil
+                studentSubmissionText = ""
+                studentSubmissionStatus = .draft
+
+            default:
+                errorMessage = mapAPIError(error)
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     func normalizedGradeInput(_ value: String) -> String {
         String(value.filter(\.isNumber).prefix(3))
     }
@@ -218,22 +488,62 @@ final class TaskDetailViewModel: ObservableObject {
     func applyGrade(for submissionId: UUID, from input: String) {
         let filtered = normalizedGradeInput(input)
         guard let parsed = Int(filtered) else { return }
-        let clamped = min(max(parsed, 0), 100)
 
-        guard let index = submissions.firstIndex(where: { $0.id == submissionId }) else { return }
+        Task {
+            await gradeSubmission(
+                submissionId: submissionId,
+                grade: parsed,
+                comment: nil
+            )
+        }
+    }
 
-        submissions[index] = TaskSubmissionItem(
-            id: submissions[index].id,
-            studentName: submissions[index].studentName,
-            submittedAt: submissions[index].submittedAt,
-            status: submissions[index].status,
-            text: submissions[index].text,
-            grade: clamped,
-            teacherComments: submissions[index].teacherComments,
-            attachments: submissions[index].attachments,
-            isLate: submissions[index].isLate
-        )
-        refreshSelectedSubmission(submissionId: submissionId)
+    private func gradeSubmission(
+        submissionId: UUID,
+        grade: Int,
+        comment: String?
+    ) async {
+        guard isTeacher else { return }
+        guard !isGradingSolution else { return }
+
+        isGradingSolution = true
+        errorMessage = nil
+
+        defer {
+            isGradingSolution = false
+        }
+
+        do {
+            let solution = try await gradeSolutionUseCase.execute(
+                GradeSolutionCommand(
+                    courseId: courseId,
+                    postId: postId,
+                    solutionId: submissionId,
+                    grade: grade,
+                    comment: comment
+                )
+            )
+
+            updateSubmission(with: solution)
+        } catch let error as InteractionValidationError {
+            errorMessage = mapInteractionValidationError(error)
+        } catch let error as APIError {
+            errorMessage = mapAPIError(error)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func mapInteractionValidationError(_ error: InteractionValidationError) -> String {
+        switch error {
+        case .invalidGrade(let min, let max):
+            return "Grade must be between \(min) and \(max)"
+
+        case .invalidCommentLength(let min, let max):
+            return "Comment must be between \(min) and \(max) characters"
+        case .emptyId(_):
+            return "Id is empty"
+        }
     }
 
     func addTeacherComment(for submissionId: UUID, text: String) {
@@ -424,6 +734,59 @@ final class TaskDetailViewModel: ObservableObject {
             )
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func applyMySolution(_ solution: Solution) {
+        mySolutionId = solution.id
+        studentSubmissionText = solution.text ?? ""
+
+        switch solution.status {
+        case .submitted:
+            studentSubmissionStatus = .submitted
+        case .graded:
+            studentSubmissionStatus = .accepted
+        }
+
+        Task {
+            await loadMySolutionFiles(solutionId: solution.id)
+        }
+    }
+
+    private func loadMySolutionFiles(solutionId: UUID) async {
+        do {
+            let files = try await listSolutionFilesUseCase.execute(
+                ListSolutionFilesQuery(
+                    courseId: courseId,
+                    postId: postId,
+                    solutionId: solutionId
+                )
+            )
+
+            studentAttachments = files.map { $0.toFeedAttachmentItem() }
+        } catch let error as APIError {
+            errorMessage = mapAPIError(error)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func mapAPIError(_ error: APIError) -> String {
+        switch error {
+        case .unauthorized:
+            return "Session expired"
+
+        case .serverError(let code):
+            return "Server error: \(code)"
+
+        case .invalidResponse:
+            return "Invalid server response"
+
+        case .underlying:
+            return "Network error"
+
+        case .invalidURL:
+            return "Invalid URL"
         }
     }
 }
