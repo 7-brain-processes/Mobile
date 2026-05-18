@@ -88,44 +88,51 @@ final class TaskDetailViewModel: ObservableObject {
 
     func load() {
         Task {
-            isLoading = true
-            errorMessage = nil
-            defer { isLoading = false }
+            await reload()
+        }
+    }
 
-            do {
-                async let postTask = getPostUseCase.execute(
+    private func reload() async {
+        isLoading = true
+        errorMessage = nil
+
+        defer {
+            isLoading = false
+        }
+
+        do {
+            async let postTask = getPostUseCase.execute(
+                courseId: courseId,
+                postId: postId
+            )
+
+            async let materialsTask = listPostMaterialsUseCase.execute(
+                ListPostMaterialsQuery(
                     courseId: courseId,
                     postId: postId
                 )
+            )
 
-                async let materialsTask = listPostMaterialsUseCase.execute(
-                    ListPostMaterialsQuery(
-                        courseId: courseId,
-                        postId: postId
-                    )
+            async let commentsTask = listPostCommentsUseCase.execute(
+                ListPostCommentsQuery(
+                    courseId: courseId,
+                    postId: postId,
+                    page: 0,
+                    size: 50
                 )
+            )
 
-                async let commentsTask = listPostCommentsUseCase.execute(
-                    ListPostCommentsQuery(
-                        courseId: courseId,
-                        postId: postId,
-                        page: 0,
-                        size: 50
-                    )
-                )
+            let post = try await postTask
+            let materials = try await materialsTask
+            let commentsPage = try await commentsTask
 
-                let post = try await postTask
-                let materials = try await materialsTask
-                let commentsPage = try await commentsTask
-
-                item = Self.mapPostToTaskDetailItem(
-                    post,
-                    materials: materials,
-                    comments: commentsPage.content
-                )
-            } catch {
-                errorMessage = error.localizedDescription
-            }
+            item = Self.mapPostToTaskDetailItem(
+                post,
+                materials: materials,
+                comments: commentsPage.content
+            )
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 
@@ -167,46 +174,33 @@ final class TaskDetailViewModel: ObservableObject {
         refreshSelectedSubmission(submissionId: submissionId)
     }
 
-    func addPostComment(as authorName: String = "You") {
-        guard let item else { return }
+    func addPostComment(as authorName: String = "You") async {
         guard !isPostingComment else { return }
 
         let trimmed = draftComment.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
         isPostingComment = true
+        errorMessage = nil
 
-        Task {
-            defer {
-                isPostingComment = false
-            }
+        defer {
+            isPostingComment = false
+        }
 
-            do {
-                let comment = try await createPostCommentUseCase.execute(
-                    CreatePostCommentCommand(
-                        courseId: courseId,
-                        postId: postId,
-                        text: trimmed
-                    )
+        do {
+            _ = try await createPostCommentUseCase.execute(
+                CreatePostCommentCommand(
+                    courseId: courseId,
+                    postId: postId,
+                    text: trimmed
                 )
+            )
 
-                self.item = TaskDetailItem(
-                    id: item.id,
-                    title: item.title,
-                    content: item.content,
-                    createdAt: item.createdAt,
-                    deadline: item.deadline,
-                    authorDisplayName: item.authorDisplayName,
-                    attachments: item.attachments,
-                    comments: item.comments + [PostCommentItemMapper.toItem(comment)],
-                    teamFormationMode: item.teamFormationMode,
-                    teamRequirementTemplateId: item.teamRequirementTemplateId
-                )
+            draftComment = ""
 
-                draftComment = ""
-            } catch {
-                errorMessage = error.localizedDescription
-            }
+            await reload()
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 

@@ -207,8 +207,11 @@ struct TaskDetailView: View {
                         comments: item.comments,
                         draftComment: $viewModel.draftComment,
                         onSendComment: {
-                            viewModel.addPostComment()
-                        }, isSendingComment: viewModel.isPostingComment
+                            Task {
+                                await viewModel.addPostComment()
+                            }
+                        },
+                        isSendingComment: viewModel.isPostingComment
                     )
                     .padding(.horizontal, 16)
                 }
