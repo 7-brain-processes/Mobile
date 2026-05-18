@@ -12,7 +12,6 @@ struct TaskDetailView: View {
     @StateObject private var viewModel: TaskDetailViewModel
     @State private var teacherDraftComments: [UUID: String] = [:]
     @State private var isMaterialImporterPresented = false
-//    @State private var isStudentAttachmentImporterPresented = false
 
     init(viewModel: TaskDetailViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -100,10 +99,16 @@ struct TaskDetailView: View {
                     )
                 },
                 onAttachmentDownload: { attachment in
-                    viewModel.downloadAttachment(attachment)
+                    viewModel.downloadSubmissionAttachment(
+                        attachment,
+                        solutionId: submission.id
+                    )
                 },
                 onAttachmentShare: { attachment in
-                    viewModel.shareAttachment(attachment)
+                    viewModel.downloadSubmissionAttachment(
+                        attachment,
+                        solutionId: submission.id
+                    )
                 }
             )
             .presentationDetents([.medium, .large])
@@ -138,18 +143,6 @@ struct TaskDetailView: View {
                 }
             }
         }
-//        .fileImporter(
-//            isPresented: $isStudentAttachmentImporterPresented,
-//            allowedContentTypes: [.data, .content, .item, .image, .audio],
-//            allowsMultipleSelection: false
-//        ) { result in
-//            if case let .success(urls) = result,
-//               let url = urls.first {
-//                Task {
-//                    await viewModel.uploadStudentAttachment(from: url)
-//                }
-//            }
-//        }
         .sheet(item: $viewModel.fileToShare) { item in
             ShareSheet(items: [item.url])
         }

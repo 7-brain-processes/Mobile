@@ -181,7 +181,10 @@ final class TaskDetailViewModel: ObservableObject {
         }
     }
 
-    private static func mapSolutionToSubmissionItem(_ solution: Solution) -> TaskSubmissionItem {
+    private static func mapSolutionToSubmissionItem(
+        _ solution: Solution,
+        attachments: [FeedAttachmentItem] = []
+    ) -> TaskSubmissionItem {
         TaskSubmissionItem(
             id: solution.id,
             studentName: solution.student?.displayName ?? solution.student?.username ?? "Unknown student",
@@ -190,7 +193,7 @@ final class TaskDetailViewModel: ObservableObject {
             text: solution.text ?? "",
             grade: solution.grade,
             teacherComments: [],
-            attachments: [],
+            attachments: attachments,
             isLate: false
         )
     }
@@ -220,7 +223,32 @@ final class TaskDetailViewModel: ObservableObject {
                 )
             )
 
-            submissions = page.content.map(Self.mapSolutionToSubmissionItem)
+            var result: [TaskSubmissionItem] = []
+
+            for solution in page.content {
+                let files: [AttachedFile]
+
+                if solution.filesCount > 0 {
+                    files = try await listSolutionFilesUseCase.execute(
+                        ListSolutionFilesQuery(
+                            courseId: courseId,
+                            postId: postId,
+                            solutionId: solution.id
+                        )
+                    )
+                } else {
+                    files = []
+                }
+
+                result.append(
+                    Self.mapSolutionToSubmissionItem(
+                        solution,
+                        attachments: files.map { $0.toFeedAttachmentItem() }
+                    )
+                )
+            }
+
+            submissions = result
         } catch let error as APIError {
             errorMessage = mapAPIError(error)
         } catch {
@@ -335,6 +363,35 @@ final class TaskDetailViewModel: ObservableObject {
         }
     }
 
+    func downloadSubmissionAttachment(
+        _ attachment: FeedAttachmentItem,
+        solutionId: UUID
+    ) {
+        Task {
+            do {
+                let data = try await downloadSolutionFileUseCase.execute(
+                    DownloadSolutionFileQuery(
+                        courseId: courseId,
+                        postId: postId,
+                        solutionId: solutionId,
+                        fileId: attachment.id
+                    )
+                )
+
+                let url = FileManager.default.temporaryDirectory
+                    .appendingPathComponent(attachment.fileName)
+
+                try data.write(to: url, options: [.atomic])
+
+                fileToShare = ShareFileItem(url: url)
+            } catch let error as APIError {
+                errorMessage = mapAPIError(error)
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+
     func submitStudentWork() async {
         guard isStudent else { return }
         guard !isSubmittingSolution else { return }
@@ -407,7 +464,14 @@ final class TaskDetailViewModel: ObservableObject {
     }
 
     private func updateSubmission(with solution: Solution) {
-        let updated = Self.mapSolutionToSubmissionItem(solution)
+        let existingAttachments = submissions
+            .first(where: { $0.id == solution.id })?
+            .attachments ?? []
+
+        let updated = Self.mapSolutionToSubmissionItem(
+            solution,
+            attachments: existingAttachments
+        )
 
         if let index = submissions.firstIndex(where: { $0.id == solution.id }) {
             submissions[index] = updated
