@@ -196,6 +196,28 @@ struct TaskDetailView: View {
                         .padding(.horizontal, 16)
                     }
 
+                    // MARK: Student team section
+                    if viewModel.isStudent {
+                        TaskTeamEnrollmentSectionView(
+                            myTeam: viewModel.myTeam,
+                            teams: viewModel.availableTeams,
+                            isLoading: viewModel.isLoadingTeams,
+                            isChangingTeam: viewModel.isChangingTeam,
+                            onJoin: { team in
+                                Task {
+                                    await viewModel.enrollInTeam(team)
+                                }
+                            },
+                            onLeave: {
+                                Task {
+                                    await viewModel.leaveCurrentTeam()
+                                }
+                            }
+                        )
+                        .padding(.horizontal, 16)
+                    }
+
+                    // MARK: Materials section
                     PostAttachmentsSectionView(
                         title: "Materials",
                         attachments: item.attachments,

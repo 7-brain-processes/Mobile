@@ -139,6 +139,10 @@ extension AppContainer: ViewModelFactory {
             uploadSolutionFileUseCase: uploadSolutionFileUseCase,
             deleteSolutionFileUseCase: deleteSolutionFileUseCase,
             downloadSolutionFileUseCase: downloadSolutionFileUseCase,
+            listTeamsForEnrollmentUseCase: listTeamsForEnrollmentUseCase,
+            getMyTeamInPostUseCase: getMyTeamInPostUseCase,
+            enrollStudentInTeamUseCase: enrollStudentInTeamUseCase,
+            leaveTeamUseCase: leaveTeamUseCase,
         )
     }
 

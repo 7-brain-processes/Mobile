@@ -40,6 +40,11 @@ final class TaskDetailViewModel: ObservableObject {
     private let deleteSolutionFileUseCase: DeleteSolutionFileUseCase
     private let downloadSolutionFileUseCase: DownloadSolutionFileUseCase
 
+    private let listTeamsForEnrollmentUseCase: ListTeamsForEnrollmentUseCase
+    private let getMyTeamInPostUseCase: GetMyTeamInPostUseCase
+    private let enrollStudentInTeamUseCase: EnrollStudentInTeamUseCase
+    private let leaveTeamUseCase: LeaveTeamUseCase
+
     @Published var item: TaskDetailItem?
     @Published var isLoading = false
     @Published var errorMessage: String?
@@ -64,6 +69,11 @@ final class TaskDetailViewModel: ObservableObject {
     @Published private(set) var isSubmittingSolution = false
     @Published private(set) var isGradingSolution = false
 
+    @Published private(set) var availableTeams: [CourseTeamAvailability] = []
+    @Published private(set) var myTeam: StudentTeam?
+    @Published private(set) var isLoadingTeams = false
+    @Published private(set) var isChangingTeam = false
+
     init(
         courseId: UUID,
         postId: UUID,
@@ -82,7 +92,11 @@ final class TaskDetailViewModel: ObservableObject {
         listSolutionFilesUseCase: ListSolutionFilesUseCase,
         uploadSolutionFileUseCase: UploadSolutionFileUseCase,
         deleteSolutionFileUseCase: DeleteSolutionFileUseCase,
-        downloadSolutionFileUseCase: DownloadSolutionFileUseCase
+        downloadSolutionFileUseCase: DownloadSolutionFileUseCase,
+        listTeamsForEnrollmentUseCase: ListTeamsForEnrollmentUseCase,
+        getMyTeamInPostUseCase: GetMyTeamInPostUseCase,
+        enrollStudentInTeamUseCase: EnrollStudentInTeamUseCase,
+        leaveTeamUseCase: LeaveTeamUseCase
     ) {
         self.courseId = courseId
         self.postId = postId
@@ -102,6 +116,10 @@ final class TaskDetailViewModel: ObservableObject {
         self.uploadSolutionFileUseCase = uploadSolutionFileUseCase
         self.deleteSolutionFileUseCase = deleteSolutionFileUseCase
         self.downloadSolutionFileUseCase = downloadSolutionFileUseCase
+        self.listTeamsForEnrollmentUseCase = listTeamsForEnrollmentUseCase
+        self.getMyTeamInPostUseCase = getMyTeamInPostUseCase
+        self.enrollStudentInTeamUseCase = enrollStudentInTeamUseCase
+        self.leaveTeamUseCase = leaveTeamUseCase
     }
 
     var isTeacher: Bool { role == .teacher }
@@ -171,6 +189,7 @@ final class TaskDetailViewModel: ObservableObject {
 
             if isStudent {
                 await loadMySolution()
+                await loadTeams()
             }
 
             if isTeacher {
@@ -851,6 +870,116 @@ final class TaskDetailViewModel: ObservableObject {
 
         case .invalidURL:
             return "Invalid URL"
+        }
+    }
+
+    // MARK: Teams
+
+    func loadTeams() async {
+        guard isStudent else { return }
+        guard !isLoadingTeams else { return }
+
+        isLoadingTeams = true
+        errorMessage = nil
+
+        defer {
+            isLoadingTeams = false
+        }
+
+        do {
+            availableTeams = try await listTeamsForEnrollmentUseCase.execute(
+                ListTeamsForEnrollmentQuery(
+                    courseId: courseId,
+                    postId: postId
+                )
+            )
+
+            await loadMyTeam()
+        } catch let error as APIError {
+            errorMessage = mapAPIError(error)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func loadMyTeam() async {
+        guard isStudent else { return }
+
+        do {
+            myTeam = try await getMyTeamInPostUseCase.execute(
+                GetMyTeamInPostQuery(
+                    courseId: courseId,
+                    postId: postId
+                )
+            )
+        } catch let error as APIError {
+            switch error {
+            case .serverError(let code) where code == 404:
+                myTeam = nil
+            default:
+                errorMessage = mapAPIError(error)
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func enrollInTeam(_ team: CourseTeamAvailability) async {
+        guard isStudent else { return }
+        guard !isChangingTeam else { return }
+        guard !team.isFull else { return }
+        guard team.selfEnrollmentEnabled else { return }
+
+        isChangingTeam = true
+        errorMessage = nil
+
+        defer {
+            isChangingTeam = false
+        }
+
+        do {
+            _ = try await enrollStudentInTeamUseCase.execute(
+                EnrollStudentInTeamCommand(
+                    courseId: courseId,
+                    postId: postId,
+                    teamId: team.id
+                )
+            )
+
+            await loadTeams()
+        } catch let error as APIError {
+            errorMessage = mapAPIError(error)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func leaveCurrentTeam() async {
+        guard isStudent else { return }
+        guard !isChangingTeam else { return }
+        guard let myTeam else { return }
+
+        isChangingTeam = true
+        errorMessage = nil
+
+        defer {
+            isChangingTeam = false
+        }
+
+        do {
+            _ = try await leaveTeamUseCase.execute(
+                LeaveTeamCommand(
+                    courseId: courseId,
+                    postId: postId,
+                    teamId: myTeam.teamId
+                )
+            )
+
+            await loadTeams()
+        } catch let error as APIError {
+            errorMessage = mapAPIError(error)
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 }
