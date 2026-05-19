@@ -6,16 +6,16 @@
 import Foundation
 
 struct ModifierEffect: Equatable, Sendable {
-    let modifierId: UUID?
-    let value: Double
+    let type: ModifierType
+    let value: Double?
     let description: String?
 
     init(
-        modifierId: UUID? = nil,
-        value: Double,
+        type: ModifierType,
+        value: Double? = nil,
         description: String? = nil
     ) {
-        self.modifierId = modifierId
+        self.type = type
         self.value = value
         self.description = description
     }

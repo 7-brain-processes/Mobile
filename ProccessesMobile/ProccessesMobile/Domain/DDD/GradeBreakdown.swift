@@ -54,6 +54,7 @@ struct CriterionBreakdownItem: Equatable, Sendable {
 
 struct ModifierBreakdownItem: Equatable, Sendable {
     let modifierId: UUID?
+    let type: ModifierType
     let title: String
     let value: Double?
     let effect: Double?
@@ -61,12 +62,14 @@ struct ModifierBreakdownItem: Equatable, Sendable {
 
     init(
         modifierId: UUID? = nil,
+        type: ModifierType,
         title: String,
         value: Double? = nil,
         effect: Double? = nil,
         description: String? = nil
     ) {
         self.modifierId = modifierId
+        self.type = type
         self.title = title
         self.value = value
         self.effect = effect
