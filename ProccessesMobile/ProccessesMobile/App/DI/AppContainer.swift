@@ -97,6 +97,14 @@ final class AppContainer: ObservableObject {
     let listTeamRequirementTemplatesUseCase: ListTeamRequirementTemplatesUseCase
     let createTeamRequirementTemplateUseCase: CreateTeamRequirementTemplateUseCase
 
+    // MARK: Teams
+    let postTeamsRepository: PostTeamsRepository
+
+    let listTeamsForEnrollmentUseCase: ListTeamsForEnrollmentUseCase
+    let getMyTeamInPostUseCase: GetMyTeamInPostUseCase
+    let enrollStudentInTeamUseCase: EnrollStudentInTeamUseCase
+    let leaveTeamUseCase: LeaveTeamUseCase
+
     init(isAuthorized: Bool) {
         self.appCoordinator = AppCoordinator(isAuthorized: isAuthorized)
         self.authCoordinator = AuthCoordinator()
@@ -136,7 +144,10 @@ final class AppContainer: ObservableObject {
         self.teamRequirementTemplateRepository = DefaultTeamRequirementTemplateRepository(
             apiClient: apiClient
         )
-        
+
+        self.postTeamsRepository = DefaultPostTeamsRepository(
+            apiClient: apiClient
+        )
 
         self.deletePostMaterialUseCase = DefaultDeletePostMaterialUseCase(
             repository: postMaterialsRepository
@@ -296,6 +307,22 @@ final class AppContainer: ObservableObject {
 
         self.listPostCommentsUseCase = DefaultListPostCommentsUseCase(
             repository: postCommentsRepository
+        )
+
+        self.listTeamsForEnrollmentUseCase = DefaultListTeamsForEnrollmentUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.getMyTeamInPostUseCase = DefaultGetMyTeamInPostUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.enrollStudentInTeamUseCase = DefaultEnrollStudentInTeamUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.leaveTeamUseCase = DefaultLeaveTeamUseCase(
+            repository: postTeamsRepository
         )
     }
 }
