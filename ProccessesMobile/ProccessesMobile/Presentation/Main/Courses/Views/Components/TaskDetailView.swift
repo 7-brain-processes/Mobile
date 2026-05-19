@@ -187,7 +187,17 @@ struct TaskDetailView: View {
                                     .foregroundStyle(.secondary)
                             }
 
-                            if item.teamRequirementTemplateId != nil {
+                            if let teamRequirementTemplate = item.teamRequirementTemplate {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("Current restrictions")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+
+                                    TeamRequirementTemplateSummaryView(
+                                        template: teamRequirementTemplate
+                                    )
+                                }
+                            } else if item.teamRequirementTemplateId != nil {
                                 Text("Requirements template selected")
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)

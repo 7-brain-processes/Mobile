@@ -40,6 +40,7 @@ final class TaskDetailViewModel: ObservableObject {
     private let deleteSolutionFileUseCase: DeleteSolutionFileUseCase
     private let downloadSolutionFileUseCase: DownloadSolutionFileUseCase
 
+    private let listTeamRequirementTemplatesUseCase: ListTeamRequirementTemplatesUseCase
     private let listTeamsForEnrollmentUseCase: ListTeamsForEnrollmentUseCase
     private let createPostTeamUseCase: CreatePostTeamUseCase
     private let getMyTeamInPostUseCase: GetMyTeamInPostUseCase
@@ -99,6 +100,7 @@ final class TaskDetailViewModel: ObservableObject {
         uploadSolutionFileUseCase: UploadSolutionFileUseCase,
         deleteSolutionFileUseCase: DeleteSolutionFileUseCase,
         downloadSolutionFileUseCase: DownloadSolutionFileUseCase,
+        listTeamRequirementTemplatesUseCase: ListTeamRequirementTemplatesUseCase,
         createPostTeamUseCase: CreatePostTeamUseCase,
         listTeamsForEnrollmentUseCase: ListTeamsForEnrollmentUseCase,
         getMyTeamInPostUseCase: GetMyTeamInPostUseCase,
@@ -123,6 +125,7 @@ final class TaskDetailViewModel: ObservableObject {
         self.uploadSolutionFileUseCase = uploadSolutionFileUseCase
         self.deleteSolutionFileUseCase = deleteSolutionFileUseCase
         self.downloadSolutionFileUseCase = downloadSolutionFileUseCase
+        self.listTeamRequirementTemplatesUseCase = listTeamRequirementTemplatesUseCase
         self.createPostTeamUseCase = createPostTeamUseCase
         self.listTeamsForEnrollmentUseCase = listTeamsForEnrollmentUseCase
         self.getMyTeamInPostUseCase = getMyTeamInPostUseCase
@@ -188,11 +191,15 @@ final class TaskDetailViewModel: ObservableObject {
             let post = try await postTask
             let materials = try await materialsTask
             let commentsPage = try await commentsTask
+            let teamRequirementTemplate = try await loadSelectedTeamRequirementTemplate(
+                templateId: post.teamRequirementTemplateId
+            )
 
             item = Self.mapPostToTaskDetailItem(
                 post,
                 materials: materials,
-                comments: commentsPage.content
+                comments: commentsPage.content,
+                teamRequirementTemplate: teamRequirementTemplate
             )
 
             if isStudent {
@@ -763,7 +770,8 @@ final class TaskDetailViewModel: ObservableObject {
                 attachments: item.attachments + [uploaded.toFeedAttachmentItem()],
                 comments: item.comments,
                 teamFormationMode: item.teamFormationMode,
-                teamRequirementTemplateId: item.teamRequirementTemplateId
+                teamRequirementTemplateId: item.teamRequirementTemplateId,
+                teamRequirementTemplate: item.teamRequirementTemplate
             )
         } catch {
             errorMessage = error.localizedDescription
@@ -787,7 +795,8 @@ final class TaskDetailViewModel: ObservableObject {
     private static func mapPostToTaskDetailItem(
         _ post: Post,
         materials: [AttachedFile],
-        comments: [Comment]
+        comments: [Comment],
+        teamRequirementTemplate: TeamRequirementTemplate?
     ) -> TaskDetailItem {
         TaskDetailItem(
             id: post.id,
@@ -799,7 +808,8 @@ final class TaskDetailViewModel: ObservableObject {
             attachments: materials.map { $0.toFeedAttachmentItem() },
             comments: comments.map(PostCommentItemMapper.toItem),
             teamFormationMode: post.teamFormationMode,
-            teamRequirementTemplateId: post.teamRequirementTemplateId
+            teamRequirementTemplateId: post.teamRequirementTemplateId,
+            teamRequirementTemplate: teamRequirementTemplate
         )
     }
 
@@ -826,11 +836,21 @@ final class TaskDetailViewModel: ObservableObject {
                 attachments: item.attachments.filter { $0.id != attachment.id },
                 comments: item.comments,
                 teamFormationMode: item.teamFormationMode,
-                teamRequirementTemplateId: item.teamRequirementTemplateId
+                teamRequirementTemplateId: item.teamRequirementTemplateId,
+                teamRequirementTemplate: item.teamRequirementTemplate
             )
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    private func loadSelectedTeamRequirementTemplate(
+        templateId: UUID?
+    ) async throws -> TeamRequirementTemplate? {
+        guard let templateId else { return nil }
+
+        let templates = try await listTeamRequirementTemplatesUseCase.execute(courseId: courseId)
+        return templates.first { $0.id == templateId }
     }
 
     private func applyMySolution(_ solution: Solution) {

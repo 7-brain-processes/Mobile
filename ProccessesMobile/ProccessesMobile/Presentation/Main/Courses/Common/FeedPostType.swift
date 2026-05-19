@@ -70,6 +70,7 @@ struct TaskDetailItem: Equatable {
 
     let teamFormationMode: TeamFormationMode?
     let teamRequirementTemplateId: UUID?
+    let teamRequirementTemplate: TeamRequirementTemplate?
 }
 
 struct MaterialDetailItem: Equatable {

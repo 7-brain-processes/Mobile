@@ -47,6 +47,10 @@ final class CreatePostViewModel: ObservableObject {
         !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isLoading
     }
 
+    var selectedTeamRequirementTemplate: TeamRequirementTemplate? {
+        teamRequirementTemplates.first { $0.id == selectedTeamRequirementTemplateId }
+    }
+
     func onAppear() async {
         guard initialType == .task else { return }
         await loadTeamRequirementTemplates()
