@@ -10,6 +10,7 @@ import Foundation
 
 protocol PostTeamsRepository: Sendable {
     func listTeamsForEnrollment(_ query: ListTeamsForEnrollmentQuery) async throws -> [CourseTeamAvailability]
+    func create(_ command: CreatePostTeamCommand) async throws -> CourseTeamAvailability
     func getMyTeam(_ query: GetMyTeamInPostQuery) async throws -> StudentTeam
     func enroll(_ command: EnrollStudentInTeamCommand) async throws -> EnrollmentResponse
     func leave(_ command: LeaveTeamCommand) async throws -> EnrollmentResponse
@@ -40,6 +41,22 @@ struct DefaultPostTeamsRepository: PostTeamsRepository, Sendable {
         let dto = try decoder.decode([CourseTeamAvailabilityDTO].self, from: data)
 
         return try dto.map(CourseTeamAvailabilityMapper.toDomain)
+    }
+
+    func create(_ command: CreatePostTeamCommand) async throws -> CourseTeamAvailability {
+        let endpoint = PostTeamsEndpoint.create(
+            courseId: command.courseId.uuidString,
+            postId: command.postId.uuidString,
+            request: CreatePostTeamMapper.toDTO(command)
+        )
+
+        let (data, response) = try await apiClient.send(endpoint)
+
+        try ResponseValidator.validate(response, successCodes: [200, 201])
+
+        let dto = try decoder.decode(CourseTeamAvailabilityDTO.self, from: data)
+
+        return try CourseTeamAvailabilityMapper.toDomain(dto)
     }
 
     func getMyTeam(_ query: GetMyTeamInPostQuery) async throws -> StudentTeam {

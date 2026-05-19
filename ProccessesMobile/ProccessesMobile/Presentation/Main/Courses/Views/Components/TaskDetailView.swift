@@ -113,6 +113,10 @@ struct TaskDetailView: View {
             )
             .presentationDetents([.medium, .large])
         }
+        .sheet(isPresented: $viewModel.isCreateTeamSheetPresented) {
+            createTeamSheet
+                .presentationDetents([.medium])
+        }
         .navigationDestination(item: Binding(
             get: { viewModel.previewAttachment },
             set: { viewModel.previewAttachment = $0 }
@@ -217,6 +221,11 @@ struct TaskDetailView: View {
                         .padding(.horizontal, 16)
                     }
 
+                    if viewModel.isTeacher && (item.teamFormationMode != nil || item.teamRequirementTemplateId != nil) {
+                        teacherTeamManagementSection
+                            .padding(.horizontal, 16)
+                    }
+
                     // MARK: Materials section
                     PostAttachmentsSectionView(
                         title: "Materials",
@@ -317,6 +326,123 @@ struct TaskDetailView: View {
                 .buttonStyle(.plain)
             }
             .padding(.horizontal, 16)
+        }
+    }
+
+    private var teacherTeamManagementSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text("Assignment teams")
+                    .font(.headline)
+
+                Spacer()
+
+                if viewModel.isLoadingTeams {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                }
+            }
+
+            if viewModel.availableTeams.isEmpty && !viewModel.isLoadingTeams {
+                Text("No teams created yet")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(viewModel.availableTeams) { team in
+                    teacherTeamRow(team)
+                }
+            }
+
+            Button {
+                viewModel.openCreateTeamSheet()
+            } label: {
+                Label("Create team", systemImage: "person.3.fill")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(viewModel.isCreatingTeam)
+        }
+        .padding(20)
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+    }
+
+    private func teacherTeamRow(_ team: CourseTeamAvailability) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(team.name)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+
+                Spacer()
+
+                Text("\(team.currentMembers)/\(team.maxSize.map(String.init) ?? "∞")")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Text(team.selfEnrollmentEnabled ? "Self-enrollment enabled" : "Self-enrollment disabled")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            if !team.categories.isEmpty {
+                Text(team.categories.map(\.title).joined(separator: ", "))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+
+    private var createTeamSheet: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Team name", text: $viewModel.createTeamName)
+
+                    TextField("Max size", text: Binding(
+                        get: { viewModel.createTeamMaxSize },
+                        set: { viewModel.createTeamMaxSize = viewModel.normalizedTeamMaxSizeInput($0) }
+                    ))
+                    .keyboardType(.numberPad)
+
+                    Toggle("Allow student self-enrollment", isOn: $viewModel.createTeamSelfEnrollmentEnabled)
+                }
+
+                if let errorMessage = viewModel.errorMessage {
+                    Section {
+                        Text(errorMessage)
+                            .foregroundStyle(.red)
+                    }
+                }
+            }
+            .navigationTitle("Create team")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        viewModel.isCreateTeamSheetPresented = false
+                    }
+                }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
+                        Task {
+                            await viewModel.createTeam()
+                        }
+                    } label: {
+                        if viewModel.isCreatingTeam {
+                            ProgressView()
+                        } else {
+                            Text("Create")
+                        }
+                    }
+                    .disabled(!viewModel.canCreateTeam)
+                }
+            }
         }
     }
 

@@ -41,6 +41,7 @@ final class TaskDetailViewModel: ObservableObject {
     private let downloadSolutionFileUseCase: DownloadSolutionFileUseCase
 
     private let listTeamsForEnrollmentUseCase: ListTeamsForEnrollmentUseCase
+    private let createPostTeamUseCase: CreatePostTeamUseCase
     private let getMyTeamInPostUseCase: GetMyTeamInPostUseCase
     private let enrollStudentInTeamUseCase: EnrollStudentInTeamUseCase
     private let leaveTeamUseCase: LeaveTeamUseCase
@@ -73,6 +74,11 @@ final class TaskDetailViewModel: ObservableObject {
     @Published private(set) var myTeam: StudentTeam?
     @Published private(set) var isLoadingTeams = false
     @Published private(set) var isChangingTeam = false
+    @Published private(set) var isCreatingTeam = false
+    @Published var isCreateTeamSheetPresented = false
+    @Published var createTeamName = ""
+    @Published var createTeamMaxSize = ""
+    @Published var createTeamSelfEnrollmentEnabled = true
 
     init(
         courseId: UUID,
@@ -93,6 +99,7 @@ final class TaskDetailViewModel: ObservableObject {
         uploadSolutionFileUseCase: UploadSolutionFileUseCase,
         deleteSolutionFileUseCase: DeleteSolutionFileUseCase,
         downloadSolutionFileUseCase: DownloadSolutionFileUseCase,
+        createPostTeamUseCase: CreatePostTeamUseCase,
         listTeamsForEnrollmentUseCase: ListTeamsForEnrollmentUseCase,
         getMyTeamInPostUseCase: GetMyTeamInPostUseCase,
         enrollStudentInTeamUseCase: EnrollStudentInTeamUseCase,
@@ -116,6 +123,7 @@ final class TaskDetailViewModel: ObservableObject {
         self.uploadSolutionFileUseCase = uploadSolutionFileUseCase
         self.deleteSolutionFileUseCase = deleteSolutionFileUseCase
         self.downloadSolutionFileUseCase = downloadSolutionFileUseCase
+        self.createPostTeamUseCase = createPostTeamUseCase
         self.listTeamsForEnrollmentUseCase = listTeamsForEnrollmentUseCase
         self.getMyTeamInPostUseCase = getMyTeamInPostUseCase
         self.enrollStudentInTeamUseCase = enrollStudentInTeamUseCase
@@ -189,8 +197,9 @@ final class TaskDetailViewModel: ObservableObject {
 
             if isStudent {
                 await loadMySolution()
-                await loadTeams()
             }
+
+            await loadTeams()
 
             if isTeacher {
                 await loadSubmissions()
@@ -568,6 +577,10 @@ final class TaskDetailViewModel: ObservableObject {
         String(value.filter(\.isNumber).prefix(3))
     }
 
+    func normalizedTeamMaxSizeInput(_ value: String) -> String {
+        String(value.filter(\.isNumber).prefix(3))
+    }
+
     func applyGrade(for submissionId: UUID, from input: String) {
         let filtered = normalizedGradeInput(input)
         guard let parsed = Int(filtered) else { return }
@@ -876,7 +889,7 @@ final class TaskDetailViewModel: ObservableObject {
     // MARK: Teams
 
     func loadTeams() async {
-        guard isStudent else { return }
+        guard item?.teamFormationMode != nil || item?.teamRequirementTemplateId != nil else { return }
         guard !isLoadingTeams else { return }
 
         isLoadingTeams = true
@@ -894,7 +907,61 @@ final class TaskDetailViewModel: ObservableObject {
                 )
             )
 
-            await loadMyTeam()
+            if isStudent {
+                await loadMyTeam()
+            }
+        } catch let error as APIError {
+            errorMessage = mapAPIError(error)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    var canCreateTeam: Bool {
+        isTeacher &&
+        !isCreatingTeam &&
+        !createTeamName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    func openCreateTeamSheet() {
+        guard isTeacher else { return }
+        createTeamName = ""
+        createTeamMaxSize = ""
+        createTeamSelfEnrollmentEnabled = true
+        isCreateTeamSheetPresented = true
+    }
+
+    func createTeam() async {
+        guard canCreateTeam else { return }
+
+        isCreatingTeam = true
+        errorMessage = nil
+
+        defer {
+            isCreatingTeam = false
+        }
+
+        do {
+            let normalizedMaxSize = normalizedTeamMaxSizeInput(createTeamMaxSize)
+            let maxSize = normalizedMaxSize.isEmpty ? nil : Int(normalizedMaxSize)
+
+            let team = try await createPostTeamUseCase.execute(
+                CreatePostTeamCommand(
+                    courseId: courseId,
+                    postId: postId,
+                    name: createTeamName,
+                    maxSize: maxSize,
+                    selfEnrollmentEnabled: createTeamSelfEnrollmentEnabled
+                )
+            )
+
+            availableTeams.append(team)
+            createTeamName = ""
+            createTeamMaxSize = ""
+            createTeamSelfEnrollmentEnabled = true
+            isCreateTeamSheetPresented = false
+        } catch let error as CreatePostTeamValidationError {
+            errorMessage = error.localizedDescription
         } catch let error as APIError {
             errorMessage = mapAPIError(error)
         } catch {

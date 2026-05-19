@@ -18,4 +18,16 @@ struct CourseTeamAvailabilityDTO: Equatable, Sendable, Codable {
     let isStudentMember: Bool
     let categories: [CourseCategoryDTO]?
     let createdAt: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case currentMembers
+        case maxSize
+        case selfEnrollmentEnabled
+        case isFull = "full"
+        case isStudentMember = "studentMember"
+        case categories
+        case createdAt
+    }
 }

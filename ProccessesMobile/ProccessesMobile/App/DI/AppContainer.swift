@@ -100,6 +100,7 @@ final class AppContainer: ObservableObject {
     // MARK: Teams
     let postTeamsRepository: PostTeamsRepository
 
+    let createPostTeamUseCase: CreatePostTeamUseCase
     let listTeamsForEnrollmentUseCase: ListTeamsForEnrollmentUseCase
     let getMyTeamInPostUseCase: GetMyTeamInPostUseCase
     let enrollStudentInTeamUseCase: EnrollStudentInTeamUseCase
@@ -307,6 +308,10 @@ final class AppContainer: ObservableObject {
 
         self.listPostCommentsUseCase = DefaultListPostCommentsUseCase(
             repository: postCommentsRepository
+        )
+
+        self.createPostTeamUseCase = DefaultCreatePostTeamUseCase(
+            repository: postTeamsRepository
         )
 
         self.listTeamsForEnrollmentUseCase = DefaultListTeamsForEnrollmentUseCase(

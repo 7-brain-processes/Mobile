@@ -10,13 +10,15 @@ import Foundation
 
 enum PostTeamsEndpoint: Endpoint {
     case listForEnrollment(courseId: String, postId: String)
+    case create(courseId: String, postId: String, request: CreatePostTeamRequestDTO)
     case getMyTeam(courseId: String, postId: String)
     case enroll(courseId: String, postId: String, teamId: String)
     case leave(courseId: String, postId: String, teamId: String)
 
     var path: String {
         switch self {
-        case .listForEnrollment(let courseId, let postId):
+        case .listForEnrollment(let courseId, let postId),
+             .create(let courseId, let postId, _):
             return "courses/\(courseId)/posts/\(postId)/teams"
 
         case .getMyTeam(let courseId, let postId):
@@ -34,7 +36,7 @@ enum PostTeamsEndpoint: Endpoint {
         switch self {
         case .listForEnrollment, .getMyTeam:
             return .GET
-        case .enroll:
+        case .create, .enroll:
             return .POST
         case .leave:
             return .DELETE
@@ -50,7 +52,12 @@ enum PostTeamsEndpoint: Endpoint {
     }
 
     var body: EndpointBody {
-        .none
+        switch self {
+        case .listForEnrollment, .getMyTeam, .enroll, .leave:
+            return .none
+        case .create(_, _, let request):
+            return .json(request)
+        }
     }
 
     var requiresAuth: Bool {
