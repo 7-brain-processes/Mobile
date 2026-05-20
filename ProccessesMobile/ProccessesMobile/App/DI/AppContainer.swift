@@ -110,6 +110,8 @@ final class AppContainer: ObservableObject {
     let courseTeamsRepository: CourseTeamsRepository
     let listCourseTeamsUseCase: ListCourseTeamsUseCase
     let getTeamGradeUseCase: GetTeamGradeUseCase
+    let getTeamGradeDistributionUseCase: GetTeamGradeDistributionUseCase
+    let updateTeamGradeDistributionUseCase: UpdateTeamGradeDistributionUseCase
 
     init(isAuthorized: Bool) {
         self.appCoordinator = AppCoordinator(isAuthorized: isAuthorized)
@@ -348,6 +350,14 @@ final class AppContainer: ObservableObject {
         )
 
         self.getTeamGradeUseCase = DefaultGetTeamGradeUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.getTeamGradeDistributionUseCase = DefaultGetTeamGradeDistributionUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.updateTeamGradeDistributionUseCase = DefaultUpdateTeamGradeDistributionUseCase(
             repository: postTeamsRepository
         )
     }

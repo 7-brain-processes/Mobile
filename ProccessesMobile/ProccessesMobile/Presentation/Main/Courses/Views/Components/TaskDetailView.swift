@@ -121,10 +121,18 @@ struct TaskDetailView: View {
             TeacherTeamGradeSheetView(
                 team: team,
                 isSaving: viewModel.isUpdatingTeamGrade,
+                distribution: viewModel.teamGradeDistribution,
+                isLoadingDistribution: viewModel.isLoadingTeamGradeDistribution,
+                isApplyingAutoDistribution: viewModel.isUpdatingTeamGradeDistribution,
                 errorMessage: viewModel.errorMessage,
                 onSave: { input in
                     Task {
                         await viewModel.updateTeamGrade(for: team.id, from: input)
+                    }
+                },
+                onApplyAutoEqualDistribution: {
+                    Task {
+                        await viewModel.applyAutoEqualDistribution(for: team.id)
                     }
                 }
             )
@@ -409,6 +417,14 @@ struct TaskDetailView: View {
                 Text(team.teamGrade.map { "Team grade: \($0)/100" } ?? "Team grade not set")
                     .font(.caption)
                     .foregroundStyle(team.teamGrade == nil ? .secondary : .primary)
+
+                if let selectedTeam = viewModel.selectedTeamForGradeSheet,
+                   selectedTeam.id == team.id,
+                   let distribution = viewModel.teamGradeDistribution {
+                    Text("Distribution mode: \(distribution.distributionMode.title)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
 
                 Text(team.selfEnrollmentEnabled ? "Self-enrollment enabled" : "Self-enrollment disabled")
                     .font(.caption)

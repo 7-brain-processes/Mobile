@@ -49,6 +49,8 @@ final class TaskDetailViewModel: ObservableObject {
     private let leaveTeamUseCase: LeaveTeamUseCase
     private let listCourseTeamsUseCase: ListCourseTeamsUseCase
     private let getTeamGradeUseCase: GetTeamGradeUseCase
+    private let getTeamGradeDistributionUseCase: GetTeamGradeDistributionUseCase
+    private let updateTeamGradeDistributionUseCase: UpdateTeamGradeDistributionUseCase
 
     @Published var item: TaskDetailItem?
     @Published var isLoading = false
@@ -80,12 +82,15 @@ final class TaskDetailViewModel: ObservableObject {
     @Published private(set) var isChangingTeam = false
     @Published private(set) var isCreatingTeam = false
     @Published private(set) var isUpdatingTeamGrade = false
+    @Published private(set) var isLoadingTeamGradeDistribution = false
+    @Published private(set) var isUpdatingTeamGradeDistribution = false
     @Published var isCreateTeamSheetPresented = false
     @Published var selectedTeamForGradeSheet: CourseTeamAvailability?
     @Published var createTeamName = ""
     @Published var createTeamMaxSize = ""
     @Published var createTeamSelfEnrollmentEnabled = true
     @Published private(set) var teacherTeams: [CourseTeamAvailability] = []
+    @Published private(set) var teamGradeDistribution: TeamGradeDistribution?
 
     init(
         courseId: UUID,
@@ -115,6 +120,8 @@ final class TaskDetailViewModel: ObservableObject {
         leaveTeamUseCase: LeaveTeamUseCase,
         listCourseTeamsUseCase: ListCourseTeamsUseCase,
         getTeamGradeUseCase: GetTeamGradeUseCase,
+        getTeamGradeDistributionUseCase: GetTeamGradeDistributionUseCase,
+        updateTeamGradeDistributionUseCase: UpdateTeamGradeDistributionUseCase
     ) {
         self.courseId = courseId
         self.postId = postId
@@ -143,6 +150,8 @@ final class TaskDetailViewModel: ObservableObject {
         self.leaveTeamUseCase = leaveTeamUseCase
         self.listCourseTeamsUseCase = listCourseTeamsUseCase
         self.getTeamGradeUseCase = getTeamGradeUseCase
+        self.getTeamGradeDistributionUseCase = getTeamGradeDistributionUseCase
+        self.updateTeamGradeDistributionUseCase = updateTeamGradeDistributionUseCase
     }
 
     var isTeacher: Bool { role == .teacher }
@@ -220,9 +229,6 @@ final class TaskDetailViewModel: ObservableObject {
                 comments: commentsPage.content,
                 teamRequirementTemplate: teamRequirementTemplate
             )
-            print("POST MODE =", item?.teamFormationMode)
-            print("POST TEMPLATE =", item?.teamRequirementTemplateId)
-
             if isStudent {
                 await loadMySolution()
             }
@@ -934,13 +940,9 @@ final class TaskDetailViewModel: ObservableObject {
     // MARK: Teams
 
     func loadTeams() async {
-        print("LOAD TEAMS")
-        print(item?.teamFormationMode)
-        print(item?.teamRequirementTemplateId)
         guard item?.teamFormationMode != nil || item?.teamRequirementTemplateId != nil else { return }
         guard !isLoadingTeams else { return }
 
-        print("(после guard в loadTeams())TEAMS =", teacherTeams.count)
         isLoadingTeams = true
         errorMessage = nil
 
@@ -961,44 +963,8 @@ final class TaskDetailViewModel: ObservableObject {
             }
 
             if isTeacher {
-                let teams = try await listCourseTeamsUseCase.execute(courseId: courseId)
-
-                var mappedTeams: [CourseTeamAvailability] = []
-
-                for team in teams {
-                    var item = team.toAvailabilityItem()
-
-                    do {
-                        let grade = try await getTeamGradeUseCase.execute(
-                            courseId: courseId,
-                            postId: postId,
-                            teamId: item.id
-                        )
-
-                        item = CourseTeamAvailability(
-                            id: item.id,
-                            name: item.name,
-                            teamGrade: grade.grade,
-                            currentMembers: item.currentMembers,
-                            maxSize: item.maxSize,
-                            selfEnrollmentEnabled: item.selfEnrollmentEnabled,
-                            isFull: item.isFull,
-                            isStudentMember: item.isStudentMember,
-                            categories: item.categories,
-                            createdAt: item.createdAt
-                        )
-                    } catch let error as APIError {
-                        if case .serverError(let code) = error, code == 404 {
-                            // Оценка команде ещё не выставлена.
-                        } else {
-                            throw error
-                        }
-                    }
-
-                    mappedTeams.append(item)
-                }
-
-                teacherTeams = mappedTeams
+                teacherTeams = try await listCourseTeamsUseCase.execute(courseId: courseId)
+                    .map { $0.toAvailabilityItem() }
             }
         } catch let error as APIError {
             errorMessage = mapAPIError(error)
@@ -1024,6 +990,11 @@ final class TaskDetailViewModel: ObservableObject {
     func openTeamGradeSheet(_ team: CourseTeamAvailability) {
         guard isTeacher else { return }
         selectedTeamForGradeSheet = team
+        teamGradeDistribution = nil
+
+        Task {
+            await loadTeamGradeDistribution(for: team.id)
+        }
     }
 
     func updateTeamGrade(for teamId: UUID, from input: String) async {
@@ -1050,10 +1021,8 @@ final class TaskDetailViewModel: ObservableObject {
                 )
             )
 
-            updateLocalTeamGrade(
-                teamId: teamId,
-                grade: grade
-            )
+            updateLocalTeamGrade(teamId: teamId, grade: grade)
+            await loadTeamGradeDistribution(for: teamId)
 
             selectedTeamForGradeSheet = nil
         } catch let error as InteractionValidationError {
@@ -1078,7 +1047,8 @@ final class TaskDetailViewModel: ObservableObject {
         let updated = CourseTeamAvailability(
             id: current.id,
             name: current.name,
-            teamGrade: grade, currentMembers: current.currentMembers,
+            teamGrade: grade,
+            currentMembers: current.currentMembers,
             maxSize: current.maxSize,
             selfEnrollmentEnabled: current.selfEnrollmentEnabled,
             isFull: current.isFull,
@@ -1091,6 +1061,69 @@ final class TaskDetailViewModel: ObservableObject {
 
         if selectedTeamForGradeSheet?.id == teamId {
             selectedTeamForGradeSheet = updated
+        }
+    }
+
+    func applyAutoEqualDistribution(for teamId: UUID) async {
+        guard isTeacher else { return }
+        guard !isUpdatingTeamGradeDistribution else { return }
+
+        isUpdatingTeamGradeDistribution = true
+        errorMessage = nil
+
+        defer {
+            isUpdatingTeamGradeDistribution = false
+        }
+
+        do {
+            let distribution = try await updateTeamGradeDistributionUseCase.execute(
+                UpdateTeamGradeDistributionCommand(
+                    courseId: courseId,
+                    postId: postId,
+                    teamId: teamId,
+                    distributionMode: .autoEqual
+                )
+            )
+
+            teamGradeDistribution = distribution
+            await loadTeams()
+            selectedTeamForGradeSheet = teacherTeams.first(where: { $0.id == teamId })
+        } catch let error as APIError {
+            errorMessage = mapAPIError(error)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func loadTeamGradeDistribution(for teamId: UUID) async {
+        guard !isLoadingTeamGradeDistribution else { return }
+
+        isLoadingTeamGradeDistribution = true
+        errorMessage = nil
+
+        defer {
+            isLoadingTeamGradeDistribution = false
+        }
+
+        do {
+            let distribution = try await getTeamGradeDistributionUseCase.execute(
+                courseId: courseId,
+                postId: postId,
+                teamId: teamId
+            )
+
+            teamGradeDistribution = distribution
+
+            updateLocalTeamGrade(
+                teamId: teamId,
+                grade: distribution.teamGrade
+            )
+
+            selectedTeamForGradeSheet = teacherTeams.first(where: { $0.id == teamId }) ?? selectedTeamForGradeSheet
+        } catch let error as APIError {
+            errorMessage = mapAPIError(error)
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 

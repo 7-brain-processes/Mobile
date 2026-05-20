@@ -148,7 +148,8 @@ extension AppContainer: ViewModelFactory {
             leaveTeamUseCase: leaveTeamUseCase,
             listCourseTeamsUseCase: listCourseTeamsUseCase,
             getTeamGradeUseCase: getTeamGradeUseCase,
-            
+            getTeamGradeDistributionUseCase: getTeamGradeDistributionUseCase,
+            updateTeamGradeDistributionUseCase: updateTeamGradeDistributionUseCase
         )
     }
 
