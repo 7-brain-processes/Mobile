@@ -19,6 +19,13 @@ final class TaskDetailViewModel: ObservableObject {
         var id: String { rawValue }
     }
 
+    private enum AssessmentAPIContext {
+        case config
+        case criteriaGrades
+        case publish
+        case gradeDecomposition
+    }
+
     let role: CourseRole
 
     private let courseId: UUID
@@ -605,7 +612,7 @@ final class TaskDetailViewModel: ObservableObject {
         } catch let error as AssessmentValidationError {
             assessmentErrorMessage = error.localizedDescription
         } catch let error as APIError {
-            assessmentErrorMessage = mapAPIError(error)
+            assessmentErrorMessage = mapAssessmentAPIError(error, context: .config)
         } catch {
             assessmentErrorMessage = error.localizedDescription
         }
@@ -634,7 +641,7 @@ final class TaskDetailViewModel: ObservableObject {
             assessmentConfigDraft = nil
             isAssessmentConfigEditorPresented = false
         } catch let error as APIError {
-            assessmentErrorMessage = mapAPIError(error)
+            assessmentErrorMessage = mapAssessmentAPIError(error, context: .config)
         } catch {
             assessmentErrorMessage = error.localizedDescription
         }
@@ -676,8 +683,9 @@ final class TaskDetailViewModel: ObservableObject {
             case .serverError(let code) where code == 404:
                 selectedAssessmentResult = nil
                 criteriaGradesDraft = []
+                assessmentErrorMessage = "No criteria grades have been saved for this submission yet"
             default:
-                assessmentErrorMessage = mapAssessmentAPIError(error)
+                assessmentErrorMessage = mapAssessmentAPIError(error, context: .criteriaGrades)
             }
         } catch {
             assessmentErrorMessage = error.localizedDescription
@@ -772,7 +780,7 @@ final class TaskDetailViewModel: ObservableObject {
         } catch let error as AssessmentValidationError {
             assessmentErrorMessage = error.localizedDescription
         } catch let error as APIError {
-            assessmentErrorMessage = mapAssessmentAPIError(error)
+            assessmentErrorMessage = mapAssessmentAPIError(error, context: .criteriaGrades)
         } catch {
             assessmentErrorMessage = error.localizedDescription
         }
@@ -803,7 +811,7 @@ final class TaskDetailViewModel: ObservableObject {
             criteriaGradesDraft = result.criteriaGrades
             await loadSubmissions()
         } catch let error as APIError {
-            assessmentErrorMessage = mapAssessmentAPIError(error)
+            assessmentErrorMessage = mapAssessmentAPIError(error, context: .publish)
         } catch {
             assessmentErrorMessage = error.localizedDescription
         }
@@ -1135,10 +1143,12 @@ final class TaskDetailViewModel: ObservableObject {
             )
 
             applyMySolution(solution)
+            await loadMyGradeDecomposition()
         } catch let error as APIError {
             switch error {
             case .serverError(let code) where code == 404:
                 mySolutionId = nil
+                gradeBreakdown = nil
                 studentSubmissionText = ""
                 studentSubmissionStatus = .draft
 
@@ -1147,6 +1157,41 @@ final class TaskDetailViewModel: ObservableObject {
             }
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func loadMyGradeDecomposition() async {
+        guard isStudent else { return }
+        guard mySolutionId != nil else {
+            gradeBreakdown = nil
+            return
+        }
+        guard !isLoadingGradeDecomposition else { return }
+
+        isLoadingGradeDecomposition = true
+        assessmentErrorMessage = nil
+
+        defer {
+            isLoadingGradeDecomposition = false
+        }
+
+        do {
+            gradeBreakdown = try await getGradeDecompositionUseCase.execute(
+                GetGradeDecompositionQuery(
+                    courseId: courseId,
+                    postId: postId
+                )
+            )
+        } catch let error as APIError {
+            switch error {
+            case .serverError(let code) where code == 404:
+                gradeBreakdown = nil
+
+            default:
+                assessmentErrorMessage = mapAssessmentAPIError(error, context: .gradeDecomposition)
+            }
+        } catch {
+            assessmentErrorMessage = error.localizedDescription
         }
     }
 
@@ -1450,7 +1495,7 @@ final class TaskDetailViewModel: ObservableObject {
                 assessmentConfigDraft = nil
 
             default:
-                assessmentErrorMessage = mapAssessmentAPIError(error)
+                assessmentErrorMessage = mapAssessmentAPIError(error, context: .config)
             }
         } catch {
             assessmentErrorMessage = error.localizedDescription
@@ -1500,29 +1545,113 @@ final class TaskDetailViewModel: ObservableObject {
         }
     }
 
-    private func mapAssessmentAPIError(_ error: APIError) -> String {
+    private func mapAssessmentAPIError(
+        _ error: APIError,
+        context: AssessmentAPIContext
+    ) -> String {
         switch error {
         case .unauthorized:
             return "Session expired"
 
         case .serverError(let code):
-            switch code {
-            case 403:
-                return "You do not have permission to view assessment config"
-            case 404:
-                return "Assessment config is not configured"
-            default:
-                return "Assessment config error: \(code)"
-            }
+            return mapAssessmentServerError(code, context: context)
 
         case .invalidResponse:
-            return "Invalid assessment config response"
+            return invalidAssessmentResponseMessage(context: context)
 
         case .underlying:
-            return "Network error while loading assessment config"
+            return networkAssessmentErrorMessage(context: context)
 
         case .invalidURL:
+            return invalidAssessmentURLMessage(context: context)
+        }
+    }
+
+    private func mapAssessmentServerError(
+        _ code: Int,
+        context: AssessmentAPIContext
+    ) -> String {
+        switch code {
+        case 400:
+            switch context {
+            case .config:
+                return "Invalid assessment configuration"
+            case .criteriaGrades:
+                return "Invalid criteria grades"
+            case .publish:
+                return "No criteria grades are ready to publish"
+            case .gradeDecomposition:
+                return "Invalid grade decomposition request"
+            }
+
+        case 403:
+            return "You do not have permission to use this assessment action"
+
+        case 404:
+            switch context {
+            case .config:
+                return "Assessment config is not configured"
+            case .criteriaGrades:
+                return "Criteria grades were not found for this submission"
+            case .publish:
+                return "Cannot publish because criteria grades were not found"
+            case .gradeDecomposition:
+                return "Grade decomposition is not available"
+            }
+
+        case 409:
+            return "Assessment state has changed. Reload and try again"
+
+        default:
+            switch context {
+            case .config:
+                return "Assessment config error: \(code)"
+            case .criteriaGrades:
+                return "Criteria grades error: \(code)"
+            case .publish:
+                return "Criteria grades publish error: \(code)"
+            case .gradeDecomposition:
+                return "Grade decomposition error: \(code)"
+            }
+        }
+    }
+
+    private func invalidAssessmentResponseMessage(context: AssessmentAPIContext) -> String {
+        switch context {
+        case .config:
+            return "Invalid assessment config response"
+        case .criteriaGrades:
+            return "Invalid criteria grades response"
+        case .publish:
+            return "Invalid published assessment response"
+        case .gradeDecomposition:
+            return "Invalid grade decomposition response"
+        }
+    }
+
+    private func networkAssessmentErrorMessage(context: AssessmentAPIContext) -> String {
+        switch context {
+        case .config:
+            return "Network error while loading assessment config"
+        case .criteriaGrades:
+            return "Network error while loading criteria grades"
+        case .publish:
+            return "Network error while publishing criteria grades"
+        case .gradeDecomposition:
+            return "Network error while loading grade decomposition"
+        }
+    }
+
+    private func invalidAssessmentURLMessage(context: AssessmentAPIContext) -> String {
+        switch context {
+        case .config:
             return "Invalid assessment config URL"
+        case .criteriaGrades:
+            return "Invalid criteria grades URL"
+        case .publish:
+            return "Invalid criteria grades publish URL"
+        case .gradeDecomposition:
+            return "Invalid grade decomposition URL"
         }
     }
 
