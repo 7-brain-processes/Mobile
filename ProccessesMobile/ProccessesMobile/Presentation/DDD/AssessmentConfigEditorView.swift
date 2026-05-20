@@ -47,17 +47,11 @@ struct AssessmentConfigEditorView: View {
 
     private var configSection: some View {
         Section("General") {
-            TextField(
-                "Max grade",
-                text: Binding(
-                    get: {
-                        guard let value = viewModel.assessmentConfigDraft?.maxGrade else { return "" }
-                        return value.formatted(.number.precision(.fractionLength(0...2)))
-                    },
-                    set: { viewModel.updateAssessmentMaxGradeDraft($0) }
-                )
+            DraftDecimalTextField(
+                title: "Max grade",
+                value: viewModel.assessmentConfigDraft?.maxGrade,
+                onValidNumber: { viewModel.updateAssessmentMaxGradeDraft($0.description) }
             )
-            .keyboardType(.decimalPad)
 
             Toggle(
                 "Visible for students",
@@ -141,6 +135,96 @@ struct AssessmentConfigEditorView: View {
     }
 }
 
+private struct DraftDecimalTextField: View {
+    let title: String
+    let value: Double?
+    var onEmpty: (() -> Void)?
+    let onValidNumber: (Double) -> Void
+
+    @State private var text: String
+
+    init(
+        title: String,
+        value: Double?,
+        onEmpty: (() -> Void)? = nil,
+        onValidNumber: @escaping (Double) -> Void
+    ) {
+        self.title = title
+        self.value = value
+        self.onEmpty = onEmpty
+        self.onValidNumber = onValidNumber
+        _text = State(initialValue: value.map { $0.formatted(.number.precision(.fractionLength(0...2))) } ?? "")
+    }
+
+    var body: some View {
+        TextField(
+            title,
+            text: Binding(
+                get: { text },
+                set: { input in
+                    text = input
+
+                    let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !trimmed.isEmpty else {
+                        onEmpty?()
+                        return
+                    }
+
+                    if let parsed = Double(trimmed.replacingOccurrences(of: ",", with: ".")) {
+                        onValidNumber(parsed)
+                    }
+                }
+            )
+        )
+        .keyboardType(.decimalPad)
+    }
+}
+
+private struct DraftIntegerTextField: View {
+    let title: String
+    let value: Int?
+    var onEmpty: (() -> Void)?
+    let onValidNumber: (Int) -> Void
+
+    @State private var text: String
+
+    init(
+        title: String,
+        value: Int?,
+        onEmpty: (() -> Void)? = nil,
+        onValidNumber: @escaping (Int) -> Void
+    ) {
+        self.title = title
+        self.value = value
+        self.onEmpty = onEmpty
+        self.onValidNumber = onValidNumber
+        _text = State(initialValue: value.map(String.init) ?? "")
+    }
+
+    var body: some View {
+        TextField(
+            title,
+            text: Binding(
+                get: { text },
+                set: { input in
+                    text = input
+
+                    let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !trimmed.isEmpty else {
+                        onEmpty?()
+                        return
+                    }
+
+                    if let parsed = Int(trimmed.filter(\.isNumber)) {
+                        onValidNumber(parsed)
+                    }
+                }
+            )
+        )
+        .keyboardType(.numberPad)
+    }
+}
+
 private struct ModifierEditorRow: View {
     let modifier: AssessmentModifier
     let onUpdate: (AssessmentModifier) -> Void
@@ -182,19 +266,19 @@ private struct ModifierEditorRow: View {
                 .textInputAutocapitalization(.never)
 
             decimalField("Soft deadline bonus", value: modifier.softDeadlineBonus) {
-                update(softDeadlineBonus: $0)
+                update(softDeadlineBonus: .some($0))
             }
 
             decimalField("Early submission bonus per day", value: modifier.earlySubmissionBonusPerDay) {
-                update(earlySubmissionBonusPerDay: $0)
+                update(earlySubmissionBonusPerDay: .some($0))
             }
 
             decimalField("Late penalty per day", value: modifier.latePenaltyPerDay) {
-                update(latePenaltyPerDay: $0)
+                update(latePenaltyPerDay: .some($0))
             }
 
             integerField("Max late penalty days", value: modifier.maxLatePenaltyDays) {
-                update(maxLatePenaltyDays: $0)
+                update(maxLatePenaltyDays: .some($0))
             }
         }
     }
@@ -207,11 +291,11 @@ private struct ModifierEditorRow: View {
     private var progressFields: some View {
         Group {
             integerField("Checkpoint count", value: modifier.checkpointCount) {
-                update(checkpointCount: $0)
+                update(checkpointCount: .some($0))
             }
 
             decimalField("Points per checkpoint", value: modifier.pointsPerCheckpoint) {
-                update(pointsPerCheckpoint: $0)
+                update(pointsPerCheckpoint: .some($0))
             }
         }
     }
@@ -229,13 +313,13 @@ private struct ModifierEditorRow: View {
 
                 switch keyPath {
                 case \.softDeadline:
-                    update(softDeadline: trimmed.isEmpty ? nil : trimmed)
+                    update(softDeadline: trimmed.isEmpty ? .some(nil) : .some(trimmed))
                 case \.hardDeadline:
-                    update(hardDeadline: trimmed.isEmpty ? nil : trimmed)
+                    update(hardDeadline: trimmed.isEmpty ? .some(nil) : .some(trimmed))
                 case \.formula:
-                    update(formula: trimmed.isEmpty ? nil : trimmed)
+                    update(formula: trimmed.isEmpty ? .some(nil) : .some(trimmed))
                 case \.description:
-                    update(description: trimmed.isEmpty ? nil : trimmed)
+                    update(description: trimmed.isEmpty ? .some(nil) : .some(trimmed))
                 default:
                     break
                 }
@@ -248,24 +332,12 @@ private struct ModifierEditorRow: View {
         value: Double?,
         onChange: @escaping (Double?) -> Void
     ) -> some View {
-        TextField(
-            title,
-            text: Binding(
-                get: { value.map { $0.formatted(.number.precision(.fractionLength(0...2))) } ?? "" },
-                set: { input in
-                    let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
-                    guard !trimmed.isEmpty else {
-                        onChange(nil)
-                        return
-                    }
-
-                    if let parsed = Double(trimmed.replacingOccurrences(of: ",", with: ".")) {
-                        onChange(parsed)
-                    }
-                }
-            )
+        DraftDecimalTextField(
+            title: title,
+            value: value,
+            onEmpty: { onChange(nil) },
+            onValidNumber: { onChange($0) }
         )
-        .keyboardType(.decimalPad)
     }
 
     private func integerField(
@@ -273,38 +345,26 @@ private struct ModifierEditorRow: View {
         value: Int?,
         onChange: @escaping (Int?) -> Void
     ) -> some View {
-        TextField(
-            title,
-            text: Binding(
-                get: { value.map(String.init) ?? "" },
-                set: { input in
-                    let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
-                    guard !trimmed.isEmpty else {
-                        onChange(nil)
-                        return
-                    }
-
-                    if let parsed = Int(trimmed.filter(\.isNumber)) {
-                        onChange(parsed)
-                    }
-                }
-            )
+        DraftIntegerTextField(
+            title: title,
+            value: value,
+            onEmpty: { onChange(nil) },
+            onValidNumber: { onChange($0) }
         )
-        .keyboardType(.numberPad)
     }
 
     private func update(
         enabled: Bool? = nil,
-        softDeadline: String? = nil,
-        hardDeadline: String? = nil,
-        softDeadlineBonus: Double? = nil,
-        earlySubmissionBonusPerDay: Double? = nil,
-        latePenaltyPerDay: Double? = nil,
-        maxLatePenaltyDays: Int? = nil,
-        formula: String? = nil,
-        checkpointCount: Int? = nil,
-        pointsPerCheckpoint: Double? = nil,
-        description: String? = nil
+        softDeadline: String?? = nil,
+        hardDeadline: String?? = nil,
+        softDeadlineBonus: Double?? = nil,
+        earlySubmissionBonusPerDay: Double?? = nil,
+        latePenaltyPerDay: Double?? = nil,
+        maxLatePenaltyDays: Int?? = nil,
+        formula: String?? = nil,
+        checkpointCount: Int?? = nil,
+        pointsPerCheckpoint: Double?? = nil,
+        description: String?? = nil
     ) {
         onUpdate(
             AssessmentModifier(
@@ -331,6 +391,21 @@ private struct CriterionEditorRow: View {
     let onUpdate: (AssessmentCriterion) -> Void
     let onDelete: () -> Void
 
+    @State private var maxPointsText: String
+    @State private var weightText: String
+
+    init(
+        criterion: AssessmentCriterion,
+        onUpdate: @escaping (AssessmentCriterion) -> Void,
+        onDelete: @escaping () -> Void
+    ) {
+        self.criterion = criterion
+        self.onUpdate = onUpdate
+        self.onDelete = onDelete
+        _maxPointsText = State(initialValue: criterion.maxPoints.formatted(.number.precision(.fractionLength(0...2))))
+        _weightText = State(initialValue: criterion.weight.formatted(.number.precision(.fractionLength(0...2))))
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             TextField(
@@ -353,23 +428,17 @@ private struct CriterionEditorRow: View {
                 }
             }
 
-            TextField(
-                "Max points",
-                text: Binding(
-                    get: { criterion.maxPoints.formatted(.number.precision(.fractionLength(0...2))) },
-                    set: { update(maxPointsText: $0) }
-                )
-            )
-            .keyboardType(.decimalPad)
+            TextField("Max points", text: $maxPointsText)
+                .keyboardType(.decimalPad)
+                .onChange(of: maxPointsText) { _, value in
+                    update(maxPointsText: value)
+                }
 
-            TextField(
-                "Weight",
-                text: Binding(
-                    get: { criterion.weight.formatted(.number.precision(.fractionLength(0...2))) },
-                    set: { update(weightText: $0) }
-                )
-            )
-            .keyboardType(.decimalPad)
+            TextField("Weight", text: $weightText)
+                .keyboardType(.decimalPad)
+                .onChange(of: weightText) { _, value in
+                    update(weightText: value)
+                }
 
             Toggle(
                 "Allow comment",

@@ -542,13 +542,38 @@ final class TaskDetailViewModel: ObservableObject {
 
     func updateModifierDraft(_ modifier: AssessmentModifier) {
         guard let draft = assessmentConfigDraft else { return }
-        guard let id = modifier.id else { return }
 
         assessmentConfigDraft = AssessmentConfig(
             id: draft.id,
             maxGrade: draft.maxGrade,
             criteria: draft.criteria,
-            modifiers: draft.modifiers.map { $0.id == id ? modifier : $0 },
+            modifiers: draft.modifiers.map { existing in
+                let isSameModifier: Bool
+
+                if let modifierId = modifier.id {
+                    isSameModifier = existing.id == modifierId
+                } else {
+                    isSameModifier = existing.type == modifier.type
+                }
+
+                guard isSameModifier else { return existing }
+
+                return AssessmentModifier(
+                    id: modifier.id ?? existing.id,
+                    type: modifier.type,
+                    enabled: modifier.enabled,
+                    softDeadline: modifier.softDeadline,
+                    hardDeadline: modifier.hardDeadline,
+                    softDeadlineBonus: modifier.softDeadlineBonus,
+                    earlySubmissionBonusPerDay: modifier.earlySubmissionBonusPerDay,
+                    latePenaltyPerDay: modifier.latePenaltyPerDay,
+                    maxLatePenaltyDays: modifier.maxLatePenaltyDays,
+                    formula: modifier.formula,
+                    checkpointCount: modifier.checkpointCount,
+                    pointsPerCheckpoint: modifier.pointsPerCheckpoint,
+                    description: modifier.description
+                )
+            },
             resultsVisible: draft.resultsVisible
         )
     }
@@ -746,6 +771,37 @@ final class TaskDetailViewModel: ObservableObject {
             criteriaGradesDraft = result.criteriaGrades
         } catch let error as AssessmentValidationError {
             assessmentErrorMessage = error.localizedDescription
+        } catch let error as APIError {
+            assessmentErrorMessage = mapAssessmentAPIError(error)
+        } catch {
+            assessmentErrorMessage = error.localizedDescription
+        }
+    }
+
+    func publishCriteriaGrades() async {
+        guard isTeacher else { return }
+        guard !isPublishingCriteriaGrades else { return }
+        guard let submission = selectedSubmissionForCriteriaSheet else { return }
+
+        isPublishingCriteriaGrades = true
+        assessmentErrorMessage = nil
+
+        defer {
+            isPublishingCriteriaGrades = false
+        }
+
+        do {
+            let result = try await publishCriteriaGradesUseCase.execute(
+                PublishCriteriaGradesCommand(
+                    courseId: courseId,
+                    postId: postId,
+                    solutionId: submission.id
+                )
+            )
+
+            selectedAssessmentResult = result
+            criteriaGradesDraft = result.criteriaGrades
+            await loadSubmissions()
         } catch let error as APIError {
             assessmentErrorMessage = mapAssessmentAPIError(error)
         } catch {

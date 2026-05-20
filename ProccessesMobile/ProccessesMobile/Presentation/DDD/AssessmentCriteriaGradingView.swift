@@ -14,6 +14,7 @@ struct AssessmentCriteriaGradingView: View {
             Form {
                 if let config = viewModel.assessmentConfig {
                     resultSection
+                    publishSection
                     criteriaSection(config)
                     errorSection
                 } else {
@@ -80,6 +81,32 @@ struct AssessmentCriteriaGradingView: View {
 
             if let result = viewModel.selectedAssessmentResult {
                 LabeledContent("Published", value: result.published ? "Yes" : "No")
+            }
+        }
+    }
+
+    private var publishSection: some View {
+        Section("Publication") {
+            if viewModel.selectedAssessmentResult?.published == true {
+                Label("Published for students", systemImage: "checkmark.seal.fill")
+                    .foregroundStyle(.green)
+            } else {
+                Text("Saved grades are not visible to students until published.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                Button {
+                    Task {
+                        await viewModel.publishCriteriaGrades()
+                    }
+                } label: {
+                    if viewModel.isPublishingCriteriaGrades {
+                        ProgressView()
+                    } else {
+                        Label("Publish result", systemImage: "paperplane.fill")
+                    }
+                }
+                .disabled(viewModel.selectedAssessmentResult == nil || viewModel.isPublishingCriteriaGrades)
             }
         }
     }
@@ -207,21 +234,54 @@ private struct CriterionGradeEditorRow: View {
         value: Double?,
         onChange: @escaping (Double) -> Void
     ) -> some View {
+        CriterionGradeNumberField(
+            title: title,
+            value: value,
+            onValidNumber: onChange
+        )
+    }
+
+    private func scoreText(_ value: Double) -> String {
+        value.formatted(.number.precision(.fractionLength(0...2)))
+    }
+}
+
+private struct CriterionGradeNumberField: View {
+    let title: String
+    let value: Double?
+    let onValidNumber: (Double) -> Void
+
+    @State private var text: String
+
+    init(
+        title: String,
+        value: Double?,
+        onValidNumber: @escaping (Double) -> Void
+    ) {
+        self.title = title
+        self.value = value
+        self.onValidNumber = onValidNumber
+        _text = State(initialValue: value.map { $0.formatted(.number.precision(.fractionLength(0...2))) } ?? "")
+    }
+
+    var body: some View {
         TextField(
             title,
             text: Binding(
-                get: { value.map(scoreText) ?? "" },
+                get: { text },
                 set: { input in
+                    text = input
+
+                    guard !input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                        return
+                    }
+
                     if let parsed = Double(input.replacingOccurrences(of: ",", with: ".")) {
-                        onChange(parsed)
+                        onValidNumber(parsed)
                     }
                 }
             )
         )
         .keyboardType(.decimalPad)
-    }
-
-    private func scoreText(_ value: Double) -> String {
-        value.formatted(.number.precision(.fractionLength(0...2)))
     }
 }
