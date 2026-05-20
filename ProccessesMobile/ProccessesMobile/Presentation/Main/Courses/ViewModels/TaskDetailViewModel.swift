@@ -91,6 +91,8 @@ final class TaskDetailViewModel: ObservableObject {
     @Published var assessmentConfig: AssessmentConfig?
     @Published var assessmentConfigDraft: AssessmentConfig?
     @Published var selectedAssessmentResult: AssessmentResult?
+    @Published var criteriaGradesDraft: [CriterionGrade] = []
+    @Published var selectedSubmissionForCriteriaSheet: TaskSubmissionItem?
     @Published var gradeBreakdown: GradeBreakdown?
     @Published private(set) var isLoadingAssessmentConfig = false
     @Published private(set) var isSavingAssessmentConfig = false
@@ -238,6 +240,33 @@ final class TaskDetailViewModel: ObservableObject {
         return teamVoteStatus?.state.title ?? "Not started"
     }
 
+    func updateAssessmentMaxGradeDraft(_ input: String) {
+        guard let draft = assessmentConfigDraft else { return }
+
+        let normalized = input.replacingOccurrences(of: ",", with: ".")
+        guard let value = Double(normalized) else { return }
+
+        assessmentConfigDraft = AssessmentConfig(
+            id: draft.id,
+            maxGrade: value,
+            criteria: draft.criteria,
+            modifiers: draft.modifiers,
+            resultsVisible: draft.resultsVisible
+        )
+    }
+
+    func updateAssessmentResultsVisibleDraft(_ value: Bool) {
+        guard let draft = assessmentConfigDraft else { return }
+
+        assessmentConfigDraft = AssessmentConfig(
+            id: draft.id,
+            maxGrade: draft.maxGrade,
+            criteria: draft.criteria,
+            modifiers: draft.modifiers,
+            resultsVisible: value
+        )
+    }
+
     var studentVotingActionTitle: String {
         if teamVoteStatus?.canSubmitVote == true {
             return "Vote now"
@@ -348,20 +377,8 @@ final class TaskDetailViewModel: ObservableObject {
                 teamRequirementTemplate: teamRequirementTemplate
             )
 
-            item = Self.mapPostToTaskDetailItem(
-                post,
-                materials: materials,
-                comments: commentsPage.content,
-                teamRequirementTemplate: teamRequirementTemplate
-            )
-
             if isTeacher {
                 await loadAssessmentConfig()
-            }
-
-            if isStudent {
-                currentUser = try? await getMeUseCase.execute()
-                await loadMySolution()
             }
 
             if isStudent {
@@ -489,7 +506,17 @@ final class TaskDetailViewModel: ObservableObject {
         let modifierWithId = AssessmentModifier(
             id: modifier.id ?? UUID(),
             type: modifier.type,
-            enabled: modifier.enabled
+            enabled: modifier.enabled,
+            softDeadline: modifier.softDeadline,
+            hardDeadline: modifier.hardDeadline,
+            softDeadlineBonus: modifier.softDeadlineBonus,
+            earlySubmissionBonusPerDay: modifier.earlySubmissionBonusPerDay,
+            latePenaltyPerDay: modifier.latePenaltyPerDay,
+            maxLatePenaltyDays: modifier.maxLatePenaltyDays,
+            formula: modifier.formula,
+            checkpointCount: modifier.checkpointCount,
+            pointsPerCheckpoint: modifier.pointsPerCheckpoint,
+            description: modifier.description
         )
 
         assessmentConfigDraft = AssessmentConfig(
@@ -583,6 +610,144 @@ final class TaskDetailViewModel: ObservableObject {
             isAssessmentConfigEditorPresented = false
         } catch let error as APIError {
             assessmentErrorMessage = mapAPIError(error)
+        } catch {
+            assessmentErrorMessage = error.localizedDescription
+        }
+    }
+
+    func openCriteriaGrading(for submission: TaskSubmissionItem) async {
+        guard isTeacher else { return }
+        guard !isLoadingCriteriaGrades else { return }
+
+        selectedSubmissionForSheet = nil
+        selectedSubmissionForCriteriaSheet = submission
+        selectedAssessmentResult = nil
+        criteriaGradesDraft = []
+        assessmentErrorMessage = nil
+
+        guard assessmentConfig != nil else {
+            return
+        }
+
+        isLoadingCriteriaGrades = true
+
+        defer {
+            isLoadingCriteriaGrades = false
+        }
+
+        do {
+            let result = try await getCriteriaGradesUseCase.execute(
+                GetCriteriaGradesQuery(
+                    courseId: courseId,
+                    postId: postId,
+                    solutionId: submission.id
+                )
+            )
+
+            selectedAssessmentResult = result
+            criteriaGradesDraft = result.criteriaGrades
+        } catch let error as APIError {
+            switch error {
+            case .serverError(let code) where code == 404:
+                selectedAssessmentResult = nil
+                criteriaGradesDraft = []
+            default:
+                assessmentErrorMessage = mapAssessmentAPIError(error)
+            }
+        } catch {
+            assessmentErrorMessage = error.localizedDescription
+        }
+    }
+
+    func closeCriteriaGrading() {
+        selectedSubmissionForCriteriaSheet = nil
+    }
+
+    func criteriaGradeDraft(for criterionId: UUID?) -> CriterionGrade? {
+        guard let criterionId else { return nil }
+        return criteriaGradesDraft.first { $0.criterionId == criterionId }
+    }
+
+    func updateCriteriaGradeDraft(
+        criterionId: UUID?,
+        value: Double? = nil,
+        comment: String? = nil
+    ) {
+        guard let criterionId else { return }
+
+        let existing = criteriaGradesDraft.first { $0.criterionId == criterionId }
+        let updated = CriterionGrade(
+            criterionId: criterionId,
+            value: value ?? existing?.value ?? 0,
+            comment: comment ?? existing?.comment
+        )
+
+        if let index = criteriaGradesDraft.firstIndex(where: { $0.criterionId == criterionId }) {
+            criteriaGradesDraft[index] = updated
+        } else {
+            criteriaGradesDraft.append(updated)
+        }
+    }
+
+    func updateCriteriaGradeValueDraft(
+        criterionId: UUID?,
+        value: Double
+    ) {
+        updateCriteriaGradeDraft(
+            criterionId: criterionId,
+            value: value
+        )
+    }
+
+    func updateCriteriaGradeCommentDraft(
+        criterionId: UUID?,
+        comment: String?
+    ) {
+        guard let criterionId else { return }
+
+        let existing = criteriaGradesDraft.first { $0.criterionId == criterionId }
+        let updated = CriterionGrade(
+            criterionId: criterionId,
+            value: existing?.value ?? 0,
+            comment: comment
+        )
+
+        if let index = criteriaGradesDraft.firstIndex(where: { $0.criterionId == criterionId }) {
+            criteriaGradesDraft[index] = updated
+        } else {
+            criteriaGradesDraft.append(updated)
+        }
+    }
+
+    func saveCriteriaGrades() async {
+        guard isTeacher else { return }
+        guard !isSavingCriteriaGrades else { return }
+        guard let submission = selectedSubmissionForCriteriaSheet else { return }
+
+        isSavingCriteriaGrades = true
+        assessmentErrorMessage = nil
+
+        defer {
+            isSavingCriteriaGrades = false
+        }
+
+        do {
+            let result = try await updateCriteriaGradesUseCase.execute(
+                UpdateCriteriaGradesCommand(
+                    courseId: courseId,
+                    postId: postId,
+                    solutionId: submission.id,
+                    grades: criteriaGradesDraft,
+                    config: assessmentConfig
+                )
+            )
+
+            selectedAssessmentResult = result
+            criteriaGradesDraft = result.criteriaGrades
+        } catch let error as AssessmentValidationError {
+            assessmentErrorMessage = error.localizedDescription
+        } catch let error as APIError {
+            assessmentErrorMessage = mapAssessmentAPIError(error)
         } catch {
             assessmentErrorMessage = error.localizedDescription
         }

@@ -9,34 +9,34 @@ enum GradeBreakdownMapper {
     static func toDomain(_ dto: GradeDecompositionResponseDTO) throws -> GradeBreakdown {
         GradeBreakdown(
             basicScore: dto.basicScore,
-            modifierDelta: dto.modifierDelta,
+            modifierDelta: nil,
             finalScore: dto.finalScore,
-            criteria: try dto.criteria.map(CriterionBreakdownMapper.toDomain),
-            modifiers: dto.modifiers.map(ModifierBreakdownMapper.toDomain)
+            criteria: try dto.criteriaBreakdown.map(CriterionBreakdownMapper.toDomain),
+            modifiers: dto.modifierEffects.map(ModifierBreakdownMapper.toDomain)
         )
     }
 }
 
 enum CriterionBreakdownMapper {
-    static func toDomain(_ dto: CriterionBreakdownDTO) throws -> CriterionBreakdownItem {
+    static func toDomain(_ dto: CriterionGradeResultItemDTO) throws -> CriterionBreakdownItem {
         CriterionBreakdownItem(
-            criterionId: try dto.criterionId.map(parseUUID),
-            title: dto.title,
-            type: CriterionType(apiValue: dto.type),
+            criterionId: try dto.criterion.id.map(parseUUID),
+            title: dto.criterion.title,
+            type: CriterionType(apiValue: dto.criterion.type),
             value: dto.value,
-            score: dto.score,
+            score: dto.computedPoints,
             comment: dto.comment
         )
     }
 }
 
 enum ModifierBreakdownMapper {
-    static func toDomain(_ dto: ModifierBreakdownDTO) -> ModifierBreakdownItem {
-        let type = ModifierType(apiValue: dto.type)
+    static func toDomain(_ dto: ModifierEffectDTO) -> ModifierBreakdownItem {
+        let type = ModifierType(apiValue: dto.modifierType)
 
         return ModifierBreakdownItem(
             type: type,
-            title: dto.title ?? type.apiValue,
+            title: type.apiValue,
             effect: dto.delta,
             description: dto.description
         )

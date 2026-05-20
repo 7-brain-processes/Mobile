@@ -5,7 +5,7 @@
 
 import Foundation
 
-enum ModifierType: Equatable, Sendable {
+enum ModifierType: Equatable, Hashable, Sendable {
     case deadline
     case teamSize
     case progress
@@ -18,7 +18,7 @@ enum ModifierType: Equatable, Sendable {
             self = .deadline
         case "TEAM_SIZE":
             self = .teamSize
-        case "PROGRESS":
+        case "PROGRESS", "PROGRESS_REGULARITY":
             self = .progress
         case "CONTRIBUTION":
             self = .contribution
@@ -34,11 +34,33 @@ enum ModifierType: Equatable, Sendable {
         case .teamSize:
             return "TEAM_SIZE"
         case .progress:
-            return "PROGRESS"
+            return "PROGRESS_REGULARITY"
         case .contribution:
             return "CONTRIBUTION"
         case .unknown(let value):
             return value
+        }
+    }
+
+    static let supportedCases: [ModifierType] = [
+           .deadline,
+           .teamSize,
+           .progress,
+           .contribution
+       ]
+
+    var displayName: String {
+        switch self {
+        case .deadline:
+            return "Deadline"
+        case .teamSize:
+            return "Team size"
+        case .progress:
+            return "Progress regularity"
+        case .contribution:
+            return "Contribution"
+        case .unknown(let value):
+            return value.capitalized
         }
     }
 }

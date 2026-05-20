@@ -6,7 +6,7 @@
 import Foundation
 
 struct CriteriaGradeRequestDTO: Equatable, Sendable, Codable {
-    let criteria: [CriterionGradeEntryDTO]
+    let grades: [CriterionGradeEntryDTO]
 }
 
 struct CriterionGradeEntryDTO: Equatable, Sendable, Codable {
@@ -17,15 +17,25 @@ struct CriterionGradeEntryDTO: Equatable, Sendable, Codable {
 
 struct CriteriaGradeResponseDTO: Equatable, Sendable, Codable {
     let solutionId: String
-    let criteriaGrades: [CriterionGradeEntryDTO]
+    let criteriaGrades: [CriterionGradeResultItemDTO]
     let modifierEffects: [ModifierEffectDTO]
     let basicScore: Double?
+    let modifierDelta: Double?
     let finalScore: Double?
-    let published: Bool
+    let maxGrade: Double?
+    let isPublished: Bool
+    let gradedAt: String?
+}
+
+struct CriterionGradeResultItemDTO: Equatable, Sendable, Codable {
+    let criterion: CriterionConfigDTO
+    let value: Double
+    let computedPoints: Double?
+    let comment: String?
 }
 
 struct ModifierEffectDTO: Equatable, Sendable, Codable {
-    let type: String
-    let value: Double?
+    let modifierType: String
     let description: String?
+    let delta: Double?
 }

@@ -5,20 +5,23 @@
 
 import Foundation
 
-enum CriterionType: Equatable, Sendable {
-    case boolean
-    case percent
+enum CriterionType: Equatable, Hashable, Sendable {
+    case yesNo
+    case percentage
     case points
     case unknown(String)
 
     init(apiValue: String) {
         switch apiValue.uppercased() {
-        case "BOOLEAN":
-            self = .boolean
-        case "PERCENT":
-            self = .percent
+        case "YES_NO":
+            self = .yesNo
+
+        case "PERCENTAGE":
+            self = .percentage
+
         case "POINTS":
             self = .points
+
         default:
             self = .unknown(apiValue)
         }
@@ -26,14 +29,39 @@ enum CriterionType: Equatable, Sendable {
 
     var apiValue: String {
         switch self {
-        case .boolean:
-            return "BOOLEAN"
-        case .percent:
-            return "PERCENT"
+        case .yesNo:
+            return "YES_NO"
+
+        case .percentage:
+            return "PERCENTAGE"
+
         case .points:
             return "POINTS"
+
         case .unknown(let value):
             return value
+        }
+    }
+
+    static let supportedCases: [CriterionType] = [
+        .yesNo,
+        .percentage,
+        .points
+    ]
+
+    var displayName: String {
+        switch self {
+        case .yesNo:
+            return "Yes / No"
+
+        case .percentage:
+            return "Percentage"
+
+        case .points:
+            return "Points"
+
+        case .unknown(let value):
+            return value.capitalized
         }
     }
 }

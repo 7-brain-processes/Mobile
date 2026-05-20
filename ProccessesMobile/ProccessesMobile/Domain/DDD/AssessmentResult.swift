@@ -10,7 +10,9 @@ struct AssessmentResult: Equatable, Sendable {
     let criteriaGrades: [CriterionGrade]
     let modifierEffects: [ModifierEffect]
     let basicScore: Double?
+    let modifierDelta: Double?
     let finalScore: Double?
+    let maxGrade: Double?
     let published: Bool
 
     init(
@@ -18,14 +20,18 @@ struct AssessmentResult: Equatable, Sendable {
         criteriaGrades: [CriterionGrade],
         modifierEffects: [ModifierEffect] = [],
         basicScore: Double? = nil,
+        modifierDelta: Double? = nil,
         finalScore: Double? = nil,
+        maxGrade: Double? = nil,
         published: Bool
     ) {
         self.solutionId = solutionId
         self.criteriaGrades = criteriaGrades
         self.modifierEffects = modifierEffects
         self.basicScore = basicScore
+        self.modifierDelta = modifierDelta
         self.finalScore = finalScore
+        self.maxGrade = maxGrade
         self.published = published
     }
 }

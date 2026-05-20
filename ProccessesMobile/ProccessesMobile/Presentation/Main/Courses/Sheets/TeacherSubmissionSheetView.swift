@@ -16,6 +16,8 @@ struct TeacherSubmissionSheetView: View {
     let onDeleteGrade: () -> Void
     let onAddComment: () -> Void
     let onDeleteComment: (UUID) -> Void
+    let onOpenCriteriaGrading: () -> Void
+    let isCriteriaGradingAvailable: Bool
     let onAttachmentDownload: (FeedAttachmentItem) -> Void
     let onAttachmentShare: (FeedAttachmentItem) -> Void
 
@@ -31,6 +33,8 @@ struct TeacherSubmissionSheetView: View {
         onDeleteGrade: @escaping () -> Void,
         onAddComment: @escaping () -> Void,
         onDeleteComment: @escaping (UUID) -> Void,
+        onOpenCriteriaGrading: @escaping () -> Void,
+        isCriteriaGradingAvailable: Bool,
         onAttachmentDownload: @escaping (FeedAttachmentItem) -> Void,
         onAttachmentShare: @escaping (FeedAttachmentItem) -> Void
     ) {
@@ -41,6 +45,8 @@ struct TeacherSubmissionSheetView: View {
         self.onDeleteGrade = onDeleteGrade
         self.onAddComment = onAddComment
         self.onDeleteComment = onDeleteComment
+        self.onOpenCriteriaGrading = onOpenCriteriaGrading
+        self.isCriteriaGradingAvailable = isCriteriaGradingAvailable
         self.onAttachmentDownload = onAttachmentDownload
         self.onAttachmentShare = onAttachmentShare
         _gradeInput = State(initialValue: submission.grade.map(String.init) ?? "")
@@ -117,6 +123,7 @@ struct TeacherSubmissionSheetView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     headerCard
+                    criteriaGradingCard
                     submissionContentCard
                     commentsCard
                 }
@@ -146,6 +153,33 @@ struct TeacherSubmissionSheetView: View {
                 Text("This will remove the current grade for the submission.")
             }
         }
+    }
+
+    private var criteriaGradingCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Criteria grading")
+                .font(.headline)
+
+            if isCriteriaGradingAvailable {
+                Button {
+                    onOpenCriteriaGrading()
+                } label: {
+                    Label("Open criteria grading", systemImage: "checklist")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+            } else {
+                ContentUnavailableView(
+                    "Assessment config is not configured",
+                    systemImage: "slider.horizontal.3",
+                    description: Text("Create a grading configuration before assessing this submission by criteria.")
+                )
+                .font(.subheadline)
+            }
+        }
+        .padding(20)
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 
     private var headerCard: some View {

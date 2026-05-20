@@ -6,6 +6,14 @@
 import Foundation
 
 enum CriterionGradeMapper {
+    static func toDomain(_ dto: CriterionGradeResultItemDTO) throws -> CriterionGrade {
+        CriterionGrade(
+            criterionId: try parseUUID(dto.criterion.id ?? ""),
+            value: dto.value,
+            comment: dto.comment
+        )
+    }
+
     static func toDomain(_ dto: CriterionGradeEntryDTO) throws -> CriterionGrade {
         CriterionGrade(
             criterionId: try parseUUID(dto.criterionId),
@@ -26,8 +34,8 @@ enum CriterionGradeMapper {
 enum ModifierEffectMapper {
     static func toDomain(_ dto: ModifierEffectDTO) -> ModifierEffect {
         ModifierEffect(
-            type: ModifierType(apiValue: dto.type),
-            value: dto.value,
+            type: ModifierType(apiValue: dto.modifierType),
+            value: dto.delta,
             description: dto.description
         )
     }
@@ -40,14 +48,16 @@ enum AssessmentResultMapper {
             criteriaGrades: try dto.criteriaGrades.map(CriterionGradeMapper.toDomain),
             modifierEffects: dto.modifierEffects.map(ModifierEffectMapper.toDomain),
             basicScore: dto.basicScore,
+            modifierDelta: dto.modifierDelta,
             finalScore: dto.finalScore,
-            published: dto.published
+            maxGrade: dto.maxGrade,
+            published: dto.isPublished
         )
     }
 
     static func toDTO(_ grades: [CriterionGrade]) -> CriteriaGradeRequestDTO {
         CriteriaGradeRequestDTO(
-            criteria: grades.map(CriterionGradeMapper.toDTO)
+            grades: grades.map(CriterionGradeMapper.toDTO)
         )
     }
 }

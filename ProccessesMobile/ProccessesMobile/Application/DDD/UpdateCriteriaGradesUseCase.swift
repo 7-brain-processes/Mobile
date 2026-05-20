@@ -37,11 +37,11 @@ struct DefaultUpdateCriteriaGradesUseCase: UpdateCriteriaGradesUseCase {
             }
 
             switch criterion.type {
-            case .boolean:
+            case .yesNo:
                 guard grade.value == 0 || grade.value == 1 else {
                     throw AssessmentValidationError.invalidBooleanValue
                 }
-            case .percent:
+            case .percentage:
                 guard (0...100).contains(grade.value) else {
                     throw AssessmentValidationError.percentOutOfRange(min: 0, max: 100)
                 }
