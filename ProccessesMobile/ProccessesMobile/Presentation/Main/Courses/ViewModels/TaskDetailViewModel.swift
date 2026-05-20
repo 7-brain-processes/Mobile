@@ -26,6 +26,59 @@ final class TaskDetailViewModel: ObservableObject {
         case gradeDecomposition
     }
 
+    enum StudentGradeBreakdownEmptyState {
+        case solutionNotSubmitted
+        case assessmentNotConfigured
+        case gradeNotSet
+        case gradeNotPublished
+        case decompositionUnavailable
+
+        var title: String {
+            switch self {
+            case .solutionNotSubmitted:
+                return "Solution not submitted"
+            case .assessmentNotConfigured:
+                return "Multi-criteria grading is not configured"
+            case .gradeNotSet:
+                return "Grade is not set"
+            case .gradeNotPublished:
+                return "Grade is not published"
+            case .decompositionUnavailable:
+                return "Grade decomposition is unavailable"
+            }
+        }
+
+        var description: String {
+            switch self {
+            case .solutionNotSubmitted:
+                return "Submit your work before a grade decomposition can appear."
+            case .assessmentNotConfigured:
+                return "This assignment does not have multi-criteria grading configured."
+            case .gradeNotSet:
+                return "The teacher has not saved criteria grades for your solution yet."
+            case .gradeNotPublished:
+                return "The teacher has not published the criteria grade result yet."
+            case .decompositionUnavailable:
+                return "The grade details are not available for this solution."
+            }
+        }
+
+        var systemImage: String {
+            switch self {
+            case .solutionNotSubmitted:
+                return "tray"
+            case .assessmentNotConfigured:
+                return "slider.horizontal.3"
+            case .gradeNotSet:
+                return "checklist.unchecked"
+            case .gradeNotPublished:
+                return "eye.slash"
+            case .decompositionUnavailable:
+                return "exclamationmark.triangle"
+            }
+        }
+    }
+
     let role: CourseRole
 
     private let courseId: UUID
@@ -101,6 +154,7 @@ final class TaskDetailViewModel: ObservableObject {
     @Published var criteriaGradesDraft: [CriterionGrade] = []
     @Published var selectedSubmissionForCriteriaSheet: TaskSubmissionItem?
     @Published var gradeBreakdown: GradeBreakdown?
+    @Published var studentGradeBreakdownEmptyState: StudentGradeBreakdownEmptyState?
     @Published private(set) var isLoadingAssessmentConfig = false
     @Published private(set) var isSavingAssessmentConfig = false
     @Published private(set) var isDeletingAssessmentConfig = false
@@ -390,6 +444,7 @@ final class TaskDetailViewModel: ObservableObject {
 
             if isStudent {
                 currentUser = try? await getMeUseCase.execute()
+                await loadAssessmentConfigForStudent()
                 await loadMySolution()
             }
 
@@ -1149,6 +1204,7 @@ final class TaskDetailViewModel: ObservableObject {
             case .serverError(let code) where code == 404:
                 mySolutionId = nil
                 gradeBreakdown = nil
+                studentGradeBreakdownEmptyState = .solutionNotSubmitted
                 studentSubmissionText = ""
                 studentSubmissionStatus = .draft
 
@@ -1164,6 +1220,7 @@ final class TaskDetailViewModel: ObservableObject {
         guard isStudent else { return }
         guard mySolutionId != nil else {
             gradeBreakdown = nil
+            studentGradeBreakdownEmptyState = .solutionNotSubmitted
             return
         }
         guard !isLoadingGradeDecomposition else { return }
@@ -1182,16 +1239,54 @@ final class TaskDetailViewModel: ObservableObject {
                     postId: postId
                 )
             )
+            studentGradeBreakdownEmptyState = nil
         } catch let error as APIError {
             switch error {
             case .serverError(let code) where code == 404:
                 gradeBreakdown = nil
+                studentGradeBreakdownEmptyState = assessmentConfig == nil
+                    ? .assessmentNotConfigured
+                    : (studentSubmissionStatus == .accepted ? .gradeNotPublished : .gradeNotSet)
 
             default:
+                gradeBreakdown = nil
+                studentGradeBreakdownEmptyState = .decompositionUnavailable
                 assessmentErrorMessage = mapAssessmentAPIError(error, context: .gradeDecomposition)
             }
         } catch {
+            gradeBreakdown = nil
+            studentGradeBreakdownEmptyState = .decompositionUnavailable
             assessmentErrorMessage = error.localizedDescription
+        }
+    }
+
+    private func loadAssessmentConfigForStudent() async {
+        guard isStudent else { return }
+
+        do {
+            let config = try await getGradingConfigUseCase.execute(
+                GetGradingConfigQuery(
+                    courseId: courseId,
+                    postId: postId
+                )
+            )
+
+            assessmentConfig = config
+        } catch let error as APIError {
+            switch error {
+            case .serverError(let code) where code == 404:
+                assessmentConfig = nil
+                studentGradeBreakdownEmptyState = .assessmentNotConfigured
+
+            case .serverError(let code) where code == 403:
+                assessmentConfig = nil
+                studentGradeBreakdownEmptyState = .decompositionUnavailable
+
+            default:
+                assessmentConfig = nil
+            }
+        } catch {
+            assessmentConfig = nil
         }
     }
 

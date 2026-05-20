@@ -318,6 +318,13 @@ struct TaskDetailView: View {
                             isLoading: viewModel.isLoadingGradeDecomposition
                         )
                         .padding(.horizontal, 16)
+                    } else if viewModel.isStudent,
+                              let emptyState = viewModel.studentGradeBreakdownEmptyState {
+                        StudentGradeBreakdownEmptyStateView(
+                            state: emptyState,
+                            isLoading: viewModel.isLoadingGradeDecomposition
+                        )
+                        .padding(.horizontal, 16)
                     }
 
                     if viewModel.isTeacher && (item.teamFormationMode != nil || item.teamRequirementTemplateId != nil) {

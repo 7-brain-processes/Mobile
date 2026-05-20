@@ -160,3 +160,39 @@ struct StudentGradeBreakdownView: View {
         return prefix + scoreText(value)
     }
 }
+
+struct StudentGradeBreakdownEmptyStateView: View {
+    let state: TaskDetailViewModel.StudentGradeBreakdownEmptyState
+    let isLoading: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: state.systemImage)
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 28)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(state.title)
+                        .font(.headline)
+
+                    Text(state.description)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                if isLoading {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                }
+            }
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+    }
+}
