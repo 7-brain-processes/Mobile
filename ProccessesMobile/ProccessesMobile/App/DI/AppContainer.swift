@@ -97,6 +97,26 @@ final class AppContainer: ObservableObject {
     let listTeamRequirementTemplatesUseCase: ListTeamRequirementTemplatesUseCase
     let createTeamRequirementTemplateUseCase: CreateTeamRequirementTemplateUseCase
 
+    // MARK: Teams
+    let postTeamsRepository: PostTeamsRepository
+
+    let createPostTeamUseCase: CreatePostTeamUseCase
+    let updateTeamGradeUseCase: UpdateTeamGradeUseCase
+    let listTeamsForEnrollmentUseCase: ListTeamsForEnrollmentUseCase
+    let getMyTeamInPostUseCase: GetMyTeamInPostUseCase
+    let enrollStudentInTeamUseCase: EnrollStudentInTeamUseCase
+    let leaveTeamUseCase: LeaveTeamUseCase
+
+    let courseTeamsRepository: CourseTeamsRepository
+    let listCourseTeamsUseCase: ListCourseTeamsUseCase
+    let getTeamGradeUseCase: GetTeamGradeUseCase
+    let getTeamGradeDistributionUseCase: GetTeamGradeDistributionUseCase
+    let updateTeamGradeDistributionUseCase: UpdateTeamGradeDistributionUseCase
+    let getStudentTeamGradeVoteStatusUseCase: GetStudentTeamGradeVoteStatusUseCase
+    let getTeacherTeamGradeVoteStatusUseCase: GetTeacherTeamGradeVoteStatusUseCase
+    let submitTeamGradeVoteUseCase: SubmitTeamGradeVoteUseCase
+    let finalizeTeamGradeVoteUseCase: FinalizeTeamGradeVoteUseCase
+
     init(isAuthorized: Bool) {
         self.appCoordinator = AppCoordinator(isAuthorized: isAuthorized)
         self.authCoordinator = AuthCoordinator()
@@ -136,7 +156,10 @@ final class AppContainer: ObservableObject {
         self.teamRequirementTemplateRepository = DefaultTeamRequirementTemplateRepository(
             apiClient: apiClient
         )
-        
+
+        self.postTeamsRepository = DefaultPostTeamsRepository(
+            apiClient: apiClient
+        )
 
         self.deletePostMaterialUseCase = DefaultDeletePostMaterialUseCase(
             repository: postMaterialsRepository
@@ -296,6 +319,66 @@ final class AppContainer: ObservableObject {
 
         self.listPostCommentsUseCase = DefaultListPostCommentsUseCase(
             repository: postCommentsRepository
+        )
+
+        self.createPostTeamUseCase = DefaultCreatePostTeamUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.updateTeamGradeUseCase = DefaultUpdateTeamGradeUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.listTeamsForEnrollmentUseCase = DefaultListTeamsForEnrollmentUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.getMyTeamInPostUseCase = DefaultGetMyTeamInPostUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.enrollStudentInTeamUseCase = DefaultEnrollStudentInTeamUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.leaveTeamUseCase = DefaultLeaveTeamUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.courseTeamsRepository = DefaultCourseTeamsRepository(
+            apiClient: apiClient
+        )
+
+        self.listCourseTeamsUseCase = DefaultListCourseTeamsUseCase(
+            repository: courseTeamsRepository
+        )
+
+        self.getTeamGradeUseCase = DefaultGetTeamGradeUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.getTeamGradeDistributionUseCase = DefaultGetTeamGradeDistributionUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.updateTeamGradeDistributionUseCase = DefaultUpdateTeamGradeDistributionUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.getStudentTeamGradeVoteStatusUseCase = DefaultGetStudentTeamGradeVoteStatusUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.getTeacherTeamGradeVoteStatusUseCase = DefaultGetTeacherTeamGradeVoteStatusUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.submitTeamGradeVoteUseCase = DefaultSubmitTeamGradeVoteUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.finalizeTeamGradeVoteUseCase = DefaultFinalizeTeamGradeVoteUseCase(
+            repository: postTeamsRepository
         )
     }
 }

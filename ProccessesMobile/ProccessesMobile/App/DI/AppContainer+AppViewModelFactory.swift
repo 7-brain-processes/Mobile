@@ -139,6 +139,22 @@ extension AppContainer: ViewModelFactory {
             uploadSolutionFileUseCase: uploadSolutionFileUseCase,
             deleteSolutionFileUseCase: deleteSolutionFileUseCase,
             downloadSolutionFileUseCase: downloadSolutionFileUseCase,
+            listTeamRequirementTemplatesUseCase: listTeamRequirementTemplatesUseCase,
+            createPostTeamUseCase: createPostTeamUseCase,
+            updateTeamGradeUseCase: updateTeamGradeUseCase,
+            listTeamsForEnrollmentUseCase: listTeamsForEnrollmentUseCase,
+            getMyTeamInPostUseCase: getMyTeamInPostUseCase,
+            enrollStudentInTeamUseCase: enrollStudentInTeamUseCase,
+            leaveTeamUseCase: leaveTeamUseCase,
+            listCourseTeamsUseCase: listCourseTeamsUseCase,
+            getTeamGradeUseCase: getTeamGradeUseCase,
+            getTeamGradeDistributionUseCase: getTeamGradeDistributionUseCase,
+            updateTeamGradeDistributionUseCase: updateTeamGradeDistributionUseCase,
+            getMeUseCase: getMeUseCase,
+            getStudentTeamGradeVoteStatusUseCase: getStudentTeamGradeVoteStatusUseCase,
+            getTeacherTeamGradeVoteStatusUseCase: getTeacherTeamGradeVoteStatusUseCase,
+            submitTeamGradeVoteUseCase: submitTeamGradeVoteUseCase,
+            finalizeTeamGradeVoteUseCase: finalizeTeamGradeVoteUseCase
         )
     }
 

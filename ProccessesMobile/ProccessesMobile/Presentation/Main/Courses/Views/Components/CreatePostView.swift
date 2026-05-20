@@ -66,34 +66,13 @@ struct CreatePostView: View {
                         viewModel.openCreateTemplateSheet()
                     }
 
-                    if let selectedTemplate = viewModel.teamRequirementTemplates.first(
-                        where: { $0.id == viewModel.selectedTeamRequirementTemplateId }
-                    ) {
+                    if let selectedTemplate = viewModel.selectedTeamRequirementTemplate {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Selected template")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
 
-                            Text(selectedTemplate.name)
-                                .font(.subheadline)
-
-                            if let min = selectedTemplate.minTeamSize {
-                                Text("Min team size: \(min)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            if let max = selectedTemplate.maxTeamSize {
-                                Text("Max team size: \(max)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            if let category = selectedTemplate.requiredCategory {
-                                Text("Required category: \(category.title)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
+                            TeamRequirementTemplateSummaryView(template: selectedTemplate)
                         }
                         .padding(.vertical, 4)
                     }
