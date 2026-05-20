@@ -346,6 +346,23 @@ final class TaskDetailViewModel: ObservableObject {
                 comments: commentsPage.content,
                 teamRequirementTemplate: teamRequirementTemplate
             )
+
+            item = Self.mapPostToTaskDetailItem(
+                post,
+                materials: materials,
+                comments: commentsPage.content,
+                teamRequirementTemplate: teamRequirementTemplate
+            )
+
+            if isTeacher {
+                await loadAssessmentConfig()
+            }
+
+            if isStudent {
+                currentUser = try? await getMeUseCase.execute()
+                await loadMySolution()
+            }
+
             if isStudent {
                 currentUser = try? await getMeUseCase.execute()
                 await loadMySolution()
@@ -1004,6 +1021,41 @@ final class TaskDetailViewModel: ObservableObject {
         }
     }
 
+    private func loadAssessmentConfig() async {
+        guard isTeacher else { return }
+        guard !isLoadingAssessmentConfig else { return }
+
+        isLoadingAssessmentConfig = true
+        assessmentErrorMessage = nil
+
+        defer {
+            isLoadingAssessmentConfig = false
+        }
+
+        do {
+            let config = try await getGradingConfigUseCase.execute(
+                GetGradingConfigQuery(
+                    courseId: courseId,
+                    postId: postId
+                )
+            )
+
+            assessmentConfig = config
+            assessmentConfigDraft = config
+        } catch let error as APIError {
+            switch error {
+            case .serverError(let code) where code == 404:
+                assessmentConfig = nil
+                assessmentConfigDraft = nil
+
+            default:
+                assessmentErrorMessage = mapAssessmentAPIError(error)
+            }
+        } catch {
+            assessmentErrorMessage = error.localizedDescription
+        }
+    }
+
     private func loadSelectedTeamRequirementTemplate(
         templateId: UUID?
     ) async throws -> TeamRequirementTemplate? {
@@ -1044,6 +1096,32 @@ final class TaskDetailViewModel: ObservableObject {
             errorMessage = mapAPIError(error)
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func mapAssessmentAPIError(_ error: APIError) -> String {
+        switch error {
+        case .unauthorized:
+            return "Session expired"
+
+        case .serverError(let code):
+            switch code {
+            case 403:
+                return "You do not have permission to view assessment config"
+            case 404:
+                return "Assessment config is not configured"
+            default:
+                return "Assessment config error: \(code)"
+            }
+
+        case .invalidResponse:
+            return "Invalid assessment config response"
+
+        case .underlying:
+            return "Network error while loading assessment config"
+
+        case .invalidURL:
+            return "Invalid assessment config URL"
         }
     }
 
