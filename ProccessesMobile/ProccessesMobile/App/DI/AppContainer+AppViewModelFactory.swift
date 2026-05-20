@@ -76,7 +76,8 @@ extension AppContainer: ViewModelFactory {
         return CreatePostViewModel(
             courseId: courseId,
             initialType: initialType,
-            createPostUseCase: useCase
+            createPostUseCase: useCase,
+            listTeamRequirementTemplatesUseCase: listTeamRequirementTemplatesUseCase
         )
     }
 
@@ -114,121 +115,112 @@ extension AppContainer: ViewModelFactory {
         )
     }
     
-    func makeTaskDetailViewModel(postId: UUID) -> TaskDetailViewModel {
+    func makeTaskDetailViewModel(
+        courseId: UUID,
+        postId: UUID,
+        role: CourseRole
+    ) -> TaskDetailViewModel {
         TaskDetailViewModel(
-            role: .teacher,
-            item: TaskDetailItem(
-                id: postId,
-                title: "Homework 1",
-                content: "Solve the first five problems and attach your work.",
-                createdAt: Date(),
-                deadline: Calendar.current.date(byAdding: .day, value: 3, to: Date()),
-                authorDisplayName: "Professor Adams",
-                attachments: [
-                    FeedAttachmentItem(id: UUID(), type: .image, fileName: "worksheet-1.png", previewURL: nil),
-                    FeedAttachmentItem(id: UUID(), type: .file, fileName: "requirements.pdf", previewURL: nil)
-                ],
-                comments: [
-                    PostCommentItem(
-                        id: UUID(),
-                        authorName: "Alice Brown",
-                        text: "Can I submit handwritten work?",
-                        createdAt: Date()
-                    ),
-                    PostCommentItem(
-                        id: UUID(),
-                        authorName: "Professor Adams",
-                        text: "Yes, as long as it is readable.",
-                        createdAt: Date()
-                    )
-                ]
-            ),
-            studentAttachments: [
-                FeedAttachmentItem(id: UUID(), type: .image, fileName: "answer-1.jpg", previewURL: nil)
-            ],
-            studentSubmissionText: "I solved all five tasks. Please check my approach in question 4.",
-            studentSubmissionStatus: .draft,
-            studentTeacherComments: [
-                TeacherReviewCommentItem(
-                    id: UUID(),
-                    authorName: "Professor Adams",
-                    text: "Please revise the last exercise.",
-                    createdAt: Date()
-                )
-            ],
-            submissions: [
-                TaskSubmissionItem(
-                    id: UUID(),
-                    studentName: "Alice Brown",
-                    submittedAt: Date(),
-                    status: .submitted,
-                    text: "Please see attached work. I was unsure about task 2.",
-                    grade: 85,
-                    teacherComments: [
-                        TeacherReviewCommentItem(
-                            id: UUID(),
-                            authorName: "Professor Adams",
-                            text: "Good structure, but improve problem 2.",
-                            createdAt: Date()
-                        )
-                    ],
-                    attachments: [
-                        FeedAttachmentItem(id: UUID(), type: .image, fileName: "alice-1.jpg", previewURL: nil),
-                        FeedAttachmentItem(id: UUID(), type: .file, fileName: "alice-notes.pdf", previewURL: nil)
-                    ],
-                    isLate: false
-                ),
-                TaskSubmissionItem(
-                    id: UUID(),
-                    studentName: "Bob Green",
-                    submittedAt: Date(),
-                    status: .submitted,
-                    text: "I had difficulty with the final question.",
-                    grade: nil,
-                    teacherComments: [
-                        TeacherReviewCommentItem(
-                            id: UUID(),
-                            authorName: "Professor Adams",
-                            text: "Please expand your reasoning in task 5.",
-                            createdAt: Date()
-                        )
-                    ],
-                    attachments: [
-                        FeedAttachmentItem(id: UUID(), type: .image, fileName: "bob-1.jpg", previewURL: nil)
-                    ],
-                    isLate: true
-                )
-            ]
+            courseId: courseId,
+            postId: postId,
+            role: role,
+            getPostUseCase: getPostUseCase,
+            listPostMaterialsUseCase: listPostMaterialsUseCase,
+            uploadPostMaterialUseCase: uploadPostMaterialUseCase,
+            downloadPostMaterialUseCase: downloadPostMaterialUseCase,
+            deletePostMaterialUseCase: deletePostMaterialUseCase,
+            listPostCommentsUseCase: listPostCommentsUseCase,
+            createPostCommentUseCase: createPostCommentUseCase,
+            getMySolutionUseCase: getMySolutionUseCase,
+            submitSolutionUseCase: submitSolutionUseCase,
+            listSolutionsUseCase: listSolutionsUseCase,
+            gradeSolutionUseCase: gradeSolutionUseCase,
+            listSolutionFilesUseCase: listSolutionFilesUseCase,
+            uploadSolutionFileUseCase: uploadSolutionFileUseCase,
+            deleteSolutionFileUseCase: deleteSolutionFileUseCase,
+            downloadSolutionFileUseCase: downloadSolutionFileUseCase,
+            listTeamRequirementTemplatesUseCase: listTeamRequirementTemplatesUseCase,
+            createPostTeamUseCase: createPostTeamUseCase,
+            updateTeamGradeUseCase: updateTeamGradeUseCase,
+            listTeamsForEnrollmentUseCase: listTeamsForEnrollmentUseCase,
+            getMyTeamInPostUseCase: getMyTeamInPostUseCase,
+            enrollStudentInTeamUseCase: enrollStudentInTeamUseCase,
+            leaveTeamUseCase: leaveTeamUseCase,
+            listCourseTeamsUseCase: listCourseTeamsUseCase,
+            getTeamGradeUseCase: getTeamGradeUseCase,
+            getTeamGradeDistributionUseCase: getTeamGradeDistributionUseCase,
+            updateTeamGradeDistributionUseCase: updateTeamGradeDistributionUseCase,
+            getMeUseCase: getMeUseCase,
+            getStudentTeamGradeVoteStatusUseCase: getStudentTeamGradeVoteStatusUseCase,
+            getTeacherTeamGradeVoteStatusUseCase: getTeacherTeamGradeVoteStatusUseCase,
+            submitTeamGradeVoteUseCase: submitTeamGradeVoteUseCase,
+            finalizeTeamGradeVoteUseCase: finalizeTeamGradeVoteUseCase
         )
     }
-    
-    func makeMaterialDetailViewModel(postId: UUID) -> MaterialDetailViewModel {
+
+    func makeMaterialDetailViewModel(
+        courseId: UUID,
+        postId: UUID,
+        role: CourseRole
+    ) -> MaterialDetailViewModel {
         MaterialDetailViewModel(
-            item: MaterialDetailItem(
-                id: postId,
-                title: "Lecture slides",
-                content: "Review these images before the next lesson.",
-                createdAt: Date(),
-                authorDisplayName: "Professor Adams",
-                attachments: [
-                    FeedAttachmentItem(id: UUID(), type: .image, fileName: "slides-1.png", previewURL: nil),
-                    FeedAttachmentItem(id: UUID(), type: .image, fileName: "slides-2.png", previewURL: nil)
-                ],
-                comments: [
-                    PostCommentItem(
-                        id: UUID(),
-                        authorName: "Bob Green",
-                        text: "Will this be on the quiz?",
-                        createdAt: Date()
-                    ),
-                    PostCommentItem(
-                        id: UUID(),
-                        authorName: "Professor Adams",
-                        text: "Yes, review these carefully.",
-                        createdAt: Date()
-                    )
-                ]
-            )
+            courseId: courseId,
+            postId: postId,
+            role: role,
+            getPostUseCase: getPostUseCase,
+            listPostMaterialsUseCase: listPostMaterialsUseCase,
+            uploadPostMaterialUseCase: uploadPostMaterialUseCase,
+            downloadPostMaterialUseCase: downloadPostMaterialUseCase,
+            deletePostMaterialUseCase: deletePostMaterialUseCase,
+            listPostCommentsUseCase: listPostCommentsUseCase,
+            createPostCommentUseCase: createPostCommentUseCase
+        )
+    }
+
+    // MARK: - NEW
+    func makeCourseCategoriesViewModel(courseId: UUID) -> CourseCategoriesViewModel {
+        CourseCategoriesViewModel(
+            courseId: courseId,
+            listCourseCategoriesUseCase: listCourseCategoriesUseCase,
+            deleteCourseCategoryUseCase: deleteCourseCategoryUseCase,
+            getMyCourseCategoryUseCase: getMyCourseCategoryUseCase,
+            setMyCourseCategoryUseCase: setMyCourseCategoryUseCase
+        )
+    }
+
+    func makeCreateCourseCategoryViewModel(
+        courseId: UUID,
+        onCreated: @escaping @MainActor () async -> Void
+    ) -> CreateCourseCategorySheetViewModel {
+        CreateCourseCategorySheetViewModel(
+            courseId: courseId,
+            createCourseCategoryUseCase: createCourseCategoryUseCase,
+            onCreated: onCreated
+        )
+    }
+
+    func makeEditCourseCategorySheetViewModel(
+        courseId: UUID,
+        category: CourseCategory,
+        onUpdated: @escaping @MainActor () async -> Void
+    ) -> EditCourseCategorySheetViewModel {
+        EditCourseCategorySheetViewModel(
+            courseId: courseId,
+            category: category,
+            updateCourseCategoryUseCase: updateCourseCategoryUseCase,
+            onUpdated: onUpdated
+        )
+    }
+
+    func makeCreateTeamRequirementTemplateViewModel(
+        courseId: UUID,
+        onCreated: @escaping @MainActor (TeamRequirementTemplate) async -> Void
+    ) -> CreateTeamRequirementTemplateSheetViewModel {
+        CreateTeamRequirementTemplateSheetViewModel(
+            courseId: courseId,
+            listCourseCategoriesUseCase: listCourseCategoriesUseCase,
+            createTeamRequirementTemplateUseCase: createTeamRequirementTemplateUseCase,
+            onCreated: onCreated
         )
     }
 }

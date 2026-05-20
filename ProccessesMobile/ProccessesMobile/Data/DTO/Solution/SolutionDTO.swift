@@ -1,5 +1,5 @@
 //
-//  Solution.swift
+//  SolutionDTO.swift
 //  ProccessesMobile
 //
 //  Created by Tark Wight on 07.03.2026.

@@ -14,6 +14,8 @@ enum PostMapper {
             title: dto.title,
             content: dto.content,
             type: PostTypeMapper.toDomain(dto.type),
+            teamFormationMode: dto.teamFormationMode.map(TeamFormationModeMapper.toDomain),
+            teamRequirementTemplateId: try dto.teamRequirementTemplateId.map(parseUUID),
             deadline: try dto.deadline.map(parseDate),
             author: try dto.author.map(UserMapper.toDomain)!,
             materialsCount: dto.materialsCount,

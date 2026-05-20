@@ -1,0 +1,29 @@
+//
+//  MainRoute.swift
+//  ProccessesMobile
+//
+//  Created by Tark Wight on 18.04.2026.
+//
+
+import Combine
+import Foundation
+
+enum MainRoute: Hashable {
+    case course(courseId: UUID, role: CourseRole)
+
+    case taskDetails(courseId: UUID, postId: UUID, role: CourseRole)
+    case materialDetails(courseId: UUID, postId: UUID, role: CourseRole)
+    case createPost(UUID, FeedPostType)
+}
+
+enum MainSheet: Identifiable, Equatable {
+    case createCourse
+    case joinByCode
+
+    var id: String {
+        switch self {
+        case .createCourse: return "createCourse"
+        case .joinByCode: return "joinByCode"
+        }
+    }
+}

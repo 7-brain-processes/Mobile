@@ -9,12 +9,15 @@ import Foundation
 
 enum CommentMapper {
     static func toDomain(_ dto: CommentDTO) throws -> Comment {
-        Comment(
+        let createdAt = try dto.createdAt.map(parseDate) ?? Date()
+        let updatedAt = try dto.updatedAt.map(parseDate) ?? createdAt
+
+        return Comment(
             id: try parseUUID(dto.id),
             text: dto.text,
             author: try dto.author.map(UserMapper.toDomain),
-            createdAt: try parseDate(dto.createdAt),
-            updatedAt: try parseDate(dto.updatedAt)
+            createdAt: createdAt,
+            updatedAt: updatedAt
         )
     }
 

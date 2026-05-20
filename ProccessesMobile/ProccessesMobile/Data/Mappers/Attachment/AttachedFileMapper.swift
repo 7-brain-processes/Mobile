@@ -14,7 +14,7 @@ enum AttachedFileMapper {
             originalName: dto.originalName,
             contentType: dto.contentType,
             sizeBytes: dto.sizeBytes,
-            uploadedAt: try parseDate(dto.uploadedAt)
+            uploadedAt: try dto.uploadedAt.map(parseDate)
         )
     }
 }

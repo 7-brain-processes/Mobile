@@ -19,7 +19,8 @@ protocol AppViewFactory {
 
     func makeCourseFlowView(
         coursesCoordinator: CoursesCoordinator,
-        courseId: UUID
+        courseId: UUID,
+        role: CourseRole
     ) -> AnyView
 
     func makeFeedView(
@@ -39,10 +40,29 @@ protocol AppViewFactory {
         role: CourseRole
     ) -> AnyView
 
-    func makeTaskDetailView(courseId: UUID, postId: UUID) -> AnyView
-    func makeMaterialDetailView(courseId: UUID, postId: UUID) -> AnyView
+    func makeTaskDetailView(
+        courseId: UUID,
+        postId: UUID,
+        role: CourseRole
+    ) -> AnyView
+    func makeMaterialDetailView(
+        courseId: UUID,
+        postId: UUID,
+        role: CourseRole
+    ) -> AnyView
     func makeCreatePostView(courseId: UUID, postType: FeedPostType) -> AnyView
 
     func makeMembersView(courseId: UUID, coordinator: MembersCoordinator) -> AnyView
 
+    // MARK: - New
+    func makeCourseCategoriesView(courseId: UUID, role: CourseRole) -> AnyView
+    func makeCreateCourseCategoryView(
+        courseId: UUID,
+        onCreated: @escaping @MainActor () async -> Void
+    ) -> AnyView
+
+    func makeCreateTeamRequirementTemplateView(
+        courseId: UUID,
+        onCreated: @escaping @MainActor (TeamRequirementTemplate) async -> Void
+    ) -> AnyView
 }
