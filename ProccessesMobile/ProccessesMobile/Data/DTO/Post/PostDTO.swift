@@ -1,5 +1,5 @@
 //
-//  Post.swift
+//  PostDTO.swift
 //  ProccessesMobile
 //
 //  Created by Tark Wight on 07.03.2026.
@@ -10,6 +10,8 @@ struct PostDTO: Equatable, Sendable, Codable {
     let title: String
     let content: String?
     let type: PostTypeDTO
+    let teamFormationMode: TeamFormationModeDTO?
+    let teamRequirementTemplateId: String?
     let deadline: String?
     let author: UserDTO?
     let materialsCount: Int

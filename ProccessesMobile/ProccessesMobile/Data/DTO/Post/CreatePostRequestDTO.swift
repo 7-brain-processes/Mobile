@@ -9,5 +9,7 @@ struct CreatePostRequestDTO: Equatable, Sendable, Codable {
     let title: String
     let content: String?
     let type: PostTypeDTO
+    let teamFormationMode: TeamFormationModeDTO?
+    let teamRequirementTemplateId: String?
     let deadline: String?
 }

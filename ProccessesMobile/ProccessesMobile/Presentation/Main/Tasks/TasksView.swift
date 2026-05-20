@@ -76,6 +76,18 @@ struct TasksView: View {
                                                     .font(.caption)
                                                     .foregroundStyle(.secondary)
                                             }
+
+                                            if let mode = task.teamFormationMode {
+                                                Text("Team mode: \(mode.title)")
+                                                    .font(.caption)
+                                                    .foregroundStyle(.secondary)
+                                            }
+
+                                            if task.teamRequirementTemplateId != nil {
+                                                Text("Requirements template selected")
+                                                    .font(.caption)
+                                                    .foregroundStyle(.secondary)
+                                            }
                                         }
 
                                         Spacer()

@@ -12,7 +12,7 @@ struct AttachedFile: Equatable, Sendable {
     let originalName: String
     let contentType: String
     let sizeBytes: Int64
-    let uploadedAt: Date
+    let uploadedAt: Date?
 }
 extension AttachedFile {
     func toFeedAttachmentItem() -> FeedAttachmentItem {

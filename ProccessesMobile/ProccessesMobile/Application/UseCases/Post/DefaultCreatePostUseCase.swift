@@ -30,6 +30,8 @@ struct DefaultCreatePostUseCase: CreatePostUseCase {
             title: title,
             content: command.content,
             type: command.type,
+            teamFormationMode: command.teamFormationMode,
+            teamRequirementTemplateId: command.teamRequirementTemplateId,
             deadline: command.deadline
         )
 

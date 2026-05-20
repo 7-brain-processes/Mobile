@@ -12,5 +12,5 @@ struct AttachedFileDTO: Equatable, Sendable, Codable {
     let originalName: String
     let contentType: String
     let sizeBytes: Int64
-    let uploadedAt: String
+    let uploadedAt: String?
 }
