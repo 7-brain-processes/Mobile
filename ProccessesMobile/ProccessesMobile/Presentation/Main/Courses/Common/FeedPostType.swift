@@ -85,11 +85,13 @@ struct MaterialDetailItem: Equatable {
 
 struct TaskSubmissionItem: Identifiable, Equatable {
     let id: UUID
+    let studentId: UUID?
     let studentName: String
     let submittedAt: Date?
     let status: SubmissionStatus
     let text: String
     let grade: Int?
+    let isTeamManagedGrade: Bool
     let teacherComments: [TeacherReviewCommentItem]
     let attachments: [FeedAttachmentItem]
     let isLate: Bool
@@ -118,6 +120,22 @@ extension TaskSubmissionItem {
         } else {
             return "/100"
         }
+    }
+
+    func withGrade(_ grade: Int?, isTeamManagedGrade: Bool) -> TaskSubmissionItem {
+        TaskSubmissionItem(
+            id: id,
+            studentId: studentId,
+            studentName: studentName,
+            submittedAt: submittedAt,
+            status: status,
+            text: text,
+            grade: grade,
+            isTeamManagedGrade: isTeamManagedGrade,
+            teacherComments: teacherComments,
+            attachments: attachments,
+            isLate: isLate
+        )
     }
 }
 struct PostCommentItem: Identifiable, Equatable {

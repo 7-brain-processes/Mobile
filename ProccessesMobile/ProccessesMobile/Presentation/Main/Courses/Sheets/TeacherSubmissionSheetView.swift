@@ -68,6 +68,10 @@ struct TeacherSubmissionSheetView: View {
         submission.grade != nil
     }
 
+    private var isGradeEditable: Bool {
+        !submission.isTeamManagedGrade
+    }
+
     private var matchesSavedGrade: Bool {
         guard let saved = submission.grade else { return false }
         return gradeInput == String(saved)
@@ -166,6 +170,12 @@ struct TeacherSubmissionSheetView: View {
                 }
 
                 statusChip(title: submission.displayStatusTitle)
+
+                if submission.isTeamManagedGrade {
+                    Text("Grade comes from team distribution")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .layoutPriority(1)
@@ -176,6 +186,7 @@ struct TeacherSubmissionSheetView: View {
                         .fill(gradeFieldBackground)
 
                     Button {
+                        guard isGradeEditable else { return }
                         if showsDeleteButton {
                             showDeleteGradeAlert = true
                         } else {
@@ -188,7 +199,7 @@ struct TeacherSubmissionSheetView: View {
                             .foregroundStyle(gradeButtonColor)
                     }
                     .buttonStyle(.plain)
-                    .disabled(!isGradeButtonEnabled)
+                    .disabled(!isGradeEditable || !isGradeButtonEnabled)
                     .padding(.leading, 8)
 
                     TextField("", text: normalizedGradeBinding)
@@ -198,6 +209,7 @@ struct TeacherSubmissionSheetView: View {
                         .padding(.leading, 30)
                         .padding(.trailing, 8)
                         .padding(.vertical, 8)
+                        .disabled(!isGradeEditable)
                 }
                 .frame(width: 74, height: 36)
                 .layoutPriority(0)

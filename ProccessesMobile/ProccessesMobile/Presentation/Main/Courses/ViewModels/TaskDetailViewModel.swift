@@ -333,11 +333,13 @@ final class TaskDetailViewModel: ObservableObject {
     ) -> TaskSubmissionItem {
         TaskSubmissionItem(
             id: solution.id,
+            studentId: solution.student?.id,
             studentName: solution.student?.displayName ?? solution.student?.username ?? "Unknown student",
             submittedAt: solution.submittedAt,
             status: mapSolutionStatusToSubmissionStatus(solution.status),
             text: solution.text ?? "",
             grade: solution.grade,
+            isTeamManagedGrade: false,
             teacherComments: [],
             attachments: attachments,
             isLate: false
@@ -395,6 +397,7 @@ final class TaskDetailViewModel: ObservableObject {
             }
 
             submissions = result
+            await applyTeacherTeamGradesToSubmissions()
         } catch let error as APIError {
             errorMessage = mapAPIError(error)
         } catch {
@@ -625,6 +628,10 @@ final class TaskDetailViewModel: ObservableObject {
             submissions.append(updated)
         }
 
+        Task {
+            await applyTeacherTeamGradesToSubmissions()
+        }
+
         if selectedSubmissionForSheet?.id == solution.id {
             selectedSubmissionForSheet = updated
         }
@@ -781,11 +788,13 @@ final class TaskDetailViewModel: ObservableObject {
 
         submissions[index] = TaskSubmissionItem(
             id: submissions[index].id,
+            studentId: submissions[index].studentId,
             studentName: submissions[index].studentName,
             submittedAt: submissions[index].submittedAt,
             status: submissions[index].status,
             text: submissions[index].text,
             grade: submissions[index].grade,
+            isTeamManagedGrade: submissions[index].isTeamManagedGrade,
             teacherComments: updatedComments,
             attachments: submissions[index].attachments,
             isLate: submissions[index].isLate
@@ -800,11 +809,13 @@ final class TaskDetailViewModel: ObservableObject {
 
         submissions[index] = TaskSubmissionItem(
             id: submissions[index].id,
+            studentId: submissions[index].studentId,
             studentName: submissions[index].studentName,
             submittedAt: submissions[index].submittedAt,
             status: submissions[index].status,
             text: submissions[index].text,
             grade: submissions[index].grade,
+            isTeamManagedGrade: submissions[index].isTeamManagedGrade,
             teacherComments: updatedComments,
             attachments: submissions[index].attachments,
             isLate: submissions[index].isLate
@@ -1470,10 +1481,50 @@ final class TaskDetailViewModel: ObservableObject {
 
             await loadTeams()
             await loadTeacherTeamSheetData(for: teamId)
+            await loadSubmissions()
         } catch let error as APIError {
             errorMessage = mapVotingAPIError(error)
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func applyTeacherTeamGradesToSubmissions() async {
+        guard isTeacher else { return }
+        guard !teacherTeams.isEmpty else { return }
+        guard !submissions.isEmpty else { return }
+
+        var gradesByStudentId: [UUID: Int] = [:]
+
+        for team in teacherTeams where team.currentMembers > 0 {
+            do {
+                let voteStatus = try await getTeacherTeamGradeVoteStatusUseCase.execute(
+                    courseId: courseId,
+                    postId: postId,
+                    teamId: team.id
+                )
+
+                for item in voteStatus.finalDistribution {
+                    if let grade = item.grade {
+                        gradesByStudentId[item.student.id] = grade
+                    }
+                }
+            } catch {
+                continue
+            }
+        }
+
+        submissions = submissions.map { submission in
+            guard let studentId = submission.studentId,
+                  let grade = gradesByStudentId[studentId] else {
+                return submission
+            }
+
+            return submission.withGrade(grade, isTeamManagedGrade: true)
+        }
+
+        if let selectedSubmissionForSheet {
+            self.selectedSubmissionForSheet = submissions.first(where: { $0.id == selectedSubmissionForSheet.id })
         }
     }
 

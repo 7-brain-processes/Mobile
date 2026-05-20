@@ -359,7 +359,8 @@ struct TaskDetailView: View {
         VStack(spacing: 12) {
             if let item = viewModel.item,
                viewModel.isTeacher,
-               item.teamFormationMode != nil || item.teamRequirementTemplateId != nil {
+               item.teamFormationMode != nil || item.teamRequirementTemplateId != nil,
+               viewModel.teacherTeams.contains(where: { $0.currentMembers > 0 }) {
                 teacherTeamManagementSection
                     .padding(.horizontal, 16)
             }
@@ -409,6 +410,12 @@ struct TaskDetailView: View {
         }
     }
 
+    private var displayedTeacherTeams: [CourseTeamAvailability] {
+        viewModel.selectedTeacherTab == .submissions
+            ? viewModel.teacherTeams.filter { $0.currentMembers > 0 }
+            : viewModel.teacherTeams
+    }
+
     private var teacherTeamManagementSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
@@ -423,14 +430,15 @@ struct TaskDetailView: View {
                 }
             }
 
-            if viewModel.teacherTeams.isEmpty && !viewModel.isLoadingTeams {
+            if displayedTeacherTeams.isEmpty && !viewModel.isLoadingTeams {
                 Text("No teams created yet")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(viewModel.teacherTeams) { team in
+                ForEach(displayedTeacherTeams) { team in
                     teacherTeamRow(team)
-                }            }
+                }
+            }
 
             Button {
                 viewModel.openCreateTeamSheet()
