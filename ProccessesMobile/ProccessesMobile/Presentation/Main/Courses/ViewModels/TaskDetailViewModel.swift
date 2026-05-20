@@ -88,6 +88,19 @@ final class TaskDetailViewModel: ObservableObject {
     @Published private(set) var isSubmittingSolution = false
     @Published private(set) var isGradingSolution = false
 
+    @Published var assessmentConfig: AssessmentConfig?
+    @Published var assessmentConfigDraft: AssessmentConfig?
+    @Published var selectedAssessmentResult: AssessmentResult?
+    @Published var gradeBreakdown: GradeBreakdown?
+    @Published private(set) var isLoadingAssessmentConfig = false
+    @Published private(set) var isSavingAssessmentConfig = false
+    @Published private(set) var isDeletingAssessmentConfig = false
+    @Published private(set) var isLoadingCriteriaGrades = false
+    @Published private(set) var isSavingCriteriaGrades = false
+    @Published private(set) var isPublishingCriteriaGrades = false
+    @Published private(set) var isLoadingGradeDecomposition = false
+    @Published var assessmentErrorMessage: String?
+
     @Published private(set) var availableTeams: [CourseTeamAvailability] = []
     @Published private(set) var myTeam: StudentTeam?
     @Published private(set) var isLoadingTeams = false
