@@ -191,16 +191,64 @@ final class TaskDetailViewModel: ObservableObject {
     }
 
     var studentDistributionModeTitle: String {
-        studentTeamGradeDistribution?.distributionMode.title ?? "Manual"
+        if teamVoteStatus != nil {
+            return TeamGradeDistributionMode.teamVote.title
+        }
+
+        return studentTeamGradeDistribution?.distributionMode.title ?? "Manual"
     }
 
     var studentVotingStatusTitle: String? {
-        guard studentTeamGradeDistribution?.distributionMode == .teamVote else { return nil }
+        guard teamVoteStatus != nil else { return nil }
         return teamVoteStatus?.state.title ?? "Not started"
     }
 
+    var studentVotingActionTitle: String {
+        if teamVoteStatus?.canSubmitVote == true {
+            return "Vote now"
+        }
+
+        return "Open voting"
+    }
+
+    var studentVotingPrompt: String? {
+        guard teamVoteStatus != nil else { return nil }
+
+        if teamVoteStatus?.canSubmitVote == true {
+            return "Your team is waiting for your vote"
+        }
+
+        if teamVoteStatus?.finalized == true {
+            return "Voting is complete"
+        }
+
+        if teamVoteStatus?.myVote.isEmpty == false {
+            return "Your vote has been submitted"
+        }
+
+        return "Voting is in progress"
+    }
+
+    var studentOwnGradeLabel: String? {
+        guard let currentUser else { return nil }
+
+        if let finalGrade = teamVoteStatus?.finalDistribution.first(where: { $0.student.id == currentUser.id })?.grade {
+            return "Your final grade: \(finalGrade)/100"
+        }
+
+        if let votedGrade = teamVoteStatus?.myVote.first(where: { $0.student.id == currentUser.id })?.grade {
+            return "Your vote for yourself: \(votedGrade)/100"
+        }
+
+        if let distributedGrade = studentTeamGradeDistribution?.students.first(where: { $0.student.id == currentUser.id })?.grade {
+            return "Your individual grade: \(distributedGrade)/100"
+        }
+
+        return nil
+    }
+
     var canOpenStudentVoteSheet: Bool {
-        isStudent && myTeam != nil && studentTeamGradeDistribution?.distributionMode == .teamVote
+        isStudent && myTeam != nil && teamVoteStatus != nil
     }
 
     func onAppear() {
@@ -1014,14 +1062,13 @@ final class TaskDetailViewModel: ObservableObject {
                         postId: postId
                     )
                 )
-                availableTeams = await hydrateTeamGrades(in: fetchedTeams)
+                availableTeams = fetchedTeams
 
                 await loadMyTeam()
 
                 if let myTeam {
-                    let hydratedTeam = await hydrateMyTeamGrade(myTeam)
-                    self.myTeam = hydratedTeam
-                    await loadStudentDistributionAndVote(teamId: hydratedTeam.teamId)
+                    self.myTeam = myTeam
+                    await loadStudentDistributionAndVote(teamId: myTeam.teamId)
                 } else {
                     studentTeamGradeDistribution = nil
                     teamVoteStatus = nil
@@ -1280,9 +1327,8 @@ final class TaskDetailViewModel: ObservableObject {
     }
 
     private func loadStudentDistributionAndVote(teamId: UUID) async {
-        async let distributionTask: Void = loadStudentTeamGradeDistribution(for: teamId)
-        async let voteTask: Void = loadStudentVoteStatus()
-        _ = await (distributionTask, voteTask)
+        studentTeamGradeDistribution = nil
+        await loadStudentVoteStatus()
     }
 
     private func loadTeacherTeamSheetData(for teamId: UUID) async {
@@ -1305,6 +1351,8 @@ final class TaskDetailViewModel: ObservableObject {
             )
         } catch let error as APIError {
             switch error {
+            case .serverError(let code) where code == 403:
+                studentTeamGradeDistribution = nil
             case .serverError(let code) where code == 404:
                 studentTeamGradeDistribution = nil
             default:
@@ -1326,6 +1374,16 @@ final class TaskDetailViewModel: ObservableObject {
                 courseId: courseId,
                 postId: postId
             )
+
+            if let teamVoteStatus {
+                if let myTeam, myTeam.teamId == teamVoteStatus.teamId {
+                    self.myTeam = myTeam.withTeamGrade(teamVoteStatus.teamGrade)
+                }
+
+                if let index = availableTeams.firstIndex(where: { $0.id == teamVoteStatus.teamId }) {
+                    availableTeams[index] = availableTeams[index].withTeamGrade(teamVoteStatus.teamGrade)
+                }
+            }
         } catch let error as APIError {
             switch error {
             case .serverError(let code) where code == 404:

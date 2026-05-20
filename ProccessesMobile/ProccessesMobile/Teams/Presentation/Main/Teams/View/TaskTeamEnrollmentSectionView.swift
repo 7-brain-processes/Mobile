@@ -13,6 +13,9 @@ struct TaskTeamEnrollmentSectionView: View {
     let teams: [CourseTeamAvailability]
     let distributionModeTitle: String?
     let votingStatusTitle: String?
+    let votingPrompt: String?
+    let ownGradeLabel: String?
+    let votingActionTitle: String
     let voteStatus: TeamGradeVoteStatus?
     let isLoading: Bool
     let isLoadingVotingState: Bool
@@ -87,10 +90,23 @@ struct TaskTeamEnrollmentSectionView: View {
                     .foregroundStyle(.secondary)
             }
 
+            if let votingPrompt {
+                Text(votingPrompt)
+                    .font(.caption)
+                    .foregroundStyle(.primary)
+            }
+
             if let voteStatus {
                 Text("Votes: \(voteStatus.votedCount)/\(voteStatus.voters.count)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            }
+
+            if let ownGradeLabel {
+                Text(ownGradeLabel)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
             }
 
             Text("\(team.membersCount)/\(team.maxSize.map(String.init) ?? "∞") members")
@@ -115,7 +131,7 @@ struct TaskTeamEnrollmentSectionView: View {
                 ProgressView()
                     .scaleEffect(0.8)
             } else if canOpenVoteSheet {
-                Button("Open voting") {
+                Button(votingActionTitle) {
                     onOpenVoteSheet()
                 }
                 .buttonStyle(.borderedProminent)
