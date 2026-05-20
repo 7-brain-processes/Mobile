@@ -311,6 +311,15 @@ struct TaskDetailView: View {
                         .padding(.horizontal, 16)
                     }
 
+                    if viewModel.isStudent,
+                       let gradeBreakdown = viewModel.gradeBreakdown {
+                        StudentGradeBreakdownView(
+                            breakdown: gradeBreakdown,
+                            isLoading: viewModel.isLoadingGradeDecomposition
+                        )
+                        .padding(.horizontal, 16)
+                    }
+
                     if viewModel.isTeacher && (item.teamFormationMode != nil || item.teamRequirementTemplateId != nil) {
                         teacherTeamManagementSection
                             .padding(.horizontal, 16)
