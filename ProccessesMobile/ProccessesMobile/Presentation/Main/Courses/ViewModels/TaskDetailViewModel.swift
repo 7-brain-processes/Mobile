@@ -56,6 +56,13 @@ final class TaskDetailViewModel: ObservableObject {
     private let getTeacherTeamGradeVoteStatusUseCase: GetTeacherTeamGradeVoteStatusUseCase
     private let submitTeamGradeVoteUseCase: SubmitTeamGradeVoteUseCase
     private let finalizeTeamGradeVoteUseCase: FinalizeTeamGradeVoteUseCase
+    private let getGradingConfigUseCase: GetGradingConfigUseCase
+    private let updateGradingConfigUseCase: UpdateGradingConfigUseCase
+    private let deleteGradingConfigUseCase: DeleteGradingConfigUseCase
+    private let getCriteriaGradesUseCase: GetCriteriaGradesUseCase
+    private let updateCriteriaGradesUseCase: UpdateCriteriaGradesUseCase
+    private let publishCriteriaGradesUseCase: PublishCriteriaGradesUseCase
+    private let getGradeDecompositionUseCase: GetGradeDecompositionUseCase
 
     @Published var item: TaskDetailItem?
     @Published var isLoading = false
@@ -138,7 +145,14 @@ final class TaskDetailViewModel: ObservableObject {
         getStudentTeamGradeVoteStatusUseCase: GetStudentTeamGradeVoteStatusUseCase,
         getTeacherTeamGradeVoteStatusUseCase: GetTeacherTeamGradeVoteStatusUseCase,
         submitTeamGradeVoteUseCase: SubmitTeamGradeVoteUseCase,
-        finalizeTeamGradeVoteUseCase: FinalizeTeamGradeVoteUseCase
+        finalizeTeamGradeVoteUseCase: FinalizeTeamGradeVoteUseCase,
+        getGradingConfigUseCase: GetGradingConfigUseCase,
+        updateGradingConfigUseCase: UpdateGradingConfigUseCase,
+        deleteGradingConfigUseCase: DeleteGradingConfigUseCase,
+        getCriteriaGradesUseCase: GetCriteriaGradesUseCase,
+        updateCriteriaGradesUseCase: UpdateCriteriaGradesUseCase,
+        publishCriteriaGradesUseCase: PublishCriteriaGradesUseCase,
+        getGradeDecompositionUseCase: GetGradeDecompositionUseCase
     ) {
         self.courseId = courseId
         self.postId = postId
@@ -174,6 +188,13 @@ final class TaskDetailViewModel: ObservableObject {
         self.getTeacherTeamGradeVoteStatusUseCase = getTeacherTeamGradeVoteStatusUseCase
         self.submitTeamGradeVoteUseCase = submitTeamGradeVoteUseCase
         self.finalizeTeamGradeVoteUseCase = finalizeTeamGradeVoteUseCase
+        self.getGradingConfigUseCase = getGradingConfigUseCase
+        self.updateGradingConfigUseCase = updateGradingConfigUseCase
+        self.deleteGradingConfigUseCase = deleteGradingConfigUseCase
+        self.getCriteriaGradesUseCase = getCriteriaGradesUseCase
+        self.updateCriteriaGradesUseCase = updateCriteriaGradesUseCase
+        self.publishCriteriaGradesUseCase = publishCriteriaGradesUseCase
+        self.getGradeDecompositionUseCase = getGradeDecompositionUseCase
     }
 
     var isTeacher: Bool { role == .teacher }

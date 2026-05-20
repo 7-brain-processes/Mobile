@@ -36,6 +36,7 @@ final class AppContainer: ObservableObject {
     let solutionCommentsRepository: SolutionCommentsRepository
     let solutionFilesRepository: SolutionFilesRepository
     let solutionRepository: SolutionRepository
+    let assessmentRepository: AssessmentRepository
 
     let deletePostMaterialUseCase: DeletePostMaterialUseCase
     let downloadPostMaterialUseCase: DownloadPostMaterialUseCase
@@ -80,6 +81,14 @@ final class AppContainer: ObservableObject {
     let updateSolutionCommentUseCase: UpdateSolutionCommentUseCase
     let updateSolutionUseCase: UpdateSolutionUseCase
     let uploadSolutionFileUseCase: UploadSolutionFileUseCase
+
+    let getGradingConfigUseCase: GetGradingConfigUseCase
+    let updateGradingConfigUseCase: UpdateGradingConfigUseCase
+    let deleteGradingConfigUseCase: DeleteGradingConfigUseCase
+    let getCriteriaGradesUseCase: GetCriteriaGradesUseCase
+    let updateCriteriaGradesUseCase: UpdateCriteriaGradesUseCase
+    let publishCriteriaGradesUseCase: PublishCriteriaGradesUseCase
+    let getGradeDecompositionUseCase: GetGradeDecompositionUseCase
 
     // MARK: - NEW
     let courseCategoriesRepository: CourseCategoriesRepository
@@ -147,6 +156,7 @@ final class AppContainer: ObservableObject {
         self.solutionCommentsRepository = DefaultSolutionCommentsRepository(apiClient: apiClient)
         self.solutionFilesRepository = DefaultSolutionFilesRepository(apiClient: apiClient)
         self.solutionRepository = DefaultSolutionRepository(apiClient: apiClient)
+        self.assessmentRepository = DefaultAssessmentRepository(apiClient: apiClient)
 
         // MARK: NEW REPOSITORIES
         self.courseCategoriesRepository = DefaultCourseCategoriesRepository(
@@ -281,6 +291,28 @@ final class AppContainer: ObservableObject {
         )
         self.uploadSolutionFileUseCase = DefaultUploadSolutionFileUseCase(
             repository: solutionFilesRepository
+        )
+
+        self.getGradingConfigUseCase = DefaultGetGradingConfigUseCase(
+            repository: assessmentRepository
+        )
+        self.updateGradingConfigUseCase = DefaultUpdateGradingConfigUseCase(
+            repository: assessmentRepository
+        )
+        self.deleteGradingConfigUseCase = DefaultDeleteGradingConfigUseCase(
+            repository: assessmentRepository
+        )
+        self.getCriteriaGradesUseCase = DefaultGetCriteriaGradesUseCase(
+            repository: assessmentRepository
+        )
+        self.updateCriteriaGradesUseCase = DefaultUpdateCriteriaGradesUseCase(
+            repository: assessmentRepository
+        )
+        self.publishCriteriaGradesUseCase = DefaultPublishCriteriaGradesUseCase(
+            repository: assessmentRepository
+        )
+        self.getGradeDecompositionUseCase = DefaultGetGradeDecompositionUseCase(
+            repository: assessmentRepository
         )
 
         // MARK: - NEW USE-CASES
