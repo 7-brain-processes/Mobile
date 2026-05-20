@@ -13,6 +13,7 @@ enum StudentTeamMapper {
         StudentTeam(
             teamId: try parseUUID(dto.teamId),
             teamName: dto.teamName,
+            teamGrade: dto.teamGrade,
             membersCount: dto.membersCount,
             maxSize: dto.maxSize,
             members: try (dto.members ?? []).map(CourseTeamMemberMapper.toDomain),

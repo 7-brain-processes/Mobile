@@ -12,6 +12,7 @@ import Foundation
 struct TeamEnrollmentStatus: Equatable, Sendable {
     let teamId: UUID
     let teamName: String
+    let teamGrade: Int?
     let currentMembers: Int
     let maxSize: Int?
 }

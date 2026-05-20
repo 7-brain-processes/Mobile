@@ -11,6 +11,7 @@ import Foundation
 struct TeamEnrollmentStatusDTO: Equatable, Sendable, Codable {
     let teamId: String
     let teamName: String
+    let teamGrade: Int?
     let currentMembers: Int
     let maxSize: Int?
 }

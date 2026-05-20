@@ -63,6 +63,12 @@ struct TaskTeamEnrollmentSectionView: View {
                 .font(.subheadline)
                 .fontWeight(.semibold)
 
+            if let teamGrade = team.teamGrade {
+                Text("Team grade: \(teamGrade)/100")
+                    .font(.caption)
+                    .foregroundStyle(.primary)
+            }
+
             Text("\(team.membersCount)/\(team.maxSize.map(String.init) ?? "∞") members")
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -89,6 +95,12 @@ struct TaskTeamEnrollmentSectionView: View {
                 Text("\(team.currentMembers)/\(team.maxSize.map(String.init) ?? "∞") members")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+
+                if let teamGrade = team.teamGrade {
+                    Text("Team grade: \(teamGrade)/100")
+                        .font(.caption)
+                        .foregroundStyle(.primary)
+                }
 
                 if !team.categories.isEmpty {
                     Text(team.categories.map(\.title).joined(separator: ", "))

@@ -43,9 +43,12 @@ final class TaskDetailViewModel: ObservableObject {
     private let listTeamRequirementTemplatesUseCase: ListTeamRequirementTemplatesUseCase
     private let listTeamsForEnrollmentUseCase: ListTeamsForEnrollmentUseCase
     private let createPostTeamUseCase: CreatePostTeamUseCase
+    private let updateTeamGradeUseCase: UpdateTeamGradeUseCase
     private let getMyTeamInPostUseCase: GetMyTeamInPostUseCase
     private let enrollStudentInTeamUseCase: EnrollStudentInTeamUseCase
     private let leaveTeamUseCase: LeaveTeamUseCase
+    private let listCourseTeamsUseCase: ListCourseTeamsUseCase
+    private let getTeamGradeUseCase: GetTeamGradeUseCase
 
     @Published var item: TaskDetailItem?
     @Published var isLoading = false
@@ -76,10 +79,13 @@ final class TaskDetailViewModel: ObservableObject {
     @Published private(set) var isLoadingTeams = false
     @Published private(set) var isChangingTeam = false
     @Published private(set) var isCreatingTeam = false
+    @Published private(set) var isUpdatingTeamGrade = false
     @Published var isCreateTeamSheetPresented = false
+    @Published var selectedTeamForGradeSheet: CourseTeamAvailability?
     @Published var createTeamName = ""
     @Published var createTeamMaxSize = ""
     @Published var createTeamSelfEnrollmentEnabled = true
+    @Published private(set) var teacherTeams: [CourseTeamAvailability] = []
 
     init(
         courseId: UUID,
@@ -102,10 +108,13 @@ final class TaskDetailViewModel: ObservableObject {
         downloadSolutionFileUseCase: DownloadSolutionFileUseCase,
         listTeamRequirementTemplatesUseCase: ListTeamRequirementTemplatesUseCase,
         createPostTeamUseCase: CreatePostTeamUseCase,
+        updateTeamGradeUseCase: UpdateTeamGradeUseCase,
         listTeamsForEnrollmentUseCase: ListTeamsForEnrollmentUseCase,
         getMyTeamInPostUseCase: GetMyTeamInPostUseCase,
         enrollStudentInTeamUseCase: EnrollStudentInTeamUseCase,
-        leaveTeamUseCase: LeaveTeamUseCase
+        leaveTeamUseCase: LeaveTeamUseCase,
+        listCourseTeamsUseCase: ListCourseTeamsUseCase,
+        getTeamGradeUseCase: GetTeamGradeUseCase,
     ) {
         self.courseId = courseId
         self.postId = postId
@@ -127,10 +136,13 @@ final class TaskDetailViewModel: ObservableObject {
         self.downloadSolutionFileUseCase = downloadSolutionFileUseCase
         self.listTeamRequirementTemplatesUseCase = listTeamRequirementTemplatesUseCase
         self.createPostTeamUseCase = createPostTeamUseCase
+        self.updateTeamGradeUseCase = updateTeamGradeUseCase
         self.listTeamsForEnrollmentUseCase = listTeamsForEnrollmentUseCase
         self.getMyTeamInPostUseCase = getMyTeamInPostUseCase
         self.enrollStudentInTeamUseCase = enrollStudentInTeamUseCase
         self.leaveTeamUseCase = leaveTeamUseCase
+        self.listCourseTeamsUseCase = listCourseTeamsUseCase
+        self.getTeamGradeUseCase = getTeamGradeUseCase
     }
 
     var isTeacher: Bool { role == .teacher }
@@ -191,9 +203,16 @@ final class TaskDetailViewModel: ObservableObject {
             let post = try await postTask
             let materials = try await materialsTask
             let commentsPage = try await commentsTask
-            let teamRequirementTemplate = try await loadSelectedTeamRequirementTemplate(
-                templateId: post.teamRequirementTemplateId
-            )
+
+            let teamRequirementTemplate: TeamRequirementTemplate?
+
+            if isTeacher {
+                teamRequirementTemplate = try await loadSelectedTeamRequirementTemplate(
+                    templateId: post.teamRequirementTemplateId
+                )
+            } else {
+                teamRequirementTemplate = nil
+            }
 
             item = Self.mapPostToTaskDetailItem(
                 post,
@@ -201,6 +220,8 @@ final class TaskDetailViewModel: ObservableObject {
                 comments: commentsPage.content,
                 teamRequirementTemplate: teamRequirementTemplate
             )
+            print("POST MODE =", item?.teamFormationMode)
+            print("POST TEMPLATE =", item?.teamRequirementTemplateId)
 
             if isStudent {
                 await loadMySolution()
@@ -588,6 +609,10 @@ final class TaskDetailViewModel: ObservableObject {
         String(value.filter(\.isNumber).prefix(3))
     }
 
+    func normalizedTeamGradeInput(_ value: String) -> String {
+        String(value.filter(\.isNumber).prefix(3))
+    }
+
     func applyGrade(for submissionId: UUID, from input: String) {
         let filtered = normalizedGradeInput(input)
         guard let parsed = Int(filtered) else { return }
@@ -909,9 +934,13 @@ final class TaskDetailViewModel: ObservableObject {
     // MARK: Teams
 
     func loadTeams() async {
+        print("LOAD TEAMS")
+        print(item?.teamFormationMode)
+        print(item?.teamRequirementTemplateId)
         guard item?.teamFormationMode != nil || item?.teamRequirementTemplateId != nil else { return }
         guard !isLoadingTeams else { return }
 
+        print("(после guard в loadTeams())TEAMS =", teacherTeams.count)
         isLoadingTeams = true
         errorMessage = nil
 
@@ -920,15 +949,56 @@ final class TaskDetailViewModel: ObservableObject {
         }
 
         do {
-            availableTeams = try await listTeamsForEnrollmentUseCase.execute(
-                ListTeamsForEnrollmentQuery(
-                    courseId: courseId,
-                    postId: postId
-                )
-            )
-
             if isStudent {
+                availableTeams = try await listTeamsForEnrollmentUseCase.execute(
+                    ListTeamsForEnrollmentQuery(
+                        courseId: courseId,
+                        postId: postId
+                    )
+                )
+
                 await loadMyTeam()
+            }
+
+            if isTeacher {
+                let teams = try await listCourseTeamsUseCase.execute(courseId: courseId)
+
+                var mappedTeams: [CourseTeamAvailability] = []
+
+                for team in teams {
+                    var item = team.toAvailabilityItem()
+
+                    do {
+                        let grade = try await getTeamGradeUseCase.execute(
+                            courseId: courseId,
+                            postId: postId,
+                            teamId: item.id
+                        )
+
+                        item = CourseTeamAvailability(
+                            id: item.id,
+                            name: item.name,
+                            teamGrade: grade.grade,
+                            currentMembers: item.currentMembers,
+                            maxSize: item.maxSize,
+                            selfEnrollmentEnabled: item.selfEnrollmentEnabled,
+                            isFull: item.isFull,
+                            isStudentMember: item.isStudentMember,
+                            categories: item.categories,
+                            createdAt: item.createdAt
+                        )
+                    } catch let error as APIError {
+                        if case .serverError(let code) = error, code == 404 {
+                            // Оценка команде ещё не выставлена.
+                        } else {
+                            throw error
+                        }
+                    }
+
+                    mappedTeams.append(item)
+                }
+
+                teacherTeams = mappedTeams
             }
         } catch let error as APIError {
             errorMessage = mapAPIError(error)
@@ -949,6 +1019,79 @@ final class TaskDetailViewModel: ObservableObject {
         createTeamMaxSize = ""
         createTeamSelfEnrollmentEnabled = true
         isCreateTeamSheetPresented = true
+    }
+
+    func openTeamGradeSheet(_ team: CourseTeamAvailability) {
+        guard isTeacher else { return }
+        selectedTeamForGradeSheet = team
+    }
+
+    func updateTeamGrade(for teamId: UUID, from input: String) async {
+        guard isTeacher else { return }
+        guard !isUpdatingTeamGrade else { return }
+
+        let normalized = normalizedTeamGradeInput(input)
+        guard let grade = Int(normalized) else { return }
+
+        isUpdatingTeamGrade = true
+        errorMessage = nil
+
+        defer {
+            isUpdatingTeamGrade = false
+        }
+
+        do {
+            _ = try await updateTeamGradeUseCase.execute(
+                UpdateTeamGradeCommand(
+                    courseId: courseId,
+                    postId: postId,
+                    teamId: teamId,
+                    grade: grade
+                )
+            )
+
+            updateLocalTeamGrade(
+                teamId: teamId,
+                grade: grade
+            )
+
+            selectedTeamForGradeSheet = nil
+        } catch let error as InteractionValidationError {
+            errorMessage = mapInteractionValidationError(error)
+        } catch let error as APIError {
+            errorMessage = mapAPIError(error)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func updateLocalTeamGrade(
+        teamId: UUID,
+        grade: Int?
+    ) {
+        guard let index = teacherTeams.firstIndex(where: { $0.id == teamId }) else {
+            return
+        }
+
+        let current = teacherTeams[index]
+
+        let updated = CourseTeamAvailability(
+            id: current.id,
+            name: current.name,
+            teamGrade: grade, currentMembers: current.currentMembers,
+            maxSize: current.maxSize,
+            selfEnrollmentEnabled: current.selfEnrollmentEnabled,
+            isFull: current.isFull,
+            isStudentMember: current.isStudentMember,
+            categories: current.categories,
+            createdAt: current.createdAt
+        )
+
+        teacherTeams[index] = updated
+
+        if selectedTeamForGradeSheet?.id == teamId {
+            selectedTeamForGradeSheet = updated
+        }
     }
 
     func createTeam() async {
@@ -975,7 +1118,7 @@ final class TaskDetailViewModel: ObservableObject {
                 )
             )
 
-            availableTeams.append(team)
+            teacherTeams.append(team)
             createTeamName = ""
             createTeamMaxSize = ""
             createTeamSelfEnrollmentEnabled = true

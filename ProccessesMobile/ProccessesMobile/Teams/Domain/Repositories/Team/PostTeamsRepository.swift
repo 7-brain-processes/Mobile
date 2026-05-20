@@ -11,9 +11,11 @@ import Foundation
 protocol PostTeamsRepository: Sendable {
     func listTeamsForEnrollment(_ query: ListTeamsForEnrollmentQuery) async throws -> [CourseTeamAvailability]
     func create(_ command: CreatePostTeamCommand) async throws -> CourseTeamAvailability
+    func updateGrade(_ command: UpdateTeamGradeCommand) async throws -> TeamGrade
     func getMyTeam(_ query: GetMyTeamInPostQuery) async throws -> StudentTeam
     func enroll(_ command: EnrollStudentInTeamCommand) async throws -> EnrollmentResponse
     func leave(_ command: LeaveTeamCommand) async throws -> EnrollmentResponse
+    func getGrade(courseId: UUID, postId: UUID, teamId: UUID) async throws -> TeamGrade
 }
 
 struct DefaultPostTeamsRepository: PostTeamsRepository, Sendable {
@@ -26,6 +28,21 @@ struct DefaultPostTeamsRepository: PostTeamsRepository, Sendable {
     ) {
         self.apiClient = apiClient
         self.decoder = decoder
+    }
+
+    func getGrade(courseId: UUID, postId: UUID, teamId: UUID) async throws -> TeamGrade {
+        let endpoint = PostTeamsEndpoint.getGrade(
+            courseId: courseId.uuidString,
+            postId: postId.uuidString,
+            teamId: teamId.uuidString
+        )
+
+        let (data, response) = try await apiClient.send(endpoint)
+
+        try ResponseValidator.validate(response, successCodes: [200])
+
+        let dto = try decoder.decode(TeamGradeDTO.self, from: data)
+        return try TeamGradeMapper.toDomain(dto)
     }
 
     func listTeamsForEnrollment(_ query: ListTeamsForEnrollmentQuery) async throws -> [CourseTeamAvailability] {
@@ -57,6 +74,23 @@ struct DefaultPostTeamsRepository: PostTeamsRepository, Sendable {
         let dto = try decoder.decode(CourseTeamAvailabilityDTO.self, from: data)
 
         return try CourseTeamAvailabilityMapper.toDomain(dto)
+    }
+
+    func updateGrade(_ command: UpdateTeamGradeCommand) async throws -> TeamGrade {
+        let endpoint = PostTeamsEndpoint.grade(
+            courseId: command.courseId.uuidString,
+            postId: command.postId.uuidString,
+            teamId: command.teamId.uuidString,
+            request: TeamGradeMapper.toDTO(command)
+        )
+
+        let (data, response) = try await apiClient.send(endpoint)
+
+        try ResponseValidator.validate(response, successCodes: [200])
+
+        let dto = try decoder.decode(TeamGradeDTO.self, from: data)
+
+        return try TeamGradeMapper.toDomain(dto)
     }
 
     func getMyTeam(_ query: GetMyTeamInPostQuery) async throws -> StudentTeam {

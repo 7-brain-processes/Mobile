@@ -13,6 +13,7 @@ enum TeamEnrollmentStatusMapper {
         TeamEnrollmentStatus(
             teamId: try parseUUID(dto.teamId),
             teamName: dto.teamName,
+            teamGrade: dto.teamGrade,
             currentMembers: dto.currentMembers,
             maxSize: dto.maxSize
         )

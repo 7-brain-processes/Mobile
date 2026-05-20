@@ -11,6 +11,7 @@ import Foundation
 struct CourseTeamAvailabilityDTO: Equatable, Sendable, Codable {
     let id: String
     let name: String
+    let teamGrade: Int?
     let currentMembers: Int
     let maxSize: Int?
     let selfEnrollmentEnabled: Bool
@@ -22,6 +23,7 @@ struct CourseTeamAvailabilityDTO: Equatable, Sendable, Codable {
     enum CodingKeys: String, CodingKey {
         case id
         case name
+        case teamGrade
         case currentMembers
         case maxSize
         case selfEnrollmentEnabled

@@ -13,6 +13,7 @@ enum CourseTeamAvailabilityMapper {
         CourseTeamAvailability(
             id: try parseUUID(dto.id),
             name: dto.name,
+            teamGrade: dto.teamGrade,
             currentMembers: dto.currentMembers,
             maxSize: dto.maxSize,
             selfEnrollmentEnabled: dto.selfEnrollmentEnabled,
@@ -23,4 +24,3 @@ enum CourseTeamAvailabilityMapper {
         )
     }
 }
-

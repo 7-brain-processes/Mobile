@@ -117,6 +117,19 @@ struct TaskDetailView: View {
             createTeamSheet
                 .presentationDetents([.medium])
         }
+        .sheet(item: $viewModel.selectedTeamForGradeSheet) { team in
+            TeacherTeamGradeSheetView(
+                team: team,
+                isSaving: viewModel.isUpdatingTeamGrade,
+                errorMessage: viewModel.errorMessage,
+                onSave: { input in
+                    Task {
+                        await viewModel.updateTeamGrade(for: team.id, from: input)
+                    }
+                }
+            )
+            .presentationDetents([.medium])
+        }
         .navigationDestination(item: Binding(
             get: { viewModel.previewAttachment },
             set: { viewModel.previewAttachment = $0 }
@@ -353,15 +366,14 @@ struct TaskDetailView: View {
                 }
             }
 
-            if viewModel.availableTeams.isEmpty && !viewModel.isLoadingTeams {
+            if viewModel.teacherTeams.isEmpty && !viewModel.isLoadingTeams {
                 Text("No teams created yet")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(viewModel.availableTeams) { team in
+                ForEach(viewModel.teacherTeams) { team in
                     teacherTeamRow(team)
-                }
-            }
+                }            }
 
             Button {
                 viewModel.openCreateTeamSheet()
@@ -378,34 +390,47 @@ struct TaskDetailView: View {
     }
 
     private func teacherTeamRow(_ team: CourseTeamAvailability) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(team.name)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
+        Button {
+            viewModel.openTeamGradeSheet(team)
+        } label: {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(team.name)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
 
-                Spacer()
+                    Spacer()
 
-                Text("\(team.currentMembers)/\(team.maxSize.map(String.init) ?? "∞")")
+                    Text("\(team.currentMembers)/\(team.maxSize.map(String.init) ?? "∞")")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Text(team.teamGrade.map { "Team grade: \($0)/100" } ?? "Team grade not set")
+                    .font(.caption)
+                    .foregroundStyle(team.teamGrade == nil ? .secondary : .primary)
+
+                Text(team.selfEnrollmentEnabled ? "Self-enrollment enabled" : "Self-enrollment disabled")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-            }
 
-            Text(team.selfEnrollmentEnabled ? "Self-enrollment enabled" : "Self-enrollment disabled")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                if !team.categories.isEmpty {
+                    Text(team.categories.map(\.title).joined(separator: ", "))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
 
-            if !team.categories.isEmpty {
-                Text(team.categories.map(\.title).joined(separator: ", "))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
+                Text("Tap to set or edit grade")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(14)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .buttonStyle(.plain)
     }
 
     private var createTeamSheet: some View {

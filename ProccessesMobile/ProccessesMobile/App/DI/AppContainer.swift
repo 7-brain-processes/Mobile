@@ -101,10 +101,15 @@ final class AppContainer: ObservableObject {
     let postTeamsRepository: PostTeamsRepository
 
     let createPostTeamUseCase: CreatePostTeamUseCase
+    let updateTeamGradeUseCase: UpdateTeamGradeUseCase
     let listTeamsForEnrollmentUseCase: ListTeamsForEnrollmentUseCase
     let getMyTeamInPostUseCase: GetMyTeamInPostUseCase
     let enrollStudentInTeamUseCase: EnrollStudentInTeamUseCase
     let leaveTeamUseCase: LeaveTeamUseCase
+
+    let courseTeamsRepository: CourseTeamsRepository
+    let listCourseTeamsUseCase: ListCourseTeamsUseCase
+    let getTeamGradeUseCase: GetTeamGradeUseCase
 
     init(isAuthorized: Bool) {
         self.appCoordinator = AppCoordinator(isAuthorized: isAuthorized)
@@ -314,6 +319,10 @@ final class AppContainer: ObservableObject {
             repository: postTeamsRepository
         )
 
+        self.updateTeamGradeUseCase = DefaultUpdateTeamGradeUseCase(
+            repository: postTeamsRepository
+        )
+
         self.listTeamsForEnrollmentUseCase = DefaultListTeamsForEnrollmentUseCase(
             repository: postTeamsRepository
         )
@@ -327,6 +336,18 @@ final class AppContainer: ObservableObject {
         )
 
         self.leaveTeamUseCase = DefaultLeaveTeamUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.courseTeamsRepository = DefaultCourseTeamsRepository(
+            apiClient: apiClient
+        )
+
+        self.listCourseTeamsUseCase = DefaultListCourseTeamsUseCase(
+            repository: courseTeamsRepository
+        )
+
+        self.getTeamGradeUseCase = DefaultGetTeamGradeUseCase(
             repository: postTeamsRepository
         )
     }

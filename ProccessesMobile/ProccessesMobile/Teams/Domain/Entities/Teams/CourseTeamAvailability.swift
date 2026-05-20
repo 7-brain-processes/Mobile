@@ -11,6 +11,7 @@ import Foundation
 struct CourseTeamAvailability: Identifiable, Equatable, Sendable {
     let id: UUID
     let name: String
+    let teamGrade: Int?
     let currentMembers: Int
     let maxSize: Int?
     let selfEnrollmentEnabled: Bool
