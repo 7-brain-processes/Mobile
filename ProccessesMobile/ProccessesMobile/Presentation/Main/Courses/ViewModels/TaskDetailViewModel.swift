@@ -123,6 +123,7 @@ final class TaskDetailViewModel: ObservableObject {
     @Published private(set) var studentTeamGradeDistribution: TeamGradeDistribution?
     @Published private(set) var teamVoteStatus: TeamGradeVoteStatus?
     @Published private(set) var currentUser: User?
+    @Published var isAssessmentConfigEditorPresented = false
 
     init(
         courseId: UUID,
@@ -405,6 +406,185 @@ final class TaskDetailViewModel: ObservableObject {
             return .submitted
         case .graded:
             return .accepted
+        }
+    }
+
+    func openAssessmentConfigEditor() {
+        guard isTeacher else { return }
+        resetAssessmentConfigDraft()
+        assessmentErrorMessage = nil
+        isAssessmentConfigEditorPresented = true
+    }
+
+    func closeAssessmentConfigEditor() {
+        isAssessmentConfigEditorPresented = false
+    }
+
+    func resetAssessmentConfigDraft() {
+        assessmentConfigDraft = assessmentConfig ?? AssessmentConfig(
+            maxGrade: 100,
+            criteria: [],
+            modifiers: [],
+            resultsVisible: false
+        )
+    }
+
+    func addCriterionDraft(_ criterion: AssessmentCriterion) {
+        guard let draft = assessmentConfigDraft else {
+            resetAssessmentConfigDraft()
+            addCriterionDraft(criterion)
+            return
+        }
+
+        let criterionWithId = AssessmentCriterion(
+            id: criterion.id ?? UUID(),
+            title: criterion.title,
+            type: criterion.type,
+            maxPoints: criterion.maxPoints,
+            weight: criterion.weight,
+            commentEnabled: criterion.commentEnabled
+        )
+
+        assessmentConfigDraft = AssessmentConfig(
+            id: draft.id,
+            maxGrade: draft.maxGrade,
+            criteria: draft.criteria + [criterionWithId],
+            modifiers: draft.modifiers,
+            resultsVisible: draft.resultsVisible
+        )
+    }
+
+    func removeCriterionDraft(id: UUID) {
+        guard let draft = assessmentConfigDraft else { return }
+
+        assessmentConfigDraft = AssessmentConfig(
+            id: draft.id,
+            maxGrade: draft.maxGrade,
+            criteria: draft.criteria.filter { $0.id != id },
+            modifiers: draft.modifiers,
+            resultsVisible: draft.resultsVisible
+        )
+    }
+
+    func updateCriterionDraft(_ criterion: AssessmentCriterion) {
+        guard let draft = assessmentConfigDraft else { return }
+        guard let id = criterion.id else { return }
+
+        assessmentConfigDraft = AssessmentConfig(
+            id: draft.id,
+            maxGrade: draft.maxGrade,
+            criteria: draft.criteria.map { $0.id == id ? criterion : $0 },
+            modifiers: draft.modifiers,
+            resultsVisible: draft.resultsVisible
+        )
+    }
+
+    func addModifierDraft(_ modifier: AssessmentModifier) {
+        guard let draft = assessmentConfigDraft else {
+            resetAssessmentConfigDraft()
+            addModifierDraft(modifier)
+            return
+        }
+
+        let modifierWithId = AssessmentModifier(
+            id: modifier.id ?? UUID(),
+            type: modifier.type,
+            enabled: modifier.enabled
+        )
+
+        assessmentConfigDraft = AssessmentConfig(
+            id: draft.id,
+            maxGrade: draft.maxGrade,
+            criteria: draft.criteria,
+            modifiers: draft.modifiers + [modifierWithId],
+            resultsVisible: draft.resultsVisible
+        )
+    }
+
+    func removeModifierDraft(id: UUID) {
+        guard let draft = assessmentConfigDraft else { return }
+
+        assessmentConfigDraft = AssessmentConfig(
+            id: draft.id,
+            maxGrade: draft.maxGrade,
+            criteria: draft.criteria,
+            modifiers: draft.modifiers.filter { $0.id != id },
+            resultsVisible: draft.resultsVisible
+        )
+    }
+
+    func updateModifierDraft(_ modifier: AssessmentModifier) {
+        guard let draft = assessmentConfigDraft else { return }
+        guard let id = modifier.id else { return }
+
+        assessmentConfigDraft = AssessmentConfig(
+            id: draft.id,
+            maxGrade: draft.maxGrade,
+            criteria: draft.criteria,
+            modifiers: draft.modifiers.map { $0.id == id ? modifier : $0 },
+            resultsVisible: draft.resultsVisible
+        )
+    }
+
+    func saveAssessmentConfig() async {
+        guard isTeacher else { return }
+        guard !isSavingAssessmentConfig else { return }
+        guard let draft = assessmentConfigDraft else { return }
+
+        isSavingAssessmentConfig = true
+        assessmentErrorMessage = nil
+
+        defer {
+            isSavingAssessmentConfig = false
+        }
+
+        do {
+            let saved = try await updateGradingConfigUseCase.execute(
+                UpsertGradingConfigCommand(
+                    courseId: courseId,
+                    postId: postId,
+                    config: draft
+                )
+            )
+
+            assessmentConfig = saved
+            assessmentConfigDraft = saved
+            isAssessmentConfigEditorPresented = false
+        } catch let error as AssessmentValidationError {
+            assessmentErrorMessage = error.localizedDescription
+        } catch let error as APIError {
+            assessmentErrorMessage = mapAPIError(error)
+        } catch {
+            assessmentErrorMessage = error.localizedDescription
+        }
+    }
+
+    func deleteAssessmentConfig() async {
+        guard isTeacher else { return }
+        guard !isDeletingAssessmentConfig else { return }
+
+        isDeletingAssessmentConfig = true
+        assessmentErrorMessage = nil
+
+        defer {
+            isDeletingAssessmentConfig = false
+        }
+
+        do {
+            try await deleteGradingConfigUseCase.execute(
+                DeleteGradingConfigCommand(
+                    courseId: courseId,
+                    postId: postId
+                )
+            )
+
+            assessmentConfig = nil
+            assessmentConfigDraft = nil
+            isAssessmentConfigEditorPresented = false
+        } catch let error as APIError {
+            assessmentErrorMessage = mapAPIError(error)
+        } catch {
+            assessmentErrorMessage = error.localizedDescription
         }
     }
 
