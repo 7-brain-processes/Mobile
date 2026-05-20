@@ -26,7 +26,7 @@ enum TeamGradeDistributionMode: String, Codable, Equatable, Sendable {
         case .captainManual:
             return "Captain manual"
         case .teamVote:
-            return "Team vote"
+            return "Voting"
         }
     }
 }

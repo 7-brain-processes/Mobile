@@ -11,10 +11,16 @@ import SwiftUI
 struct TaskTeamEnrollmentSectionView: View {
     let myTeam: StudentTeam?
     let teams: [CourseTeamAvailability]
+    let distributionModeTitle: String?
+    let votingStatusTitle: String?
+    let voteStatus: TeamGradeVoteStatus?
     let isLoading: Bool
+    let isLoadingVotingState: Bool
     let isChangingTeam: Bool
+    let canOpenVoteSheet: Bool
     let onJoin: (CourseTeamAvailability) -> Void
     let onLeave: () -> Void
+    let onOpenVoteSheet: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -69,9 +75,51 @@ struct TaskTeamEnrollmentSectionView: View {
                     .foregroundStyle(.primary)
             }
 
+            if let distributionModeTitle {
+                Text("Distribution mode: \(distributionModeTitle)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let votingStatusTitle {
+                Text("Voting status: \(votingStatusTitle)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let voteStatus {
+                Text("Votes: \(voteStatus.votedCount)/\(voteStatus.voters.count)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Text("\(team.membersCount)/\(team.maxSize.map(String.init) ?? "∞") members")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+
+            if let voteStatus, voteStatus.finalized, !voteStatus.finalDistribution.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Final distribution")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    ForEach(voteStatus.finalDistribution, id: \.student.id) { item in
+                        Text("\(item.student.displayName): \(item.grade.map(String.init) ?? "-")/100")
+                            .font(.caption)
+                            .foregroundStyle(.primary)
+                    }
+                }
+            }
+
+            if isLoadingVotingState {
+                ProgressView()
+                    .scaleEffect(0.8)
+            } else if canOpenVoteSheet {
+                Button("Open voting") {
+                    onOpenVoteSheet()
+                }
+                .buttonStyle(.borderedProminent)
+            }
 
             Button("Leave team", role: .destructive) {
                 onLeave()

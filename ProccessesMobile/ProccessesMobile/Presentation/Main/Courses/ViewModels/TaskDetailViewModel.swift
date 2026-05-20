@@ -51,6 +51,11 @@ final class TaskDetailViewModel: ObservableObject {
     private let getTeamGradeUseCase: GetTeamGradeUseCase
     private let getTeamGradeDistributionUseCase: GetTeamGradeDistributionUseCase
     private let updateTeamGradeDistributionUseCase: UpdateTeamGradeDistributionUseCase
+    private let getMeUseCase: GetMeUseCase
+    private let getStudentTeamGradeVoteStatusUseCase: GetStudentTeamGradeVoteStatusUseCase
+    private let getTeacherTeamGradeVoteStatusUseCase: GetTeacherTeamGradeVoteStatusUseCase
+    private let submitTeamGradeVoteUseCase: SubmitTeamGradeVoteUseCase
+    private let finalizeTeamGradeVoteUseCase: FinalizeTeamGradeVoteUseCase
 
     @Published var item: TaskDetailItem?
     @Published var isLoading = false
@@ -84,13 +89,20 @@ final class TaskDetailViewModel: ObservableObject {
     @Published private(set) var isUpdatingTeamGrade = false
     @Published private(set) var isLoadingTeamGradeDistribution = false
     @Published private(set) var isUpdatingTeamGradeDistribution = false
+    @Published private(set) var isLoadingTeamVoteStatus = false
+    @Published private(set) var isSubmittingTeamVote = false
+    @Published private(set) var isFinalizingTeamVote = false
     @Published var isCreateTeamSheetPresented = false
+    @Published var isStudentVoteSheetPresented = false
     @Published var selectedTeamForGradeSheet: CourseTeamAvailability?
     @Published var createTeamName = ""
     @Published var createTeamMaxSize = ""
     @Published var createTeamSelfEnrollmentEnabled = true
     @Published private(set) var teacherTeams: [CourseTeamAvailability] = []
     @Published private(set) var teamGradeDistribution: TeamGradeDistribution?
+    @Published private(set) var studentTeamGradeDistribution: TeamGradeDistribution?
+    @Published private(set) var teamVoteStatus: TeamGradeVoteStatus?
+    @Published private(set) var currentUser: User?
 
     init(
         courseId: UUID,
@@ -121,7 +133,12 @@ final class TaskDetailViewModel: ObservableObject {
         listCourseTeamsUseCase: ListCourseTeamsUseCase,
         getTeamGradeUseCase: GetTeamGradeUseCase,
         getTeamGradeDistributionUseCase: GetTeamGradeDistributionUseCase,
-        updateTeamGradeDistributionUseCase: UpdateTeamGradeDistributionUseCase
+        updateTeamGradeDistributionUseCase: UpdateTeamGradeDistributionUseCase,
+        getMeUseCase: GetMeUseCase,
+        getStudentTeamGradeVoteStatusUseCase: GetStudentTeamGradeVoteStatusUseCase,
+        getTeacherTeamGradeVoteStatusUseCase: GetTeacherTeamGradeVoteStatusUseCase,
+        submitTeamGradeVoteUseCase: SubmitTeamGradeVoteUseCase,
+        finalizeTeamGradeVoteUseCase: FinalizeTeamGradeVoteUseCase
     ) {
         self.courseId = courseId
         self.postId = postId
@@ -152,6 +169,11 @@ final class TaskDetailViewModel: ObservableObject {
         self.getTeamGradeUseCase = getTeamGradeUseCase
         self.getTeamGradeDistributionUseCase = getTeamGradeDistributionUseCase
         self.updateTeamGradeDistributionUseCase = updateTeamGradeDistributionUseCase
+        self.getMeUseCase = getMeUseCase
+        self.getStudentTeamGradeVoteStatusUseCase = getStudentTeamGradeVoteStatusUseCase
+        self.getTeacherTeamGradeVoteStatusUseCase = getTeacherTeamGradeVoteStatusUseCase
+        self.submitTeamGradeVoteUseCase = submitTeamGradeVoteUseCase
+        self.finalizeTeamGradeVoteUseCase = finalizeTeamGradeVoteUseCase
     }
 
     var isTeacher: Bool { role == .teacher }
@@ -166,6 +188,19 @@ final class TaskDetailViewModel: ObservableObject {
     }
     var canUnsubmitStudentWork: Bool {
         isStudent && (studentSubmissionStatus == .submitted || studentSubmissionStatus == .rejected)
+    }
+
+    var studentDistributionModeTitle: String {
+        studentTeamGradeDistribution?.distributionMode.title ?? "Manual"
+    }
+
+    var studentVotingStatusTitle: String? {
+        guard studentTeamGradeDistribution?.distributionMode == .teamVote else { return nil }
+        return teamVoteStatus?.state.title ?? "Not started"
+    }
+
+    var canOpenStudentVoteSheet: Bool {
+        isStudent && myTeam != nil && studentTeamGradeDistribution?.distributionMode == .teamVote
     }
 
     func onAppear() {
@@ -230,6 +265,7 @@ final class TaskDetailViewModel: ObservableObject {
                 teamRequirementTemplate: teamRequirementTemplate
             )
             if isStudent {
+                currentUser = try? await getMeUseCase.execute()
                 await loadMySolution()
             }
 
@@ -937,6 +973,26 @@ final class TaskDetailViewModel: ObservableObject {
         }
     }
 
+    private func mapVotingAPIError(_ error: APIError) -> String {
+        switch error {
+        case .serverError(let code):
+            switch code {
+            case 400:
+                return "The submitted vote is invalid"
+            case 403:
+                return "You cannot vote in this team"
+            case 404:
+                return "Voting is not available for this assignment yet"
+            case 409:
+                return "This action is no longer available"
+            default:
+                return mapAPIError(error)
+            }
+        default:
+            return mapAPIError(error)
+        }
+    }
+
     // MARK: Teams
 
     func loadTeams() async {
@@ -952,24 +1008,75 @@ final class TaskDetailViewModel: ObservableObject {
 
         do {
             if isStudent {
-                availableTeams = try await listTeamsForEnrollmentUseCase.execute(
+                let fetchedTeams = try await listTeamsForEnrollmentUseCase.execute(
                     ListTeamsForEnrollmentQuery(
                         courseId: courseId,
                         postId: postId
                     )
                 )
+                availableTeams = await hydrateTeamGrades(in: fetchedTeams)
 
                 await loadMyTeam()
+
+                if let myTeam {
+                    let hydratedTeam = await hydrateMyTeamGrade(myTeam)
+                    self.myTeam = hydratedTeam
+                    await loadStudentDistributionAndVote(teamId: hydratedTeam.teamId)
+                } else {
+                    studentTeamGradeDistribution = nil
+                    teamVoteStatus = nil
+                }
             }
 
             if isTeacher {
-                teacherTeams = try await listCourseTeamsUseCase.execute(courseId: courseId)
+                let fetchedTeams = try await listCourseTeamsUseCase.execute(courseId: courseId)
                     .map { $0.toAvailabilityItem() }
+                teacherTeams = await hydrateTeamGrades(in: fetchedTeams)
             }
         } catch let error as APIError {
             errorMessage = mapAPIError(error)
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func hydrateTeamGrades(
+        in teams: [CourseTeamAvailability]
+    ) async -> [CourseTeamAvailability] {
+        var result: [CourseTeamAvailability] = []
+        result.reserveCapacity(teams.count)
+
+        for team in teams {
+            let teamGrade = await fetchTeamGrade(for: team.id) ?? team.teamGrade
+            result.append(team.withTeamGrade(teamGrade))
+        }
+
+        return result
+    }
+
+    private func hydrateMyTeamGrade(_ team: StudentTeam) async -> StudentTeam {
+        let teamGrade = await fetchTeamGrade(for: team.teamId) ?? team.teamGrade
+        return team.withTeamGrade(teamGrade)
+    }
+
+    private func fetchTeamGrade(for teamId: UUID) async -> Int? {
+        do {
+            let teamGrade = try await getTeamGradeUseCase.execute(
+                courseId: courseId,
+                postId: postId,
+                teamId: teamId
+            )
+
+            return teamGrade.grade
+        } catch let error as APIError {
+            switch error {
+            case .serverError(let code) where code == 404:
+                return nil
+            default:
+                return nil
+            }
+        } catch {
+            return nil
         }
     }
 
@@ -991,10 +1098,16 @@ final class TaskDetailViewModel: ObservableObject {
         guard isTeacher else { return }
         selectedTeamForGradeSheet = team
         teamGradeDistribution = nil
+        teamVoteStatus = nil
 
         Task {
-            await loadTeamGradeDistribution(for: team.id)
+            await loadTeacherTeamSheetData(for: team.id)
         }
+    }
+
+    func openStudentVoteSheet() {
+        guard canOpenStudentVoteSheet else { return }
+        isStudentVoteSheetPresented = true
     }
 
     func updateTeamGrade(for teamId: UUID, from input: String) async {
@@ -1017,12 +1130,13 @@ final class TaskDetailViewModel: ObservableObject {
                     courseId: courseId,
                     postId: postId,
                     teamId: teamId,
-                    grade: grade
+                    grade: grade,
+                    comment: nil
                 )
             )
 
-            updateLocalTeamGrade(teamId: teamId, grade: grade)
-            await loadTeamGradeDistribution(for: teamId)
+            await loadTeams()
+            await loadTeacherTeamSheetData(for: teamId)
 
             selectedTeamForGradeSheet = nil
         } catch let error as InteractionValidationError {
@@ -1088,6 +1202,39 @@ final class TaskDetailViewModel: ObservableObject {
             teamGradeDistribution = distribution
             await loadTeams()
             selectedTeamForGradeSheet = teacherTeams.first(where: { $0.id == teamId })
+            await loadTeacherTeamVoteStatus(for: teamId)
+        } catch let error as APIError {
+            errorMessage = mapAPIError(error)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func applyTeamVoteDistribution(for teamId: UUID) async {
+        guard isTeacher else { return }
+        guard !isUpdatingTeamGradeDistribution else { return }
+
+        isUpdatingTeamGradeDistribution = true
+        errorMessage = nil
+
+        defer {
+            isUpdatingTeamGradeDistribution = false
+        }
+
+        do {
+            let distribution = try await updateTeamGradeDistributionUseCase.execute(
+                UpdateTeamGradeDistributionCommand(
+                    courseId: courseId,
+                    postId: postId,
+                    teamId: teamId,
+                    distributionMode: .teamVote
+                )
+            )
+
+            teamGradeDistribution = distribution
+            await loadTeams()
+            selectedTeamForGradeSheet = teacherTeams.first(where: { $0.id == teamId })
+            await loadTeacherTeamVoteStatus(for: teamId)
         } catch let error as APIError {
             errorMessage = mapAPIError(error)
         } catch {
@@ -1121,7 +1268,152 @@ final class TaskDetailViewModel: ObservableObject {
 
             selectedTeamForGradeSheet = teacherTeams.first(where: { $0.id == teamId }) ?? selectedTeamForGradeSheet
         } catch let error as APIError {
-            errorMessage = mapAPIError(error)
+            switch error {
+            case .serverError(let code) where code == 404:
+                teamGradeDistribution = nil
+            default:
+                errorMessage = mapAPIError(error)
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func loadStudentDistributionAndVote(teamId: UUID) async {
+        async let distributionTask: Void = loadStudentTeamGradeDistribution(for: teamId)
+        async let voteTask: Void = loadStudentVoteStatus()
+        _ = await (distributionTask, voteTask)
+    }
+
+    private func loadTeacherTeamSheetData(for teamId: UUID) async {
+        async let distributionTask: Void = loadTeamGradeDistribution(for: teamId)
+        async let voteTask: Void = loadTeacherTeamVoteStatus(for: teamId)
+        _ = await (distributionTask, voteTask)
+    }
+
+    private func loadStudentTeamGradeDistribution(for teamId: UUID) async {
+        guard !isLoadingTeamGradeDistribution else { return }
+
+        isLoadingTeamGradeDistribution = true
+        defer { isLoadingTeamGradeDistribution = false }
+
+        do {
+            studentTeamGradeDistribution = try await getTeamGradeDistributionUseCase.execute(
+                courseId: courseId,
+                postId: postId,
+                teamId: teamId
+            )
+        } catch let error as APIError {
+            switch error {
+            case .serverError(let code) where code == 404:
+                studentTeamGradeDistribution = nil
+            default:
+                errorMessage = mapAPIError(error)
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func loadStudentVoteStatus() async {
+        guard !isLoadingTeamVoteStatus else { return }
+
+        isLoadingTeamVoteStatus = true
+        defer { isLoadingTeamVoteStatus = false }
+
+        do {
+            teamVoteStatus = try await getStudentTeamGradeVoteStatusUseCase.execute(
+                courseId: courseId,
+                postId: postId
+            )
+        } catch let error as APIError {
+            switch error {
+            case .serverError(let code) where code == 404:
+                teamVoteStatus = nil
+            default:
+                errorMessage = mapVotingAPIError(error)
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func loadTeacherTeamVoteStatus(for teamId: UUID) async {
+        guard !isLoadingTeamVoteStatus else { return }
+
+        isLoadingTeamVoteStatus = true
+        defer { isLoadingTeamVoteStatus = false }
+
+        do {
+            teamVoteStatus = try await getTeacherTeamGradeVoteStatusUseCase.execute(
+                courseId: courseId,
+                postId: postId,
+                teamId: teamId
+            )
+        } catch let error as APIError {
+            switch error {
+            case .serverError(let code) where code == 404:
+                teamVoteStatus = nil
+            default:
+                errorMessage = mapVotingAPIError(error)
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func submitTeamVote(_ grades: [StudentGradeVoteEntry]) async {
+        guard isStudent else { return }
+        guard !isSubmittingTeamVote else { return }
+
+        isSubmittingTeamVote = true
+        errorMessage = nil
+
+        defer {
+            isSubmittingTeamVote = false
+        }
+
+        do {
+            teamVoteStatus = try await submitTeamGradeVoteUseCase.execute(
+                SubmitTeamGradeVoteCommand(
+                    courseId: courseId,
+                    postId: postId,
+                    grades: grades
+                )
+            )
+
+            if let myTeam {
+                await loadStudentDistributionAndVote(teamId: myTeam.teamId)
+            }
+        } catch let error as APIError {
+            errorMessage = mapVotingAPIError(error)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func finalizeTeamVote(for teamId: UUID) async {
+        guard isTeacher else { return }
+        guard !isFinalizingTeamVote else { return }
+
+        isFinalizingTeamVote = true
+        errorMessage = nil
+
+        defer {
+            isFinalizingTeamVote = false
+        }
+
+        do {
+            teamVoteStatus = try await finalizeTeamGradeVoteUseCase.execute(
+                courseId: courseId,
+                postId: postId,
+                teamId: teamId
+            )
+
+            await loadTeams()
+            await loadTeacherTeamSheetData(for: teamId)
+        } catch let error as APIError {
+            errorMessage = mapVotingAPIError(error)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -1239,6 +1531,8 @@ final class TaskDetailViewModel: ObservableObject {
             )
 
             await loadTeams()
+            studentTeamGradeDistribution = nil
+            teamVoteStatus = nil
         } catch let error as APIError {
             errorMessage = mapAPIError(error)
         } catch {

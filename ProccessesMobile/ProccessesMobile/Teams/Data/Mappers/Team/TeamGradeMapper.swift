@@ -9,7 +9,10 @@ import Foundation
 
 enum TeamGradeMapper {
     static func toDTO(_ command: UpdateTeamGradeCommand) -> TeamGradeRequestDTO {
-        TeamGradeRequestDTO(grade: command.grade)
+        TeamGradeRequestDTO(
+            grade: command.grade,
+            comment: command.comment
+        )
     }
 
     static func toDomain(_ dto: TeamGradeDTO) throws -> TeamGrade {

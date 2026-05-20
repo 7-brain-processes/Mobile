@@ -17,3 +17,17 @@ struct StudentTeam: Equatable, Sendable {
     let members: [CourseTeamMember]
     let joinedAt: Date
 }
+
+extension StudentTeam {
+    func withTeamGrade(_ teamGrade: Int?) -> StudentTeam {
+        StudentTeam(
+            teamId: teamId,
+            teamName: teamName,
+            teamGrade: teamGrade,
+            membersCount: membersCount,
+            maxSize: maxSize,
+            members: members,
+            joinedAt: joinedAt
+        )
+    }
+}

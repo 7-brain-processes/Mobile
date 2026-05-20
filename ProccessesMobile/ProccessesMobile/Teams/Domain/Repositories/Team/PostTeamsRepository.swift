@@ -20,6 +20,10 @@ protocol PostTeamsRepository: Sendable {
     func enroll(_ command: EnrollStudentInTeamCommand) async throws -> EnrollmentResponse
     func leave(_ command: LeaveTeamCommand) async throws -> EnrollmentResponse
     func getGrade(courseId: UUID, postId: UUID, teamId: UUID) async throws -> TeamGrade
+    func getStudentVoteStatus(courseId: UUID, postId: UUID) async throws -> TeamGradeVoteStatus
+    func submitVote(_ command: SubmitTeamGradeVoteCommand) async throws -> TeamGradeVoteStatus
+    func getTeacherVoteStatus(courseId: UUID, postId: UUID, teamId: UUID) async throws -> TeamGradeVoteStatus
+    func finalizeVote(courseId: UUID, postId: UUID, teamId: UUID) async throws -> TeamGradeVoteStatus
 }
 
 struct DefaultPostTeamsRepository: PostTeamsRepository, Sendable {
@@ -66,6 +70,69 @@ struct DefaultPostTeamsRepository: PostTeamsRepository, Sendable {
 
         let dto = try decoder.decode(TeamGradeDistributionDTO.self, from: data)
         return try TeamGradeDistributionMapper.toDomain(dto)
+    }
+
+    func getStudentVoteStatus(courseId: UUID, postId: UUID) async throws -> TeamGradeVoteStatus {
+        let endpoint = PostTeamsEndpoint.getStudentVoteStatus(
+            courseId: courseId.uuidString,
+            postId: postId.uuidString
+        )
+
+        let (data, response) = try await apiClient.send(endpoint)
+
+        try ResponseValidator.validate(response, successCodes: [200])
+
+        let dto = try decoder.decode(TeamGradeVoteStatusDTO.self, from: data)
+        return try TeamGradeVoteStatusMapper.toDomain(dto)
+    }
+
+    func submitVote(_ command: SubmitTeamGradeVoteCommand) async throws -> TeamGradeVoteStatus {
+        let endpoint = PostTeamsEndpoint.submitVote(
+            courseId: command.courseId.uuidString,
+            postId: command.postId.uuidString,
+            request: TeamGradeVoteStatusMapper.toDTO(command)
+        )
+
+        let (data, response) = try await apiClient.send(endpoint)
+
+        try ResponseValidator.validate(response, successCodes: [200, 201])
+
+        let dto = try decoder.decode(TeamGradeVoteStatusDTO.self, from: data)
+        return try TeamGradeVoteStatusMapper.toDomain(dto)
+    }
+
+    func getTeacherVoteStatus(
+        courseId: UUID,
+        postId: UUID,
+        teamId: UUID
+    ) async throws -> TeamGradeVoteStatus {
+        let endpoint = PostTeamsEndpoint.getTeacherVoteStatus(
+            courseId: courseId.uuidString,
+            postId: postId.uuidString,
+            teamId: teamId.uuidString
+        )
+
+        let (data, response) = try await apiClient.send(endpoint)
+
+        try ResponseValidator.validate(response, successCodes: [200])
+
+        let dto = try decoder.decode(TeamGradeVoteStatusDTO.self, from: data)
+        return try TeamGradeVoteStatusMapper.toDomain(dto)
+    }
+
+    func finalizeVote(courseId: UUID, postId: UUID, teamId: UUID) async throws -> TeamGradeVoteStatus {
+        let endpoint = PostTeamsEndpoint.finalizeVote(
+            courseId: courseId.uuidString,
+            postId: postId.uuidString,
+            teamId: teamId.uuidString
+        )
+
+        let (data, response) = try await apiClient.send(endpoint)
+
+        try ResponseValidator.validate(response, successCodes: [200])
+
+        let dto = try decoder.decode(TeamGradeVoteStatusDTO.self, from: data)
+        return try TeamGradeVoteStatusMapper.toDomain(dto)
     }
 
     func listTeamsForEnrollment(_ query: ListTeamsForEnrollmentQuery) async throws -> [CourseTeamAvailability] {

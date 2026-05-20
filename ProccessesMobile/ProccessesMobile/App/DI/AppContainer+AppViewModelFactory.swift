@@ -149,7 +149,12 @@ extension AppContainer: ViewModelFactory {
             listCourseTeamsUseCase: listCourseTeamsUseCase,
             getTeamGradeUseCase: getTeamGradeUseCase,
             getTeamGradeDistributionUseCase: getTeamGradeDistributionUseCase,
-            updateTeamGradeDistributionUseCase: updateTeamGradeDistributionUseCase
+            updateTeamGradeDistributionUseCase: updateTeamGradeDistributionUseCase,
+            getMeUseCase: getMeUseCase,
+            getStudentTeamGradeVoteStatusUseCase: getStudentTeamGradeVoteStatusUseCase,
+            getTeacherTeamGradeVoteStatusUseCase: getTeacherTeamGradeVoteStatusUseCase,
+            submitTeamGradeVoteUseCase: submitTeamGradeVoteUseCase,
+            finalizeTeamGradeVoteUseCase: finalizeTeamGradeVoteUseCase
         )
     }
 

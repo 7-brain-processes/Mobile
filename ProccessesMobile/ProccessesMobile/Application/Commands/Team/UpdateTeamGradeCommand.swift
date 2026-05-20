@@ -12,4 +12,5 @@ struct UpdateTeamGradeCommand: Equatable, Sendable {
     let postId: UUID
     let teamId: UUID
     let grade: Int
+    let comment: String?
 }

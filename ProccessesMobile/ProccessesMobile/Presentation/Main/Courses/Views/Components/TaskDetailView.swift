@@ -117,13 +117,34 @@ struct TaskDetailView: View {
             createTeamSheet
                 .presentationDetents([.medium])
         }
+        .sheet(isPresented: $viewModel.isStudentVoteSheetPresented) {
+            if let myTeam = viewModel.myTeam {
+                StudentTeamVoteSheetView(
+                    teamName: myTeam.teamName,
+                    teamGrade: viewModel.teamVoteStatus?.teamGrade ?? myTeam.teamGrade,
+                    members: myTeam.members.map(\.user),
+                    voteStatus: viewModel.teamVoteStatus,
+                    isSubmitting: viewModel.isSubmittingTeamVote,
+                    errorMessage: viewModel.errorMessage,
+                    onSubmit: { grades in
+                        Task {
+                            await viewModel.submitTeamVote(grades)
+                        }
+                    }
+                )
+                .presentationDetents([.medium, .large])
+            }
+        }
         .sheet(item: $viewModel.selectedTeamForGradeSheet) { team in
             TeacherTeamGradeSheetView(
                 team: team,
                 isSaving: viewModel.isUpdatingTeamGrade,
                 distribution: viewModel.teamGradeDistribution,
+                voteStatus: viewModel.teamVoteStatus,
                 isLoadingDistribution: viewModel.isLoadingTeamGradeDistribution,
+                isLoadingVoteStatus: viewModel.isLoadingTeamVoteStatus,
                 isApplyingAutoDistribution: viewModel.isUpdatingTeamGradeDistribution,
+                isFinalizingVote: viewModel.isFinalizingTeamVote,
                 errorMessage: viewModel.errorMessage,
                 onSave: { input in
                     Task {
@@ -134,9 +155,19 @@ struct TaskDetailView: View {
                     Task {
                         await viewModel.applyAutoEqualDistribution(for: team.id)
                     }
+                },
+                onApplyVotingDistribution: {
+                    Task {
+                        await viewModel.applyTeamVoteDistribution(for: team.id)
+                    }
+                },
+                onFinalizeVoting: {
+                    Task {
+                        await viewModel.finalizeTeamVote(for: team.id)
+                    }
                 }
             )
-            .presentationDetents([.medium])
+            .presentationDetents([.medium, .large])
         }
         .navigationDestination(item: Binding(
             get: { viewModel.previewAttachment },
@@ -236,8 +267,13 @@ struct TaskDetailView: View {
                         TaskTeamEnrollmentSectionView(
                             myTeam: viewModel.myTeam,
                             teams: viewModel.availableTeams,
+                            distributionModeTitle: viewModel.studentDistributionModeTitle,
+                            votingStatusTitle: viewModel.studentVotingStatusTitle,
+                            voteStatus: viewModel.teamVoteStatus,
                             isLoading: viewModel.isLoadingTeams,
+                            isLoadingVotingState: viewModel.isLoadingTeamVoteStatus,
                             isChangingTeam: viewModel.isChangingTeam,
+                            canOpenVoteSheet: viewModel.canOpenStudentVoteSheet,
                             onJoin: { team in
                                 Task {
                                     await viewModel.enrollInTeam(team)
@@ -247,6 +283,9 @@ struct TaskDetailView: View {
                                 Task {
                                     await viewModel.leaveCurrentTeam()
                                 }
+                            },
+                            onOpenVoteSheet: {
+                                viewModel.openStudentVoteSheet()
                             }
                         )
                         .padding(.horizontal, 16)
@@ -315,6 +354,13 @@ struct TaskDetailView: View {
 
     private var teacherSubmissionsContent: some View {
         VStack(spacing: 12) {
+            if let item = viewModel.item,
+               viewModel.isTeacher,
+               item.teamFormationMode != nil || item.teamRequirementTemplateId != nil {
+                teacherTeamManagementSection
+                    .padding(.horizontal, 16)
+            }
+
             ForEach(viewModel.submissions) { submission in
                 Button {
                     viewModel.openSubmissionSheet(submission)
@@ -437,7 +483,7 @@ struct TaskDetailView: View {
                         .lineLimit(2)
                 }
 
-                Text("Tap to set or edit grade")
+                Text("Tap to manage grade and distribution")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
             }

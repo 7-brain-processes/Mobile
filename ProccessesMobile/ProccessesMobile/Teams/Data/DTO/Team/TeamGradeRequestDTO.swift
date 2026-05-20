@@ -9,4 +9,5 @@ import Foundation
 
 struct TeamGradeRequestDTO: Equatable, Sendable, Codable {
     let grade: Int
+    let comment: String?
 }

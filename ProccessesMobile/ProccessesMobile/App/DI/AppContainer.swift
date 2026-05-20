@@ -112,6 +112,10 @@ final class AppContainer: ObservableObject {
     let getTeamGradeUseCase: GetTeamGradeUseCase
     let getTeamGradeDistributionUseCase: GetTeamGradeDistributionUseCase
     let updateTeamGradeDistributionUseCase: UpdateTeamGradeDistributionUseCase
+    let getStudentTeamGradeVoteStatusUseCase: GetStudentTeamGradeVoteStatusUseCase
+    let getTeacherTeamGradeVoteStatusUseCase: GetTeacherTeamGradeVoteStatusUseCase
+    let submitTeamGradeVoteUseCase: SubmitTeamGradeVoteUseCase
+    let finalizeTeamGradeVoteUseCase: FinalizeTeamGradeVoteUseCase
 
     init(isAuthorized: Bool) {
         self.appCoordinator = AppCoordinator(isAuthorized: isAuthorized)
@@ -358,6 +362,22 @@ final class AppContainer: ObservableObject {
         )
 
         self.updateTeamGradeDistributionUseCase = DefaultUpdateTeamGradeDistributionUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.getStudentTeamGradeVoteStatusUseCase = DefaultGetStudentTeamGradeVoteStatusUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.getTeacherTeamGradeVoteStatusUseCase = DefaultGetTeacherTeamGradeVoteStatusUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.submitTeamGradeVoteUseCase = DefaultSubmitTeamGradeVoteUseCase(
+            repository: postTeamsRepository
+        )
+
+        self.finalizeTeamGradeVoteUseCase = DefaultFinalizeTeamGradeVoteUseCase(
             repository: postTeamsRepository
         )
     }
