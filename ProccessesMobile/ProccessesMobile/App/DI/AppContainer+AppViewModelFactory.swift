@@ -154,7 +154,14 @@ extension AppContainer: ViewModelFactory {
             getStudentTeamGradeVoteStatusUseCase: getStudentTeamGradeVoteStatusUseCase,
             getTeacherTeamGradeVoteStatusUseCase: getTeacherTeamGradeVoteStatusUseCase,
             submitTeamGradeVoteUseCase: submitTeamGradeVoteUseCase,
-            finalizeTeamGradeVoteUseCase: finalizeTeamGradeVoteUseCase
+            finalizeTeamGradeVoteUseCase: finalizeTeamGradeVoteUseCase,
+            getGradingConfigUseCase: getGradingConfigUseCase,
+            updateGradingConfigUseCase: updateGradingConfigUseCase,
+            deleteGradingConfigUseCase: deleteGradingConfigUseCase,
+            getCriteriaGradesUseCase: getCriteriaGradesUseCase,
+            updateCriteriaGradesUseCase: updateCriteriaGradesUseCase,
+            publishCriteriaGradesUseCase: publishCriteriaGradesUseCase,
+            getGradeDecompositionUseCase: getGradeDecompositionUseCase
         )
     }
 

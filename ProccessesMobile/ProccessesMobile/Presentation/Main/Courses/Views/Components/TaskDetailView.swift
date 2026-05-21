@@ -98,6 +98,12 @@ struct TaskDetailView: View {
                         commentId: commentId
                     )
                 },
+                onOpenCriteriaGrading: {
+                    Task {
+                        await viewModel.openCriteriaGrading(for: submission)
+                    }
+                },
+                isCriteriaGradingAvailable: viewModel.assessmentConfig != nil,
                 onAttachmentDownload: { attachment in
                     viewModel.downloadSubmissionAttachment(
                         attachment,
@@ -168,6 +174,17 @@ struct TaskDetailView: View {
                 }
             )
             .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: $viewModel.isAssessmentConfigEditorPresented) {
+            AssessmentConfigEditorView(viewModel: viewModel)
+                .presentationDetents([.large])
+        }
+        .sheet(item: $viewModel.selectedSubmissionForCriteriaSheet) { submission in
+            AssessmentCriteriaGradingView(
+                viewModel: viewModel,
+                submission: submission
+            )
+            .presentationDetents([.large])
         }
         .navigationDestination(item: Binding(
             get: { viewModel.previewAttachment },
@@ -294,9 +311,39 @@ struct TaskDetailView: View {
                         .padding(.horizontal, 16)
                     }
 
+                    if viewModel.isStudent,
+                       let gradeBreakdown = viewModel.gradeBreakdown {
+                        StudentGradeBreakdownView(
+                            breakdown: gradeBreakdown,
+                            isLoading: viewModel.isLoadingGradeDecomposition
+                        )
+                        .padding(.horizontal, 16)
+                    } else if viewModel.isStudent,
+                              let emptyState = viewModel.studentGradeBreakdownEmptyState {
+                        StudentGradeBreakdownEmptyStateView(
+                            state: emptyState,
+                            isLoading: viewModel.isLoadingGradeDecomposition
+                        )
+                        .padding(.horizontal, 16)
+                    }
+
                     if viewModel.isTeacher && (item.teamFormationMode != nil || item.teamRequirementTemplateId != nil) {
                         teacherTeamManagementSection
                             .padding(.horizontal, 16)
+                    }
+
+                    if viewModel.isTeacher {
+                        Button {
+                            viewModel.openAssessmentConfigEditor()
+                        } label: {
+                            Label(
+                                viewModel.assessmentConfig == nil ? "Configure assessment" : "Edit assessment config",
+                                systemImage: "slider.horizontal.3"
+                            )
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding(.horizontal, 16)
                     }
 
                     // MARK: Materials section

@@ -30,6 +30,7 @@ protocol AppContainerDependencyProviding: AnyObject {
     var solutionRepository: SolutionRepository { get }
     var solutionCommentsRepository: SolutionCommentsRepository { get }
     var solutionFilesRepository: SolutionFilesRepository { get }
+    var assessmentRepository: AssessmentRepository { get }
 
     var getMeUseCase: GetMeUseCase { get }
     var loginUseCase: LoginUseCase { get }
@@ -69,6 +70,14 @@ protocol AppContainerDependencyProviding: AnyObject {
     var updateSolutionCommentUseCase: UpdateSolutionCommentUseCase { get }
     var updateSolutionUseCase: UpdateSolutionUseCase { get }
     var uploadSolutionFileUseCase: UploadSolutionFileUseCase { get }
+
+    var getGradingConfigUseCase: GetGradingConfigUseCase { get }
+    var updateGradingConfigUseCase: UpdateGradingConfigUseCase { get }
+    var deleteGradingConfigUseCase: DeleteGradingConfigUseCase { get }
+    var getCriteriaGradesUseCase: GetCriteriaGradesUseCase { get }
+    var updateCriteriaGradesUseCase: UpdateCriteriaGradesUseCase { get }
+    var publishCriteriaGradesUseCase: PublishCriteriaGradesUseCase { get }
+    var getGradeDecompositionUseCase: GetGradeDecompositionUseCase { get }
 
     var deletePostMaterialUseCase: DeletePostMaterialUseCase { get }
     var downloadPostMaterialUseCase: DownloadPostMaterialUseCase { get }
